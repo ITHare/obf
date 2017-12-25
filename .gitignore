@@ -5,3 +5,4 @@
 /.vs
 /test/MSVC/.vs/ConsoleApplication1/v15
 /test/MSVC/Debug
+/test/MSVC/Release

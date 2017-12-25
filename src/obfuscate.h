@@ -343,9 +343,9 @@ namespace obf {
 
 		static constexpr OBFCYCLES RemainingCycles2 = RemainingCycles1 - RecursiveCycles;
 		static constexpr OBFCYCLES HiCycles = obf_weak_random(obf_compile_time_prng(seed, 3), RemainingCycles2 - 2);
-		using HiInjection = obf_injection<halfT, typename ObfRecursiveContext<halfT, Context, obf_compile_time_prng(seed, 4),10/*TODO*/>::recursive_context_type/*ObfZeroContext<halfT>*/, obf_compile_time_prng(seed, 5), HiCycles>;
+		using HiInjection = obf_injection<halfT, typename ObfRecursiveContext<halfT, Context, obf_compile_time_prng(seed, 4),10/*TODO*/>::side_context_type/*ObfZeroContext<halfT>*/, obf_compile_time_prng(seed, 5), HiCycles>;
 		static constexpr OBFCYCLES LoCycles = RemainingCycles2 - HiCycles;
-		using LoInjection = obf_injection<halfT, typename ObfRecursiveContext<halfT, Context, obf_compile_time_prng(seed, 6), 10/*TODO*/>::recursive_context_type/*ObfZeroContext<halfT>*/, obf_compile_time_prng(seed, 7), LoCycles>;
+		using LoInjection = obf_injection<halfT, typename ObfRecursiveContext<halfT, Context, obf_compile_time_prng(seed, 6), 10/*TODO*/>::side_context_type/*ObfZeroContext<halfT>*/, obf_compile_time_prng(seed, 7), LoCycles>;
 		static_assert(sizeof(HiInjection::return_type) == sizeof(halfT));//bijections ONLY; TODO: enforce
 		static_assert(sizeof(LoInjection::return_type) == sizeof(halfT));//bijections ONLY; TODO: enforce
 
@@ -558,7 +558,7 @@ namespace obf {
 
 #ifdef OBFUSCATE_DEBUG_ENABLE_DBGPRINT
 		static void dbgPrint(size_t offset = 0) {
-			std::cout << std::string(offset, ' ') << "ObfZeroContext<" << obf_dbgPrintT<T>() << ">" << std::endl;
+			std::cout << std::string(offset, ' ') << "ObfLiteralContext_version<0/*identity*/," << obf_dbgPrintT<T>() << ">" << std::endl;
 		}
 #endif
 	};
@@ -580,7 +580,7 @@ namespace obf {
 
 #ifdef OBFUSCATE_DEBUG_ENABLE_DBGPRINT
 		static void dbgPrint(size_t offset = 0) {
-			std::cout << std::string(offset, ' ') << "obfLiteralContext1/*global volatile*/<" << obf_dbgPrintT<T>() << "," << seed << ">: CC=" << CC << std::endl;
+			std::cout << std::string(offset, ' ') << "ObfLiteralContext_version<1/*global volatile*/," << obf_dbgPrintT<T>() << "," << seed << ">: CC=" << CC << std::endl;
 		}
 #endif
 	private:
@@ -614,7 +614,7 @@ namespace obf {
 		}
 #ifdef OBFUSCATE_DEBUG_ENABLE_DBGPRINT
 		static void dbgPrint(size_t offset = 0) {
-			std::cout << std::string(offset, ' ') << "obf_literal_version<2," << obf_dbgPrintT<T>() << "," << seed << ">:" << std::endl;
+			std::cout << std::string(offset, ' ') << "ObfLiteralContext_version<2/*func with aliased pointers*/," << obf_dbgPrintT<T>() << "," << seed << ">:" << std::endl;
 		}
 #endif
 	};
@@ -647,11 +647,35 @@ namespace obf {
 
 #ifdef OBFUSCATE_DEBUG_ENABLE_DBGPRINT
 		static void dbgPrint(size_t offset = 0) {
-			std::cout << std::string(offset, ' ') << "ObfLiteralContext3/*PEB*/<" << obf_dbgPrintT<T>() << "," << seed << ">: CC=" << CC << std::endl;
+			std::cout << std::string(offset, ' ') << "ObfLiteralContext_version<3/*PEB*/," << obf_dbgPrintT<T>() << "," << seed << ">: CC=" << CC << std::endl;
 		}
 #endif
 	};
 #endif
+
+	//ObfZeroContext
+	template<class T>
+	struct ObfZeroContext {
+		//uses the same injection as for ObfLiteralContext_version<0,...>,
+		//  but has different ObfRecursiveContext semantics
+		static constexpr T final_injection(T x) {
+			return x;
+		}
+		static constexpr T final_surjection(T y) {
+			return y;
+		}
+
+#ifdef OBFUSCATE_DEBUG_ENABLE_DBGPRINT
+		static void dbgPrint(size_t offset = 0) {
+			std::cout << std::string(offset, ' ') << "ObfZeroContext<" << obf_dbgPrintT<T>() << ">" << std::endl;
+		}
+#endif
+	};
+	template<class T, class T0, OBFSEED seed, OBFCYCLES cycles>
+	struct ObfRecursiveContext<T, ObfZeroContext<T0>, seed, cycles> {
+		using recursive_context_type = ObfZeroContext<T>;
+		using side_context_type = ObfZeroContext<T>;
+	};
 
 	//ObfLiteralContext
 	template<class T, OBFSEED seed, OBFCYCLES cycles>
@@ -685,9 +709,24 @@ namespace obf {
 #endif
 	};
 
+	template<size_t which,class T, OBFSEED seed, OBFCYCLES cycles>
+	struct obf_literal_side_context_version;
+	template<class T, OBFSEED seed, OBFCYCLES cycles>
+	struct obf_literal_side_context_version<0, T, seed, cycles> {
+		using type = ObfZeroContext<T>;
+	};
+	template<class T, OBFSEED seed, OBFCYCLES cycles>
+	struct obf_literal_side_context_version<1, T, seed, cycles> {
+		using type = ObfLiteralContext<T, seed, cycles>;
+	};
+
 	template<class T, class T0, OBFSEED seed, OBFSEED seed0, OBFCYCLES cycles0,OBFCYCLES cycles>
 	struct ObfRecursiveContext<T, ObfLiteralContext<T0, seed0,cycles0>, seed, cycles> {
 		using recursive_context_type = ObfLiteralContext<T, seed,cycles>;
+
+		constexpr static std::array<size_t, 2> weights{100,10};//TODO: #define
+		static constexpr size_t which = obf_random_from_list(obf_compile_time_prng(seed,1), weights);
+		using side_context_type = typename obf_literal_side_context_version<which,T, obf_compile_time_prng(seed, 2), cycles>::type;
 	};
 
 	//obf_literal
