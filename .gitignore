@@ -6,3 +6,7 @@
 /test/MSVC/.vs/ConsoleApplication1/v15
 /test/MSVC/Debug
 /test/MSVC/Release
+/test/MSVC/Release-noPDB
+/test/MSVC/x64/Release
+/test/MSVC/x64/Debug
+/test/MSVC/x64/Release-noPDB

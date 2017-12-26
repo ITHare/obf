@@ -70,7 +70,8 @@ namespace obf {
 		return ret;
 	}
 
-	constexpr size_t obf_weak_random(OBFSEED seed, size_t n) {
+	template<class MAX>
+	constexpr MAX obf_weak_random(OBFSEED seed, MAX n) {
 		return seed % n;//slightly biased, but for our purposes will do
 	}
 
@@ -356,7 +357,7 @@ namespace obf {
 			halfT hi = (halfT)x;
 			typename HiInjection::return_type hi1 = HiInjection::injection(hi);
 			hi = *reinterpret_cast<halfT*>(&hi1);//relies on static_assert(sizeof(return_type)==sizeof(halfT)) above
-			return RecursiveInjection::injection((hi << halfTBits) + lo);
+			return RecursiveInjection::injection((T(hi) << halfTBits) + T(lo));
 		}
 		FORCEINLINE constexpr static T surjection(return_type y_) {
 			auto y = RecursiveInjection::surjection(y_);
@@ -364,7 +365,7 @@ namespace obf {
 			halfT lo = (halfT)y;
 			hi = HiInjection::surjection(*reinterpret_cast<typename HiInjection::return_type*>(&hi));//relies on static_assert(sizeof(return_type)==sizeof(halfT)) above
 			lo = LoInjection::surjection(*reinterpret_cast<typename LoInjection::return_type*>(&lo));//relies on static_assert(sizeof(return_type)==sizeof(halfT)) above
-			return (T)hi + ((T)lo << halfTBits);
+			return T(hi) + (T(lo) << halfTBits);
 		}
 
 #ifdef OBFUSCATE_DEBUG_ENABLE_DBGPRINT
