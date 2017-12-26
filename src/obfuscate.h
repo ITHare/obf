@@ -15,6 +15,7 @@
 #include <array>
 #include <assert.h>
 #include <type_traits>
+#include <atomic>//for OBF_STRICT_MT
 #include <string>//for dbgPrint() only
 #include <iostream>//for dbgPrint() only
 
@@ -26,9 +27,16 @@ namespace obf {
 	//enables rather nasty obfuscations (including PEB-based debugger detection),
 	//  but requires you to call obf_init() BEFORE ANY obf<> objects are used. 
 	//  As a result - it can backfire for obfuscations-used-from-global-constructors :-(.
- 
+
+#define OBF_STRICT_MT//strict multithreading. Short story: as of now, more recommended than not.
+	//Long story: in practice, with proper alignments should be MT-safe even without it, 
+	//      but is formally UB, so future compilers MAY generate code which will fail under heavy MT (hard to imagine, but...) :-( 
+	//      OTOH, at least for x64 generates not-too-obvious XCHG instruction (with implicit LOCK completely missed by current IDA decompiler)
+
 //#define OBFUSCATE_DEBUG_DISABLE_ANTI_DEBUG
 	//disables built-in anti-debugger kinda-protections
+
+#define OBF_COMPILE_TIME_TESTS 100//supposed to affect ONLY time of compilation
 
 //THE FOLLOWING MUST BE NOT USED FOR PRODUCTION BUILDS:
 #define OBFUSCATE_DEBUG_ENABLE_DBGPRINT
@@ -68,6 +76,30 @@ namespace obf {
 			ret = UINT64_C(6364136223846793005) * ret + UINT64_C(1442695040888963407);//linear congruential one; TODO: replace with something crypto-strength for production use
 		}
 		return ret;
+	}
+
+	template<class T, size_t N>
+	constexpr T obf_compile_time_approximation(T x, std::array<T,N> xref, std::array<T,N> yref) {
+		for (size_t i = 0; i < N-1; ++i) {
+			T x0 = xref[i];
+			T x1 = xref[i + 1];
+			if (x >= x0 && x < x1) {
+				T y0 = yref[i];
+				T y1 = yref[i + 1];
+				return uint64_t(y0 + double(x - x0)*double(y1 - y0) / double(x1 - x0));
+			}
+		}
+	}
+
+	constexpr uint64_t obf_sqrt_very_rough_approximation(uint64_t x0) {
+		std::array<uint64_t,64> xref = {};
+		std::array<uint64_t, 64> yref = {};
+		for (size_t i = 1; i < 64; ++i) {
+			uint64_t x = UINT64_C(1) << (i-1);
+			xref[i] = x * x;
+			yref[i] = x;
+		}
+		return obf_compile_time_approximation(x0, xref, yref);
 	}
 
 	template<class MAX>
@@ -550,6 +582,8 @@ namespace obf {
 
 	template<class T,OBFSEED seed>
 	struct ObfLiteralContext_version<0,T,seed> {
+		static_assert(std::is_integral<T>::value);
+		static_assert(std::is_unsigned<T>::value);
 		static constexpr T final_injection(T x) {
 			return x;
 		}
@@ -571,6 +605,8 @@ namespace obf {
 
 	template<class T, OBFSEED seed>
 	struct ObfLiteralContext_version<1,T,seed> {
+		static_assert(std::is_integral<T>::value);
+		static_assert(std::is_unsigned<T>::value);
 		static constexpr T CC = obf_gen_const<T>(obf_compile_time_prng(seed, 1));
 		static constexpr T final_injection(T x) {
 			return x + CC;
@@ -605,6 +641,8 @@ namespace obf {
 
 	template<class T, OBFSEED seed>
 	struct ObfLiteralContext_version<2,T,seed> {
+		static_assert(std::is_integral<T>::value);
+		static_assert(std::is_unsigned<T>::value);
 		static constexpr T final_injection(T x) {
 			return x;
 		}
@@ -634,6 +672,8 @@ namespace obf {
 
 	template<class T, OBFSEED seed>
 	struct ObfLiteralContext_version<3,T,seed> {
+		static_assert(std::is_integral<T>::value);
+		static_assert(std::is_unsigned<T>::value);
 		static constexpr T CC = obf_gen_const<T>(obf_compile_time_prng(seed, 1));
 		static constexpr T final_injection(T x) {
 			return x + CC;
@@ -652,6 +692,82 @@ namespace obf {
 		}
 #endif
 	};
+#endif
+
+	//version 4: global var-with-invariant
+	struct obf_literal_context_version4_descr {
+		static constexpr ObfDescriptor descr = ObfDescriptor(true, 10, 100);
+	};
+
+	template<class T, OBFSEED seed>
+	struct ObfLiteralContext_version<4, T, seed> {
+		static_assert(std::is_integral<T>::value);
+		static_assert(std::is_unsigned<T>::value);
+		static constexpr T PREMODRNDCONST = obf_gen_const<T>(obf_compile_time_prng(seed, 1));
+		static constexpr T PREMODMASK = (T(1) << (sizeof(T) * 4)) - 1;
+		static constexpr T PREMOD = PREMODRNDCONST & PREMODMASK;
+		static constexpr T MOD = PREMOD == 0 ? 100 : PREMOD;//remapping 'bad value' 0 to 'something'
+		static constexpr T CC = obf_weak_random(obf_compile_time_prng(seed, 2),MOD);
+
+		static constexpr T MAXMUL1 = T(-1)/MOD;
+		static constexpr auto MAXMUL1_ADJUSTED0 = obf_sqrt_very_rough_approximation(MAXMUL1);
+		static_assert(MAXMUL1_ADJUSTED0 < T(-1));
+		static constexpr T MAXMUL1_ADJUSTED = (T)MAXMUL1_ADJUSTED0;
+		static constexpr T MUL1 = MAXMUL1 > 2 ? 1+obf_weak_random(obf_compile_time_prng(seed, 2), MAXMUL1_ADJUSTED) : 1;
+		static constexpr T DELTA = MUL1 * MOD;
+		static_assert(DELTA / MUL1 == MOD);//overflow check
+
+		static constexpr T MAXMUL2 = T(-1) / DELTA;
+		static constexpr T MUL2 = MAXMUL2 > 2 ? 1+obf_weak_random(obf_compile_time_prng(seed, 3), MAXMUL2) : 1;
+		static constexpr T DELTAMOD = MUL2 * MOD;
+		static_assert(DELTAMOD / MUL2 == MOD);//overflow check
+
+		static constexpr T PREMUL3 = obf_weak_random(obf_compile_time_prng(seed, 3), MUL2);
+		static constexpr T MUL3 = PREMUL3 > 0 ? PREMUL3 : 1;
+		static constexpr T CC0 = ( CC + MUL3 * MOD ) % DELTAMOD;
+
+		static_assert((CC0 + DELTA) % MOD == CC);
+		static constexpr bool test_n_iterations(T x, int n) {
+			assert(x%MOD == CC);
+			if (n == 0)
+				return true;
+			T newC = (x + DELTA) % DELTAMOD;
+			assert(newC%MOD == CC);
+			return test_n_iterations(newC,n-1);
+		}
+		static_assert(test_n_iterations(CC0, OBF_COMPILE_TIME_TESTS));//test only
+
+		static constexpr T final_injection(T x) {
+			return x + CC;
+		}
+		static T final_surjection(T y) {
+			//{MT-related:
+			T newC = (c+DELTA)%DELTAMOD;
+			c = newC;
+			//}MT-related
+			assert(c%MOD == CC);
+			return y - (c%MOD);
+		}
+
+#ifdef OBFUSCATE_DEBUG_ENABLE_DBGPRINT
+		static void dbgPrint(size_t offset = 0) {
+			std::cout << std::string(offset, ' ') << "ObfLiteralContext_version<4/*global volatile var-with-invariant*/," << obf_dbgPrintT<T>() << "," << seed << ">: CC=" << CC << std::endl;
+		}
+#endif
+	private:
+#ifdef OBF_STRICT_MT
+		static std::atomic<T> c;
+#else
+		static volatile T c;
+#endif
+	};
+
+#ifdef OBF_STRICT_MT
+	template<class T, OBFSEED seed>
+	std::atomic<T> ObfLiteralContext_version<4, T, seed>::c = CC0;
+#else
+	template<class T, OBFSEED seed>
+	volatile T ObfLiteralContext_version<4, T, seed>::c = CC0;
 #endif
 
 	//ObfZeroContext
@@ -683,11 +799,12 @@ namespace obf {
 	class ObfLiteralContext {
 		static_assert(std::is_integral<T>::value);
 		static_assert(std::is_unsigned<T>::value);
-		constexpr static std::array<ObfDescriptor, 4> descr{
+		constexpr static std::array<ObfDescriptor, 5> descr{
 			obf_literal_context_version0_descr::descr,
 			obf_literal_context_version1_descr::descr,
 			obf_literal_context_version2_descr::descr,
 			obf_literal_context_version3_descr::descr,
+			obf_literal_context_version4_descr::descr,
 		};
 		constexpr static size_t which = obf_random_obf_from_list(obf_compile_time_prng(seed, 1), cycles, descr);
 		using WhichType = ObfLiteralContext_version<which, T, seed>;
