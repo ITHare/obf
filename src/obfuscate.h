@@ -20,7 +20,7 @@
 
 namespace obf {
 
-#if 1
+#ifdef OBF_INTERNAL_DBG // set of settings currently used for internal testing. DON'T rely on it!
 #define OBFUSCATE_SEED 0x0c7dfa61a867b125ui64 //example for MSVC
 #define OBFUSCATE_INIT 
 	//enables rather nasty obfuscations (including PEB-based debugger detection),
@@ -33,7 +33,7 @@ namespace obf {
 //THE FOLLOWING MUST BE NOT USED FOR PRODUCTION BUILDS:
 #define OBFUSCATE_DEBUG_ENABLE_DBGPRINT
 	//enables dbgPrint()
-#endif//0-1
+#endif//OBF_INTERNAL_DBG
 
 #ifndef OBFUSCATE_SEED
 #else
