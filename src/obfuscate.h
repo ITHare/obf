@@ -19,9 +19,9 @@
 #include <string>//for dbgPrint() only
 #include <iostream>//for dbgPrint() only
 
-namespace obf {
-
 #ifdef OBF_INTERNAL_DBG // set of settings currently used for internal testing. DON'T rely on it!
+//#define OBFUSCATE_DEBUG_ENABLE_DBGPRINT
+//#if 0
 #define OBFUSCATE_SEED 0x0c7dfa61a867b125ui64 //example for MSVC
 #define OBFUSCATE_INIT 
 	//enables rather nasty obfuscations (including PEB-based debugger detection),
@@ -43,9 +43,6 @@ namespace obf {
 	//enables dbgPrint()
 #endif//OBF_INTERNAL_DBG
 
-#ifndef OBFUSCATE_SEED
-#else
-
 #ifdef _MSC_VER
 #pragma warning (disable:4307)
 #define FORCEINLINE __forceinline
@@ -54,6 +51,7 @@ namespace obf {
 #error non-MSVC compilers are not supported (yet?)
 #endif
 
+#ifdef OBFUSCATE_SEED
 	using OBFSEED = uint64_t;
 	using OBFCYCLES = int32_t;//signed!
 
@@ -73,6 +71,7 @@ namespace obf {
 #ifndef OBF_WEIGHTSPECIALCONST 
 #define OBF_WEIGHTSPECIALCONST 100
 #endif
+	namespace obf {
 
 //POTENTIALLY user-modifiable constexpr function:
 constexpr OBFCYCLES obf_exp_cycles(int exp) {
@@ -938,20 +937,25 @@ constexpr OBFCYCLES obf_exp_cycles(int exp) {
 		using Injection = obf_injection<T, Context, obf_compile_time_prng(seed, 2), cycles>;
 
 	public:
-		obf_var(T t) : val(Injection::injection(t)) {
+		obf_var(T_ t) : val(Injection::injection(T(t))) {
 		}
-		/*template<class T,class T2,OBFSEED seed2, OBFCYCLES cycles2>
-		obf_var(obf_var<T2, seed2, cycles2> t) : val(Injection::injection(t.value())) {
-		}*/
-		obf_var& operator =(T t) {
-			val = Injection::injection(t);//TODO: different injection implementation
+		template<class T2,OBFSEED seed2, OBFCYCLES cycles2>
+		obf_var(obf_var<T2, seed2, cycles2> t) : val(Injection::injection(T(T_(t.value())))) {
+		}
+		obf_var& operator =(T_ t) {
+			val = Injection::injection(T(t));//TODO: different injection implementation
 			return *this;
 		}
-		T value() const {
-			return Injection::surjection(val);
+		template<class T2,OBFSEED seed2, OBFCYCLES cycles2>
+		obf_var& operator =(obf_var<T2, seed2, cycles2> t) {
+			val = Injection::injection(T(T_(t.value())));//TODO: different injection implementation
+			return *this;
+		}
+		T_ value() const {
+			return T_(Injection::surjection(val));
 		}
 
-		operator T() const { return value(); }
+		operator T_() const { return value(); }
 		obf_var operator ++() { *this = value() + 1; return *this; }
 		obf_var operator --() { *this = value() - 1; return *this; }
 		//TODO: postfix
@@ -995,30 +999,99 @@ constexpr OBFCYCLES obf_exp_cycles(int exp) {
 		Base val;
 	};*/
 
-	//macros; DON'T really belong to the namespace...
-#ifdef _MSC_VER
-	//direct use of __LINE__ doesn't count as constexpr in MSVC - don't ask why...
+}//namespace obf
 
-	//along the lines of https://stackoverflow.com/questions/19343205/c-concatenating-file-and-line-macros:
+ //macros; DON'T belong to the namespace...
+#ifdef _MSC_VER
+ //direct use of __LINE__ doesn't count as constexpr in MSVC - don't ask why...
+
+ //along the lines of https://stackoverflow.com/questions/19343205/c-concatenating-file-and-line-macros:
 #define OBF_S1(x) #x
 #define OBF_S2(x) OBF_S1(x)
 #define OBF_LOCATION __FILE__ " : " OBF_S2(__LINE__)
 
-#define OBF0(type) obf_var<type,obf_seed_from_file_line(OBF_LOCATION,0),obf_exp_cycles(OBFSCALE+0)>
-#define OBF1(type) obf_var<type,obf_seed_from_file_line(OBF_LOCATION,0),obf_exp_cycles(OBFSCALE+1)>
-#define OBF2(type) obf_var<type,obf_seed_from_file_line(OBF_LOCATION,0),obf_exp_cycles(OBFSCALE+2)>
-#define OBF3(type) obf_var<type,obf_seed_from_file_line(OBF_LOCATION,0),obf_exp_cycles(OBFSCALE+3)>
-#define OBF4(type) obf_var<type,obf_seed_from_file_line(OBF_LOCATION,0),obf_exp_cycles(OBFSCALE+4)>
-#define OBF5(type) obf_var<type,obf_seed_from_file_line(OBF_LOCATION,0),obf_exp_cycles(OBFSCALE+5)>
-#else
-#define OBF0(type) obf_var<type,obf_seed_from_file_line(__FILE__,__LINE__),obf_exp_cycles(OBFSCALE+0)>
-#define OBF1(type) obf_var<type,obf_seed_from_file_line(__FILE__,__LINE__),obf_exp_cycles(OBFSCALE+1)>
-#define OBF2(type) obf_var<type,obf_seed_from_file_line(__FILE__,__LINE__),obf_exp_cycles(OBFSCALE+2)>
-#define OBF3(type) obf_var<type,obf_seed_from_file_line(__FILE__,__LINE__),obf_exp_cycles(OBFSCALE+3)>
-#define OBF4(type) obf_var<type,obf_seed_from_file_line(__FILE__,__LINE__),obf_exp_cycles(OBFSCALE+4)>
-#define OBF5(type) obf_var<type,obf_seed_from_file_line(__FILE__,__LINE__),obf_exp_cycles(OBFSCALE+5)>
+#define OBF0(type) obf::obf_var<type,obf::obf_seed_from_file_line(OBF_LOCATION,0),obf::obf_exp_cycles(OBFSCALE+0)>
+#define OBF1(type) obf::obf_var<type,obf::obf_seed_from_file_line(OBF_LOCATION,0),obf::obf_exp_cycles(OBFSCALE+1)>
+#define OBF2(type) obf::obf_var<type,obf::obf_seed_from_file_line(OBF_LOCATION,0),obf::obf_exp_cycles(OBFSCALE+2)>
+#define OBF3(type) obf::obf_var<type,obf::obf_seed_from_file_line(OBF_LOCATION,0),obf::obf_exp_cycles(OBFSCALE+3)>
+#define OBF4(type) obf::obf_var<type,obf::obf_seed_from_file_line(OBF_LOCATION,0),obf::obf_exp_cycles(OBFSCALE+4)>
+#define OBF5(type) obf::obf_var<type,obf::obf_seed_from_file_line(OBF_LOCATION,0),obf::obf_exp_cycles(OBFSCALE+5)>
+#else//_MSC_VER
+#define OBF0(type) obf::obf_var<type,obf::obf_seed_from_file_line(__FILE__,__LINE__),obf::obf_exp_cycles(OBFSCALE+0)>
+#define OBF1(type) obf::obf_var<type,obf::obf_seed_from_file_line(__FILE__,__LINE__),obf::obf_exp_cycles(OBFSCALE+1)>
+#define OBF2(type) obf::obf_var<type,obf::obf_seed_from_file_line(__FILE__,__LINE__),obf::obf_exp_cycles(OBFSCALE+2)>
+#define OBF3(type) obf::obf_var<type,obf::obf_seed_from_file_line(__FILE__,__LINE__),obf::obf_exp_cycles(OBFSCALE+3)>
+#define OBF4(type) obf::obf_var<type,obf::obf_seed_from_file_line(__FILE__,__LINE__),obf::obf_exp_cycles(OBFSCALE+4)>
+#define OBF5(type) obf::obf_var<type,obf::obf_seed_from_file_line(__FILE__,__LINE__),obf::obf_exp_cycles(OBFSCALE+5)>
 #endif
-}//namespace obf
+
+#else//OBFUSCATE_SEED
+
+	namespace obf {
+#ifdef OBFUSCATE_DEBUG_ENABLE_DBGPRINT
+		//dbgPrint helpers
+		template<class T>
+		std::string obf_dbgPrintT() {
+			return std::string("T(sizeof=") + std::to_string(sizeof(T)) + ")";
+		}
+#endif
+
+		//obf_var_dbg
+		template<class T>
+		class obf_var_dbg {
+			static_assert(std::is_integral<T>::value);
+
+		public:
+			obf_var_dbg(T t) : val(t) {
+			}
+			template<class T, class T2>
+			obf_var_dbg(obf_var_dbg<T2> t) : val(T(t.value())) {
+			}
+			obf_var_dbg& operator =(T t) {
+				val = t;
+				return *this;
+			}
+			template<class T, class T2>
+			obf_var_dbg& operator =(obf_var_dbg<T2> t) {
+				val = T(t.value());
+				return *this;
+			}
+			T value() const {
+				return val;
+			}
+
+			operator T() const { return value(); }
+			obf_var_dbg operator ++() { ++val; return *this; }
+			obf_var_dbg operator --() { --val; return *this; }
+			//TODO: postfix
+
+			template<class T2>
+			bool operator <=(T2 t) { return value() <= t; }
+			template<class T2>
+			obf_var_dbg operator *=(T2 t) { *this = value() * t; return *this; }
+			//TODO: the rest
+
+#ifdef OBFUSCATE_DEBUG_ENABLE_DBGPRINT
+			static void dbgPrint(size_t offset = 0) {
+				std::cout << std::string(offset, ' ') << "obf_var_dbg<" << obf_dbgPrintT<T>() << ">" << std::endl;
+			}
+#endif
+
+		private:
+			typename T val;
+		};
+
+		inline void obf_init() {
+		}
+
+	}//namespace obf
+
+#define OBF0(type) obf::obf_var_dbg<type>
+#define OBF1(type) obf::obf_var_dbg<type>
+#define OBF2(type) obf::obf_var_dbg<type>
+#define OBF3(type) obf::obf_var_dbg<type>
+#define OBF4(type) obf::obf_var_dbg<type>
+#define OBF5(type) obf::obf_var_dbg<type>
 
 #endif //OBFUSCATE_SEED
 
