@@ -57,6 +57,13 @@ namespace obf {
 	using OBFSEED = uint64_t;
 	using OBFCYCLES = int32_t;//signed!
 
+#ifndef OBFSCALE//#define for libraries, using OBFN() macros; 
+				//  allows to promote/demote obfuscation scale of the whole library by OBFSCALE
+				//  OBFSCALE = 1 'converts' all OBF0()'s into OBF1()'s, and so on...
+				//  DOES NOT affect obfN<> without macros(!)
+#define OBFSCALE 0
+#endif
+
 #ifndef OBF_WEIGHTLARGECONST 
 #define OBF_WEIGHTLARGECONST 0//currently RECOMMENDED 0; large constants tend to act as "signatures" within the code, so finding reverse one becomes easy...
 #endif
@@ -67,6 +74,22 @@ namespace obf {
 #define OBF_WEIGHTSPECIALCONST 100
 #endif
 
+//POTENTIALLY user-modifiable constexpr function:
+constexpr OBFCYCLES obf_exp_cycles(int exp) {
+	if (exp < 0)
+		return 0;
+	OBFCYCLES ret = 1;
+	if (exp & 1) {
+		ret *= 3;
+		exp -= 1;
+	}
+	assert((exp & 1) == 0);
+	exp >>= 1;
+	for (int i = 0; i < exp; ++i)
+		ret *= 10;
+	return ret;
+}
+
 //helper constexpr functions
 	constexpr OBFSEED obf_compile_time_prng(OBFSEED seed, int iteration) {
 		static_assert(sizeof(OBFSEED) == 8);
@@ -76,6 +99,13 @@ namespace obf {
 			ret = UINT64_C(6364136223846793005) * ret + UINT64_C(1442695040888963407);//linear congruential one; TODO: replace with something crypto-strength for production use
 		}
 		return ret;
+	}
+
+	constexpr OBFSEED obf_seed_from_file_line(const char* file, int line) {
+		OBFSEED ret = OBFUSCATE_SEED ^ line;
+		for (const char* p = file; *p; ++p)//effectively djb2 by Dan Bernstein, albeit with different initializer
+			ret = ((ret << 5) + ret) + *p;
+		return obf_compile_time_prng(ret,1);//to reduce ill effects from a low-quality PRNG
 	}
 
 	template<class T, size_t N>
@@ -910,6 +940,9 @@ namespace obf {
 	public:
 		obf_var(T t) : val(Injection::injection(t)) {
 		}
+		/*template<class T,class T2,OBFSEED seed2, OBFCYCLES cycles2>
+		obf_var(obf_var<T2, seed2, cycles2> t) : val(Injection::injection(t.value())) {
+		}*/
 		obf_var& operator =(T t) {
 			val = Injection::injection(t);//TODO: different injection implementation
 			return *this;
@@ -918,9 +951,20 @@ namespace obf {
 			return Injection::surjection(val);
 		}
 
+		operator T() const { return value(); }
+		obf_var operator ++() { *this = value() + 1; return *this; }
+		obf_var operator --() { *this = value() - 1; return *this; }
+		//TODO: postfix
+
+		template<class T2>
+		bool operator <=(T2 t) { return value() <= t; }
+		template<class T2>
+		obf_var operator *=(T2 t) { *this = value() * t; return *this; }
+		//TODO: the rest
+
 #ifdef OBFUSCATE_DEBUG_ENABLE_DBGPRINT
 		static void dbgPrint(size_t offset = 0) {
-			std::cout << std::string(offset, ' ') << "obf_var<" << obf_dbgPrintT<T>() << ">" << std::endl;
+			std::cout << std::string(offset, ' ') << "obf_var<" << obf_dbgPrintT<T>() << "," << seed <<","<<cycles<<">" << std::endl;
 			Injection::dbgPrint(offset+1);
 		}
 #endif
@@ -929,11 +973,51 @@ namespace obf {
 		typename Injection::return_type val;
 	};
 
+	//external functions
 	extern int obf_preMain();
 	inline void obf_init() {
 		obf_preMain();
 	}
 
+	//USER-LEVEL:
+	/*think about it further //  obfN<> templates
+	template<class T,OBFSEED seed>
+	class obf0 {
+		using Base = obf_var<T, seed, obf_exp_cycles(0)>;
+
+	public:
+		obf0() : val() {}
+		obf0(T x) : val(x) {}
+		obf0 operator =(T x) { val = x; return *this; }
+		operator T() const { return val.value(); }
+
+	private:
+		Base val;
+	};*/
+
+	//macros; DON'T really belong to the namespace...
+#ifdef _MSC_VER
+	//direct use of __LINE__ doesn't count as constexpr in MSVC - don't ask why...
+
+	//along the lines of https://stackoverflow.com/questions/19343205/c-concatenating-file-and-line-macros:
+#define OBF_S1(x) #x
+#define OBF_S2(x) OBF_S1(x)
+#define OBF_LOCATION __FILE__ " : " OBF_S2(__LINE__)
+
+#define OBF0(type) obf_var<type,obf_seed_from_file_line(OBF_LOCATION,0),obf_exp_cycles(OBFSCALE+0)>
+#define OBF1(type) obf_var<type,obf_seed_from_file_line(OBF_LOCATION,0),obf_exp_cycles(OBFSCALE+1)>
+#define OBF2(type) obf_var<type,obf_seed_from_file_line(OBF_LOCATION,0),obf_exp_cycles(OBFSCALE+2)>
+#define OBF3(type) obf_var<type,obf_seed_from_file_line(OBF_LOCATION,0),obf_exp_cycles(OBFSCALE+3)>
+#define OBF4(type) obf_var<type,obf_seed_from_file_line(OBF_LOCATION,0),obf_exp_cycles(OBFSCALE+4)>
+#define OBF5(type) obf_var<type,obf_seed_from_file_line(OBF_LOCATION,0),obf_exp_cycles(OBFSCALE+5)>
+#else
+#define OBF0(type) obf_var<type,obf_seed_from_file_line(__FILE__,__LINE__),obf_exp_cycles(OBFSCALE+0)>
+#define OBF1(type) obf_var<type,obf_seed_from_file_line(__FILE__,__LINE__),obf_exp_cycles(OBFSCALE+1)>
+#define OBF2(type) obf_var<type,obf_seed_from_file_line(__FILE__,__LINE__),obf_exp_cycles(OBFSCALE+2)>
+#define OBF3(type) obf_var<type,obf_seed_from_file_line(__FILE__,__LINE__),obf_exp_cycles(OBFSCALE+3)>
+#define OBF4(type) obf_var<type,obf_seed_from_file_line(__FILE__,__LINE__),obf_exp_cycles(OBFSCALE+4)>
+#define OBF5(type) obf_var<type,obf_seed_from_file_line(__FILE__,__LINE__),obf_exp_cycles(OBFSCALE+5)>
+#endif
 }//namespace obf
 
 #endif //OBFUSCATE_SEED
