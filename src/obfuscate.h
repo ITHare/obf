@@ -2,10 +2,10 @@
 #define obfuscate_h_included
 
 //Usage: 
-//  1. Use obf?<> and OBF?() throughout your code to indicate the need for obfuscation
-//  1a. obfX<> and OBFX() roughly mean 'add no more than 10^(X/2) CPU cycles for obfuscation'
-//      i.e. obf2<> and OBF2() add up to 10 CPU cycles, obf4<> and OBF4() - up to 100 CPU cycles, 
-//           and obf8<> and OBF8() - up to 10'000 CPU cycles
+//  1. Use OBF?() throughout your code to indicate the need for obfuscation
+//  1a. OBFX() roughly means 'add no more than 10^(X/2) CPU cycles for obfuscation'
+//      i.e. OBF2() adds up to 10 CPU cycles, and OBF4() - up to 100 CPU cycles, 
+//           and obf6<> and OBF6() - up to 1'000 CPU cycles
 //  2. compile your code without -DOBFUSCATE_SEED for debugging and during development
 //  3. compile with -DOBFUSCATE_SEED=0x<really-random-64-bit-seed>u64 for deployments (MSVC)
 //  3a. GCC is not supported (yet)
