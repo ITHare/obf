@@ -58,7 +58,7 @@ namespace obf {
 	using OBFCYCLES = int32_t;//signed!
 
 #ifndef OBF_WEIGHTLARGECONST 
-#define OBF_WEIGHTLARGECONST 100
+#define OBF_WEIGHTLARGECONST 0//currently RECOMMENDED 0; large constants tend to act as "signatures" within the code, so finding reverse one becomes easy...
 #endif
 #ifndef OBF_WEIGHTSMALLCONST 
 #define OBF_WEIGHTSMALLCONST 100
@@ -217,6 +217,8 @@ namespace obf {
 	//forward declarations
 	template<class T, class Context, OBFSEED seed, OBFCYCLES cycles>
 	class obf_injection;
+	template<class T_, T_ C_, OBFSEED seed, OBFCYCLES cycles>
+	class obf_literal;
 
 #ifdef OBFUSCATE_DEBUG_ENABLE_DBGPRINT
 	//dbgPrint helpers
@@ -416,6 +418,7 @@ namespace obf {
 	//version 4: multiply by odd
 	template< class T >
 	constexpr T obf_mul_inverse_mod2n(T num) {//extended GCD, intended to be used in compile-time only
+											  //by Dmytro Ivanchykhin
 		assert(num & 1);
 		T num0 = num;
 		T x = 0, lastx = 1, y = 1, lasty = 0;
@@ -458,7 +461,7 @@ namespace obf {
 	}
 
 	struct obf_injection_version4_descr {
-		static constexpr ObfDescriptor descr = ObfDescriptor(true, 3, 100);
+		static constexpr ObfDescriptor descr = ObfDescriptor(true, 10, 100);
 	};
 
 	template <class T, class Context, OBFSEED seed, OBFCYCLES cycles>
@@ -473,7 +476,7 @@ namespace obf {
 		static_assert((T)(C*CINV) == (T)1);
 
 		FORCEINLINE constexpr static return_type injection(T x) {
-			return RecursiveInjection::injection(x * CINV);//using CINV in injection to hide literals a bit better...
+			return RecursiveInjection::injection(x * obf_literal<T,CINV, obf_compile_time_prng(seed, 3),std::min(10,cycles-3)>().value());//using CINV in injection to hide literals a bit better...
 		}
 		FORCEINLINE constexpr static T surjection(return_type y) {
 			return RecursiveInjection::surjection(y) * C;
@@ -633,7 +636,7 @@ namespace obf {
 	};
 
 	template<class T>//TODO: randomize contents of the function
-	NOINLINE int obf_aliased_zero(T* x, T* y) {
+	NOINLINE T obf_aliased_zero(T* x, T* y) {
 		*x = 0;
 		*y = 1;
 		return *x;
@@ -869,6 +872,59 @@ namespace obf {
 			Injection::dbgPrint(offset + 1);
 		}
 #endif
+	private:
+		typename Injection::return_type val;
+	};
+
+	//ObfVarContext
+	template<class T,OBFSEED seed,OBFCYCLES cycles>
+	struct ObfVarContext {
+		static constexpr T final_injection(T x) {
+			return x;
+		}
+		static constexpr T final_surjection(T y) {
+			return y;
+		}
+
+#ifdef OBFUSCATE_DEBUG_ENABLE_DBGPRINT
+		static void dbgPrint(size_t offset = 0) {
+			std::cout << std::string(offset, ' ') << "ObfVarContext<" << obf_dbgPrintT<T>() << ">" << std::endl;
+		}
+#endif
+	};
+	template<class T, class T0, OBFSEED seed0, OBFCYCLES cycles0, OBFSEED seed, OBFCYCLES cycles>
+	struct ObfRecursiveContext<T, ObfVarContext<T0,seed0,cycles0>, seed, cycles> {
+		using recursive_context_type = ObfVarContext<T,seed,cycles>;
+		using side_context_type = ObfVarContext<T,seed,cycles>;
+	};
+
+	//obf_var
+	template<class T_, OBFSEED seed, OBFCYCLES cycles>
+	class obf_var {
+		static_assert(std::is_integral<T_>::value);
+		using T = typename std::make_unsigned<T_>::type;//from this point on, unsigned only
+
+		using Context = ObfVarContext<T, obf_compile_time_prng(seed, 1), cycles>;
+		using Injection = obf_injection<T, Context, obf_compile_time_prng(seed, 2), cycles>;
+
+	public:
+		obf_var(T t) : val(Injection::injection(t)) {
+		}
+		obf_var& operator =(T t) {
+			val = Injection::injection(t);//TODO: different injection implementation
+			return *this;
+		}
+		T value() const {
+			return Injection::surjection(val);
+		}
+
+#ifdef OBFUSCATE_DEBUG_ENABLE_DBGPRINT
+		static void dbgPrint(size_t offset = 0) {
+			std::cout << std::string(offset, ' ') << "obf_var<" << obf_dbgPrintT<T>() << ">" << std::endl;
+			Injection::dbgPrint(offset+1);
+		}
+#endif
+
 	private:
 		typename Injection::return_type val;
 	};
