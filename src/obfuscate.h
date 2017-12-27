@@ -22,6 +22,7 @@
 #ifdef OBF_INTERNAL_DBG // set of settings currently used for internal testing. DON'T rely on it!
 //#define OBFUSCATE_DEBUG_ENABLE_DBGPRINT
 //#if 0
+
 #define OBFUSCATE_SEED 0x0c7dfa61a867b125ui64 //example for MSVC
 #define OBFUSCATE_INIT 
 	//enables rather nasty obfuscations (including PEB-based debugger detection),
@@ -940,31 +941,120 @@ constexpr OBFCYCLES obf_exp_cycles(int exp) {
 		obf_var(T_ t) : val(Injection::injection(T(t))) {
 		}
 		template<class T2,OBFSEED seed2, OBFCYCLES cycles2>
-		obf_var(obf_var<T2, seed2, cycles2> t) : val(Injection::injection(T(T_(t.value())))) {
-		}
+		obf_var(obf_var<T2, seed2, cycles2> t) : val(Injection::injection(T(T_(t.value())))) {//TODO: randomized injection implementation
+		}//TODO: template<obf_literal>
 		obf_var& operator =(T_ t) {
-			val = Injection::injection(T(t));//TODO: different injection implementation
+			val = Injection::injection(T(t));//TODO: randomized injection implementation
 			return *this;
 		}
 		template<class T2,OBFSEED seed2, OBFCYCLES cycles2>
 		obf_var& operator =(obf_var<T2, seed2, cycles2> t) {
-			val = Injection::injection(T(T_(t.value())));//TODO: different injection implementation
+			val = Injection::injection(T(T_(t.value())));//TODO: randomized injection implementation
 			return *this;
-		}
+		}//TODO: template<obf_literal>
 		T_ value() const {
 			return T_(Injection::surjection(val));
 		}
 
 		operator T_() const { return value(); }
-		obf_var operator ++() { *this = value() + 1; return *this; }
-		obf_var operator --() { *this = value() - 1; return *this; }
-		//TODO: postfix
+		obf_var& operator ++() { *this = value() + 1; return *this; }
+		obf_var& operator --() { *this = value() - 1; return *this; }
+		obf_var operator++(int) { obf_var ret = obf_var(value());  *this = value() + 1; return ret; }
+		obf_var operator--(int) { obf_var ret = obf_var(value());  *this = value() + 1; return ret; }
 
+		template<class T2>
+		bool operator <(T2 t) { return value() < t; }
+		template<class T2>
+		bool operator >(T2 t) { return value() > t; }
+		template<class T2>
+		bool operator ==(T2 t) { return value() == t; }
+		template<class T2>
+		bool operator !=(T2 t) { return value() != t; }
 		template<class T2>
 		bool operator <=(T2 t) { return value() <= t; }
 		template<class T2>
-		obf_var operator *=(T2 t) { *this = value() * t; return *this; }
-		//TODO: the rest
+		bool operator >=(T2 t) { return value() >= t; }
+
+		template<class T2, OBFSEED seed2, OBFCYCLES cycles2>
+		bool operator <(obf_var<T2, seed2, cycles2> t) {
+			return value() < t.value();
+		}//TODO: template<obf_literal>(for ALL comparisons)
+		template<class T2, OBFSEED seed2, OBFCYCLES cycles2>
+		bool operator >(obf_var<T2, seed2, cycles2> t) {
+			return value() > t.value();
+		}
+		template<class T2, OBFSEED seed2, OBFCYCLES cycles2>
+		bool operator ==(obf_var<T2, seed2, cycles2> t) {
+			return value() == t.value();
+		}
+		template<class T2, OBFSEED seed2, OBFCYCLES cycles2>
+		bool operator !=(obf_var<T2, seed2, cycles2> t) {
+			return value() != t.value();
+		}
+		template<class T2, OBFSEED seed2, OBFCYCLES cycles2>
+		bool operator <=(obf_var<T2, seed2, cycles2> t) {
+			return value() <= t.value();
+		}
+		template<class T2, OBFSEED seed2, OBFCYCLES cycles2>
+		bool operator >=(obf_var<T2, seed2, cycles2> t) {
+			return value() >= t.value();
+		}
+
+		template<class T2>
+		obf_var& operator +=(T2 t) { *this = value() + t; return *this; }
+		template<class T2>
+		obf_var& operator -=(T2 t) { *this = value() - t; return *this; }
+		template<class T2>
+		obf_var& operator *=(T2 t) { *this = value() * t; return *this; }
+		template<class T2>
+		obf_var& operator /=(T2 t) { *this = value() / t; return *this; }
+		template<class T2>
+		obf_var& operator %=(T2 t) { *this = value() % t; return *this; }
+
+		template<class T2, OBFSEED seed2, OBFCYCLES cycles2>
+		obf_var& operator +=(obf_var<T2, seed2, cycles2> t) {
+			return *this += t.value();
+		}//TODO: template<obf_literal>(for ALL ?= operations)
+		template<class T2, OBFSEED seed2, OBFCYCLES cycles2>
+		obf_var& operator -=(obf_var<T2, seed2, cycles2> t) {
+			return *this -= t.value();
+		}
+		template<class T2, OBFSEED seed2, OBFCYCLES cycles2>
+		obf_var& operator *=(obf_var<T2, seed2, cycles2> t) {
+			return *this *= t.value();
+		}
+		template<class T2, OBFSEED seed2, OBFCYCLES cycles2>
+		obf_var& operator /=(obf_var<T2, seed2, cycles2> t) {
+			return *this /= t.value();
+		}
+		template<class T2, OBFSEED seed2, OBFCYCLES cycles2>
+		obf_var& operator %=(obf_var<T2, seed2, cycles2> t) {
+			return *this %= t.value();
+		}
+
+		template<class T2>
+		obf_var operator +(T2 t) { return obf_var(value()+t); }
+		template<class T2>
+		obf_var operator -(T2 t) { return obf_var(value() - t); }
+		template<class T2>
+		obf_var operator *(T2 t) { return obf_var(value() * t); }
+		template<class T2>
+		obf_var operator /(T2 t) { return obf_var(value() / t); }
+		template<class T2>
+		obf_var operator %(T2 t) { return obf_var(value() % t); }
+		
+		template<class T2, OBFSEED seed2, OBFCYCLES cycles2>//TODO: template<obf_literal_dbg>(for ALL binary operations)
+		obf_var operator +(obf_var<T2,seed2,cycles2> t) { return obf_var(value() + t.value()); }
+		template<class T2, OBFSEED seed2, OBFCYCLES cycles2>
+		obf_var operator -(obf_var<T2, seed2, cycles2> t) { return obf_var(value() - t.value()); }
+		template<class T2, OBFSEED seed2, OBFCYCLES cycles2>
+		obf_var operator *(obf_var<T2, seed2, cycles2> t) { return obf_var(value() * t.value()); }
+		template<class T2, OBFSEED seed2, OBFCYCLES cycles2>
+		obf_var operator /(obf_var<T2, seed2, cycles2> t) { return obf_var(value() / t.value()); }
+		template<class T2, OBFSEED seed2, OBFCYCLES cycles2>
+		obf_var operator %(obf_var<T2, seed2, cycles2> t) { return obf_var(value() % t.value()); }
+
+		//TODO: bitwise
 
 #ifdef OBFUSCATE_DEBUG_ENABLE_DBGPRINT
 		static void dbgPrint(size_t offset = 0) {
@@ -1061,15 +1151,104 @@ constexpr OBFCYCLES obf_exp_cycles(int exp) {
 			}
 
 			operator T() const { return value(); }
-			obf_var_dbg operator ++() { ++val; return *this; }
-			obf_var_dbg operator --() { --val; return *this; }
-			//TODO: postfix
+			obf_var_dbg& operator ++() { *this = value() + 1; return *this; }
+			obf_var_dbg& operator --() { *this = value() - 1; return *this; }
+			obf_var_dbg operator++(int) { obf_var_dbg ret = obf_var_dbg(value());  *this = value() + 1; return ret; }
+			obf_var_dbg operator--(int) { obf_var_dbg ret = obf_var_dbg(value());  *this = value() + 1; return ret; }
 
+			template<class T2>
+			bool operator <(T2 t) { return value() < t; }
+			template<class T2>
+			bool operator >(T2 t) { return value() > t; }
+			template<class T2>
+			bool operator ==(T2 t) { return value() == t; }
+			template<class T2>
+			bool operator !=(T2 t) { return value() != t; }
 			template<class T2>
 			bool operator <=(T2 t) { return value() <= t; }
 			template<class T2>
-			obf_var_dbg operator *=(T2 t) { *this = value() * t; return *this; }
-			//TODO: the rest
+			bool operator >=(T2 t) { return value() >= t; }
+
+			template<class T2>
+			bool operator <(obf_var_dbg<T2> t) {
+				return value() < t.value();
+			}//TODO: template<obf_literal_dbg>(for ALL comparisons)
+			template<class T2>
+			bool operator >(obf_var_dbg<T2> t) {
+				return value() > t.value();
+			}
+			template<class T2>
+			bool operator ==(obf_var_dbg<T2> t) {
+				return value() == t.value();
+			}
+			template<class T2>
+			bool operator !=(obf_var_dbg<T2> t) {
+				return value() != t.value();
+			}
+			template<class T2>
+			bool operator <=(obf_var_dbg<T2> t) {
+				return value() <= t.value();
+			}
+			template<class T2>
+			bool operator >=(obf_var_dbg<T2> t) {
+				return value() >= t.value();
+			}
+
+			template<class T2>
+			obf_var_dbg& operator +=(T2 t) { *this = value() + t; return *this; }
+			template<class T2>
+			obf_var_dbg& operator -=(T2 t) { *this = value() - t; return *this; }
+			template<class T2>
+			obf_var_dbg& operator *=(T2 t) { *this = value() * t; return *this; }
+			template<class T2>
+			obf_var_dbg& operator /=(T2 t) { *this = value() / t; return *this; }
+			template<class T2>
+			obf_var_dbg& operator %=(T2 t) { *this = value() % t; return *this; }
+
+			template<class T2>
+			obf_var_dbg& operator +=(obf_var_dbg<T2> t) {
+				return *this += t.value();
+			}//TODO: template<obf_literal_dbg>(for ALL ?= operations)
+			template<class T2>
+			obf_var_dbg& operator -=(obf_var_dbg<T2> t) {
+				return *this -= t.value();
+			}
+			template<class T2>
+			obf_var_dbg& operator *=(obf_var_dbg<T2> t) {
+				return *this *= t.value();
+			}
+			template<class T2>
+			obf_var_dbg& operator /=(obf_var_dbg<T2> t) {
+				return *this /= t.value();
+			}
+			template<class T2>
+			obf_var_dbg& operator %=(obf_var_dbg<T2> t) {
+				return *this %= t.value();
+			}
+
+			template<class T2>
+			obf_var_dbg operator +(T2 t) { return obf_var_dbg(value() + t); }
+			template<class T2>
+			obf_var_dbg operator -(T2 t) { return obf_var_dbg(value() - t); }
+			template<class T2>
+			obf_var_dbg operator *(T2 t) { return obf_var_dbg(value() * t); }
+			template<class T2>
+			obf_var_dbg operator /(T2 t) { return obf_var_dbg(value() / t); }
+			template<class T2>
+			obf_var_dbg operator %(T2 t) { return obf_var_dbg(value() % t); }
+
+			template<class T2>//TODO: template<obf_literal_dbg>(for ALL binary operations)
+			obf_var_dbg operator +(obf_var_dbg<T2> t) { return obf_var_dbg(value() + t.value()); }
+			template<class T2>
+			obf_var_dbg operator -(obf_var_dbg<T2> t) { return obf_var_dbg(value() - t.value()); }
+			template<class T2>
+			obf_var_dbg operator *(obf_var_dbg<T2> t) { return obf_var_dbg(value() * t.value()); }
+			template<class T2>
+			obf_var_dbg operator /(obf_var_dbg<T2> t) { return obf_var_dbg(value() / t.value()); }
+			template<class T2>
+			obf_var_dbg operator %(obf_var_dbg<T2> t) { return obf_var_dbg(value() % t.value()); }
+
+			//TODO: bitwise
 
 #ifdef OBFUSCATE_DEBUG_ENABLE_DBGPRINT
 			static void dbgPrint(size_t offset = 0) {
