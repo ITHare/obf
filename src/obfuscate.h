@@ -1100,19 +1100,19 @@ constexpr OBFCYCLES obf_exp_cycles(int exp) {
 #define OBF_S2(x) OBF_S1(x)
 #define OBF_LOCATION __FILE__ " : " OBF_S2(__LINE__)
 
-#define OBF0(type) obf::obf_var<type,obf::obf_seed_from_file_line(OBF_LOCATION,0),obf::obf_exp_cycles(OBFSCALE+0)>
-#define OBF1(type) obf::obf_var<type,obf::obf_seed_from_file_line(OBF_LOCATION,0),obf::obf_exp_cycles(OBFSCALE+1)>
-#define OBF2(type) obf::obf_var<type,obf::obf_seed_from_file_line(OBF_LOCATION,0),obf::obf_exp_cycles(OBFSCALE+2)>
-#define OBF3(type) obf::obf_var<type,obf::obf_seed_from_file_line(OBF_LOCATION,0),obf::obf_exp_cycles(OBFSCALE+3)>
-#define OBF4(type) obf::obf_var<type,obf::obf_seed_from_file_line(OBF_LOCATION,0),obf::obf_exp_cycles(OBFSCALE+4)>
-#define OBF5(type) obf::obf_var<type,obf::obf_seed_from_file_line(OBF_LOCATION,0),obf::obf_exp_cycles(OBFSCALE+5)>
+#define OBF0(type) obf::obf_var<type,obf::obf_seed_from_file_line(OBF_LOCATION,0),obf::obf_exp_cycles((OBFSCALE)+0)>
+#define OBF1(type) obf::obf_var<type,obf::obf_seed_from_file_line(OBF_LOCATION,0),obf::obf_exp_cycles((OBFSCALE)+1)>
+#define OBF2(type) obf::obf_var<type,obf::obf_seed_from_file_line(OBF_LOCATION,0),obf::obf_exp_cycles((OBFSCALE)+2)>
+#define OBF3(type) obf::obf_var<type,obf::obf_seed_from_file_line(OBF_LOCATION,0),obf::obf_exp_cycles((OBFSCALE)+3)>
+#define OBF4(type) obf::obf_var<type,obf::obf_seed_from_file_line(OBF_LOCATION,0),obf::obf_exp_cycles((OBFSCALE)+4)>
+#define OBF5(type) obf::obf_var<type,obf::obf_seed_from_file_line(OBF_LOCATION,0),obf::obf_exp_cycles((OBFSCALE)+5)>
 #else//_MSC_VER
-#define OBF0(type) obf::obf_var<type,obf::obf_seed_from_file_line(__FILE__,__LINE__),obf::obf_exp_cycles(OBFSCALE+0)>
-#define OBF1(type) obf::obf_var<type,obf::obf_seed_from_file_line(__FILE__,__LINE__),obf::obf_exp_cycles(OBFSCALE+1)>
-#define OBF2(type) obf::obf_var<type,obf::obf_seed_from_file_line(__FILE__,__LINE__),obf::obf_exp_cycles(OBFSCALE+2)>
-#define OBF3(type) obf::obf_var<type,obf::obf_seed_from_file_line(__FILE__,__LINE__),obf::obf_exp_cycles(OBFSCALE+3)>
-#define OBF4(type) obf::obf_var<type,obf::obf_seed_from_file_line(__FILE__,__LINE__),obf::obf_exp_cycles(OBFSCALE+4)>
-#define OBF5(type) obf::obf_var<type,obf::obf_seed_from_file_line(__FILE__,__LINE__),obf::obf_exp_cycles(OBFSCALE+5)>
+#define OBF0(type) obf::obf_var<type,obf::obf_seed_from_file_line(__FILE__,__LINE__),obf::obf_exp_cycles((OBFSCALE)+0)>
+#define OBF1(type) obf::obf_var<type,obf::obf_seed_from_file_line(__FILE__,__LINE__),obf::obf_exp_cycles((OBFSCALE)+1)>
+#define OBF2(type) obf::obf_var<type,obf::obf_seed_from_file_line(__FILE__,__LINE__),obf::obf_exp_cycles((OBFSCALE)+2)>
+#define OBF3(type) obf::obf_var<type,obf::obf_seed_from_file_line(__FILE__,__LINE__),obf::obf_exp_cycles((OBFSCALE)+3)>
+#define OBF4(type) obf::obf_var<type,obf::obf_seed_from_file_line(__FILE__,__LINE__),obf::obf_exp_cycles((OBFSCALE)+4)>
+#define OBF5(type) obf::obf_var<type,obf::obf_seed_from_file_line(__FILE__,__LINE__),obf::obf_exp_cycles((OBFSCALE)+5)>
 #endif
 
 #else//OBFUSCATE_SEED
