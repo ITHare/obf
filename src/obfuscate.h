@@ -63,15 +63,6 @@
 #define OBFSCALE 0
 #endif
 
-#ifndef OBF_WEIGHTLARGECONST 
-#define OBF_WEIGHTLARGECONST 0//currently RECOMMENDED 0; large constants tend to act as "signatures" within the code, so finding reverse one becomes easy...
-#endif
-#ifndef OBF_WEIGHTSMALLCONST 
-#define OBF_WEIGHTSMALLCONST 100
-#endif
-#ifndef OBF_WEIGHTSPECIALCONST 
-#define OBF_WEIGHTSPECIALCONST 100
-#endif
 namespace obf {
 
 	//POTENTIALLY user-modifiable constexpr function:
@@ -252,7 +243,18 @@ namespace obf {
 		return ret;
 	}
 
-	/*template<class T>
+	/*
+	#ifndef OBF_WEIGHTLARGECONST
+	#define OBF_WEIGHTLARGECONST 0//currently RECOMMENDED 0; large constants tend to act as "signatures" within the code, so finding reverse one becomes easy...
+	#endif
+	#ifndef OBF_WEIGHTSMALLCONST
+	#define OBF_WEIGHTSMALLCONST 100
+	#endif
+	#ifndef OBF_WEIGHTSPECIALCONST
+	#define OBF_WEIGHTSPECIALCONST 100
+	#endif
+
+	template<class T>
 	constexpr T obf_gen_const(OBFSEED seed) {//TODO! remove, alongside OBF_WEIGHT*CONST
 		static_assert(std::is_integral<T>::value);
 		static_assert(sizeof(OBFSEED) >= sizeof(T));
