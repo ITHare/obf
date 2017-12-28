@@ -10,3 +10,4 @@
 /test/MSVC/x64/Release
 /test/MSVC/x64/Debug
 /test/MSVC/x64/Release-noPDB
+/test/MSVC/ConsoleApplication1.log

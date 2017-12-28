@@ -23,7 +23,7 @@
 //#define OBFUSCATE_DEBUG_ENABLE_DBGPRINT
 //#if 0
 
-#define OBFUSCATE_SEED 0x0c7dfa61a867b125ui64 //example for MSVC
+#define OBFUSCATE_SEED 0x8c7dfa61a867b125ui64 //example for MSVC
 #define OBFUSCATE_INIT 
 	//enables rather nasty obfuscations (including PEB-based debugger detection),
 	//  but requires you to call obf_init() BEFORE ANY obf<> objects are used. 
@@ -34,7 +34,7 @@
 	//      but is formally UB, so future compilers MAY generate code which will fail under heavy MT (hard to imagine, but...) :-( 
 	//      OTOH, at least for x64 generates not-too-obvious XCHG instruction (with implicit LOCK completely missed by current IDA decompiler)
 
-//#define OBFUSCATE_DEBUG_DISABLE_ANTI_DEBUG
+#define OBFUSCATE_DEBUG_DISABLE_ANTI_DEBUG
 	//disables built-in anti-debugger kinda-protections
 
 #define OBF_COMPILE_TIME_TESTS 100//supposed to affect ONLY time of compilation
@@ -72,25 +72,25 @@
 #ifndef OBF_WEIGHTSPECIALCONST 
 #define OBF_WEIGHTSPECIALCONST 100
 #endif
-	namespace obf {
+namespace obf {
 
-//POTENTIALLY user-modifiable constexpr function:
-constexpr OBFCYCLES obf_exp_cycles(int exp) {
-	if (exp < 0)
-		return 0;
-	OBFCYCLES ret = 1;
-	if (exp & 1) {
-		ret *= 3;
-		exp -= 1;
+	//POTENTIALLY user-modifiable constexpr function:
+	constexpr OBFCYCLES obf_exp_cycles(int exp) {
+		if (exp < 0)
+			return 0;
+		OBFCYCLES ret = 1;
+		if (exp & 1) {
+			ret *= 3;
+			exp -= 1;
+		}
+		assert((exp & 1) == 0);
+		exp >>= 1;
+		for (int i = 0; i < exp; ++i)
+			ret *= 10;
+		return ret;
 	}
-	assert((exp & 1) == 0);
-	exp >>= 1;
-	for (int i = 0; i < exp; ++i)
-		ret *= 10;
-	return ret;
-}
 
-//helper constexpr functions
+	//helper constexpr functions
 	constexpr OBFSEED obf_compile_time_prng(OBFSEED seed, int iteration) {
 		static_assert(sizeof(OBFSEED) == 8);
 		assert(iteration > 0);
@@ -105,12 +105,12 @@ constexpr OBFCYCLES obf_exp_cycles(int exp) {
 		OBFSEED ret = OBFUSCATE_SEED ^ line;
 		for (const char* p = file; *p; ++p)//effectively djb2 by Dan Bernstein, albeit with different initializer
 			ret = ((ret << 5) + ret) + *p;
-		return obf_compile_time_prng(ret,1);//to reduce ill effects from a low-quality PRNG
+		return obf_compile_time_prng(ret, 1);//to reduce ill effects from a low-quality PRNG
 	}
 
 	template<class T, size_t N>
-	constexpr T obf_compile_time_approximation(T x, std::array<T,N> xref, std::array<T,N> yref) {
-		for (size_t i = 0; i < N-1; ++i) {
+	constexpr T obf_compile_time_approximation(T x, std::array<T, N> xref, std::array<T, N> yref) {
+		for (size_t i = 0; i < N - 1; ++i) {
 			T x0 = xref[i];
 			T x1 = xref[i + 1];
 			if (x >= x0 && x < x1) {
@@ -122,10 +122,10 @@ constexpr OBFCYCLES obf_exp_cycles(int exp) {
 	}
 
 	constexpr uint64_t obf_sqrt_very_rough_approximation(uint64_t x0) {
-		std::array<uint64_t,64> xref = {};
+		std::array<uint64_t, 64> xref = {};
 		std::array<uint64_t, 64> yref = {};
 		for (size_t i = 1; i < 64; ++i) {
-			uint64_t x = UINT64_C(1) << (i-1);
+			uint64_t x = UINT64_C(1) << (i - 1);
 			xref[i] = x * x;
 			yref[i] = x;
 		}
@@ -134,7 +134,7 @@ constexpr OBFCYCLES obf_exp_cycles(int exp) {
 
 	template<class MAX>
 	constexpr MAX obf_weak_random(OBFSEED seed, MAX n) {
-		return seed % n;//slightly biased, but for our purposes will do
+		return (seed >> (sizeof(OBFSEED)*4) ) % n;//biased, but for our purposes will do
 	}
 
 	template<size_t N>
@@ -152,6 +152,43 @@ constexpr OBFCYCLES obf_exp_cycles(int exp) {
 		}
 		assert(false);
 	}
+
+	//OBF_CONST_X: constants to be used throughout this particular build
+	template<class T, size_t N>
+	constexpr size_t obf_find_idx_in_array(std::array<T, N> arr, T value) {
+		for (size_t i = 0; i < N; ++i) {
+			if (arr[i] == value)
+				return i;
+		}
+		return size_t(-1);
+	}
+
+	template<size_t N>
+	constexpr uint8_t obf_const_x(OBFSEED seed, std::array<uint8_t, N> excluded) {
+		std::array<uint8_t, 6> candidates = { 3,5,7,15,25,31 };//only odd, to allow using the same set of constants in mul-by-odd injections
+		std::array<size_t, 6> weights = { 100,100,100,100,100,100 };
+		for (size_t i = 0; i < N; ++i) {
+			size_t found = obf_find_idx_in_array(candidates, excluded[i]);
+			if (found != size_t(-1))
+				weights[found] = 0;
+		}
+		size_t idx2 = obf_random_from_list(seed, weights);
+		return candidates[idx2];
+	}
+
+	//XOR-ed constants are merely random numbers with no special meaning
+	constexpr std::array<uint8_t, 0> obf_const_A_excluded = {};
+	constexpr uint8_t OBF_CONST_A = obf_const_x(obf_compile_time_prng(OBFUSCATE_SEED^UINT64_C(0xcec4b8ea4b89a1a9),1), obf_const_A_excluded);
+	constexpr std::array<uint8_t, 1> obf_const_B_excluded = { OBF_CONST_A };
+	constexpr uint8_t OBF_CONST_B = obf_const_x(obf_compile_time_prng(OBFUSCATE_SEED^UINT64_C(0x5eec23716fa1d0aa),1), obf_const_B_excluded);
+	constexpr std::array<uint8_t, 2> obf_const_C_excluded = { OBF_CONST_A, OBF_CONST_B };
+	constexpr uint8_t OBF_CONST_C = obf_const_x(obf_compile_time_prng(OBFUSCATE_SEED^UINT64_C(0xfb2de18f982a2d55),1), obf_const_C_excluded);
+
+	template<class T, size_t N>
+	constexpr T obf_random_const(OBFSEED seed, std::array<T, N> lst) {
+		return lst[obf_weak_random(seed, N)];
+	}
+
 
 	struct ObfDescriptor {
 		bool is_recursive;
@@ -190,8 +227,33 @@ constexpr OBFCYCLES obf_exp_cycles(int exp) {
 		}
 	}
 
-	template<class T>
-	constexpr T obf_gen_const(OBFSEED seed) {
+	template<size_t N>
+	constexpr std::array<OBFCYCLES, N> obf_random_split(OBFSEED seed, OBFCYCLES cycles, std::array<ObfDescriptor, N> elements) {
+		OBFCYCLES leftovers = cycles;
+		//size_t totalWeight = 0;
+		for (size_t i = 0; i < N; ++i) {
+			leftovers -= elements[i].min_cycles;
+			//totalWeight += elements[i].weight;
+		}
+		assert(leftovers >= 0);
+		std::array<OBFCYCLES, N> ret = {};
+		size_t totalWeight = 0;
+		for (size_t i = 0; i < N; ++i) {
+			ret[i] = OBFCYCLES(obf_weak_random(obf_compile_time_prng(seed, int(i+1)), elements[i].weight)) + 1;//'+1' is to avoid "all-zeros" case
+			totalWeight += ret[i];
+		}
+		size_t totalWeight2 = 0;
+		double q = double(leftovers) / double(totalWeight);
+		for (size_t i = 0; i < N; ++i) {
+			ret[i] = OBFCYCLES(double(ret[i]) * double(q));
+			totalWeight2 += ret[i];
+		}
+		assert(OBFCYCLES(totalWeight2) <= leftovers);
+		return ret;
+	}
+
+	/*template<class T>
+	constexpr T obf_gen_const(OBFSEED seed) {//TODO! remove, alongside OBF_WEIGHT*CONST
 		static_assert(std::is_integral<T>::value);
 		static_assert(sizeof(OBFSEED) >= sizeof(T));
 		constexpr std::array<size_t, 3> weights = { OBF_WEIGHTLARGECONST , OBF_WEIGHTSMALLCONST, OBF_WEIGHTSPECIALCONST };
@@ -207,10 +269,11 @@ constexpr OBFCYCLES obf_exp_cycles(int exp) {
 			return specials[sIdx];
 		}
 		return 0;
-	}
+	}*/
 
 	//type helpers
 	//obf_half_size_int<>
+	//TODO: obf_traits<>, including obf_traits<>::half_size_int
 	template<class T>
 	struct obf_half_size_int;
 
@@ -247,6 +310,8 @@ constexpr OBFCYCLES obf_exp_cycles(int exp) {
 	//forward declarations
 	template<class T, class Context, OBFSEED seed, OBFCYCLES cycles>
 	class obf_injection;
+	template<class T, T C, class Context, OBFSEED seed, OBFCYCLES cycles>
+	class obf_literal_ctx;
 	template<class T_, T_ C_, OBFSEED seed, OBFCYCLES cycles>
 	class obf_literal;
 
@@ -254,29 +319,51 @@ constexpr OBFCYCLES obf_exp_cycles(int exp) {
 	//dbgPrint helpers
 	template<class T>
 	std::string obf_dbgPrintT() {
-		return std::string("T(sizeof=")+std::to_string(sizeof(T))+")";
+		return std::string("T(sizeof=") + std::to_string(sizeof(T)) + ")";
+	}
+
+	template<class T>
+	struct ObfPrintC {
+		using type = T;
+	};
+	template<>
+	struct ObfPrintC<uint8_t> {
+		using type = int;
+	};
+
+	template<class T>
+	typename ObfPrintC<T>::type obf_dbgPrintC(T c) {
+		return ObfPrintC<T>::type(c);
 	}
 #endif
 
 	//ObfRecursiveContext
-	template<class T, class Context, OBFSEED seed,OBFCYCLES cycles>
+	template<class T, class Context, OBFSEED seed, OBFCYCLES cycles>
 	struct ObfRecursiveContext;
-	
+
 	//injection-with-constant - building block both for injections and for literals
 	template <size_t which, class T, class Context, OBFSEED seed, OBFCYCLES cycles>
 	class obf_injection_version;
 
 	//version 0: identity
+	template<class Context>
 	struct obf_injection_version0_descr {
 		//cannot make it a part of class obf_injection_version<0, T, C, seed, cycles>,
 		//  as it would cause infinite recursion in template instantiation
-		static constexpr ObfDescriptor descr = ObfDescriptor(false, 0, 1);
+		static constexpr OBFCYCLES own_min_injection_cycles = 0;
+		static constexpr OBFCYCLES own_min_surjection_cycles = 0;
+		static constexpr OBFCYCLES own_min_cycles = 0;//TODO! reinstate: Context::context_cycles+Context::calc_cycles(own_min_injection_cycles,own_min_surjection_cycles)
+		static constexpr ObfDescriptor descr = ObfDescriptor(false, own_min_cycles, 1);
 	};
 
 	template <class T, class Context, OBFSEED seed, OBFCYCLES cycles>
 	class obf_injection_version<0, T, Context, seed, cycles> {
 		static_assert(std::is_integral<T>::value);
 		static_assert(std::is_unsigned<T>::value);
+
+		static constexpr OBFCYCLES availCycles = cycles - obf_injection_version0_descr<Context>::own_min_cycles;
+		static_assert(availCycles >= 0);
+
 	public:
 		using return_type = T;
 		FORCEINLINE constexpr static return_type injection(T x) {
@@ -288,15 +375,19 @@ constexpr OBFCYCLES obf_exp_cycles(int exp) {
 
 #ifdef OBFUSCATE_DEBUG_ENABLE_DBGPRINT
 		static void dbgPrint(size_t offset = 0) {
-			std::cout << std::string(offset, ' ') << "obf_injection_version<0/*identity*/," << obf_dbgPrintT<T>() << "," << seed << "," << cycles << ">" << std::endl;
+			std::cout << std::string(offset, ' ') << "obf_injection_version<0/*identity*/," << obf_dbgPrintT<T>() << "," << seed << "," << cycles << ">: availCycles=" << availCycles << std::endl;
 			Context::dbgPrint(offset + 1);
 		}
 #endif
 	};
 
 	//version 1: add mod 2^n
+	template<class Context>
 	struct obf_injection_version1_descr {
-		static constexpr ObfDescriptor descr = ObfDescriptor(true, 1, 100);
+		static constexpr OBFCYCLES own_min_injection_cycles = 1;
+		static constexpr OBFCYCLES own_min_surjection_cycles = 1;
+		static constexpr OBFCYCLES own_min_cycles = Context::context_cycles + Context::calc_cycles(own_min_injection_cycles, own_min_surjection_cycles);
+		static constexpr ObfDescriptor descr = ObfDescriptor(true, own_min_cycles, 100);
 	};
 
 	template <class T, class Context, OBFSEED seed, OBFCYCLES cycles>
@@ -304,9 +395,13 @@ constexpr OBFCYCLES obf_exp_cycles(int exp) {
 		static_assert(std::is_integral<T>::value);
 		static_assert(std::is_unsigned<T>::value);
 	public:
-		using RecursiveInjection = obf_injection<T, Context, obf_compile_time_prng(seed, 1), cycles - 1>;
+		static constexpr OBFCYCLES availCycles = cycles - obf_injection_version1_descr<Context>::own_min_cycles;
+		static_assert(availCycles >= 0);
+
+		using RecursiveInjection = obf_injection<T, Context, obf_compile_time_prng(seed, 1), availCycles>;
 		using return_type = typename RecursiveInjection::return_type;
-		constexpr static T C = obf_gen_const<T>(obf_compile_time_prng(seed, 2));
+		static constexpr std::array<T, 4> consts = { 1,OBF_CONST_A,OBF_CONST_B,OBF_CONST_C };
+		constexpr static T C = obf_random_const<T>(obf_compile_time_prng(seed, 2), consts);
 		FORCEINLINE constexpr static return_type injection(T x) {
 			return RecursiveInjection::injection(x + C);
 		}
@@ -316,19 +411,94 @@ constexpr OBFCYCLES obf_exp_cycles(int exp) {
 
 #ifdef OBFUSCATE_DEBUG_ENABLE_DBGPRINT
 		static void dbgPrint(size_t offset = 0) {
-			std::cout << std::string(offset, ' ') << "obf_injection_version<1/*add mod 2^N*/,"<<obf_dbgPrintT<T>() <<"," << seed << "," << cycles << ">: C=" << C << std::endl;
+			std::cout << std::string(offset, ' ') << "obf_injection_version<1/*add mod 2^N*/," << obf_dbgPrintT<T>() << "," << seed << "," << cycles << ">: C=" << obf_dbgPrintC(C) << std::endl;
 			RecursiveInjection::dbgPrint(offset + 1);
 		}
 #endif
 	};
 
 	//version 2: kinda-Feistel round
-	template<class T>
+	template<class T, class Context>
 	struct obf_injection_version2_descr {
+		static constexpr OBFCYCLES own_min_injection_cycles = 7;
+		static constexpr OBFCYCLES own_min_surjection_cycles = 7;
+		static constexpr OBFCYCLES own_min_cycles = Context::context_cycles + Context::calc_cycles(own_min_injection_cycles, own_min_surjection_cycles);
 		static constexpr ObfDescriptor descr =
 			sizeof(T) > 1 ?
-			ObfDescriptor(true, 20, 100) :
+			ObfDescriptor(true, own_min_cycles, 100) :
 			ObfDescriptor(false, 0, 0);
+	};
+
+	template<class T, OBFSEED seed, OBFCYCLES cycles>
+	struct obf_randomized_polynomial_function_helper {
+		static constexpr bool is_id = cycles == 0;
+		static constexpr bool is_plus = !is_id && cycles < 3;
+		static constexpr std::array<size_t, 2> weights{ 100,100 };
+		static constexpr size_t which = obf_random_from_list(obf_compile_time_prng(seed, 1), weights);
+
+		FORCEINLINE T operator()(T x0, T x) {
+			assert(cycles >= 0);
+			if constexpr(is_id) {
+				return x;
+			}
+			else if constexpr(is_plus) {
+				return x + x0;
+			}
+			else {
+				if constexpr(which)
+					return obf_randomized_polynomial_function_helper<T, obf_compile_time_prng(seed, 2), cycles - 3>()(x0, x*x0);
+				else
+					return obf_randomized_polynomial_function_helper<T, obf_compile_time_prng(seed, 3), cycles - 1>()(x0, x + x0);
+			}
+		}
+
+#ifdef OBFUSCATE_DEBUG_ENABLE_DBGPRINT
+		static void dbgPrint(size_t offset = 0) {
+			std::cout << std::string(offset, ' ') << "obf_randomized_polynomial_function_helper<" << obf_dbgPrintT<T>() << "," << seed << "," << cycles << ">" << std::endl;
+			if constexpr(is_id)
+				std::cout << std::string(offset + 1, ' ') << "x" << std::endl;
+			else if constexpr(is_plus)
+				std::cout << std::string(offset + 1, ' ') << "x+x0" << std::endl;
+			else if constexpr(which) {
+				std::cout << std::string(offset + 1, ' ') << "x*x0" << std::endl;
+				obf_randomized_polynomial_function_helper<T, obf_compile_time_prng(seed, 2), cycles - 3>::dbgPrint(offset + 2);
+			}
+			else {
+				std::cout << std::string(offset + 1, ' ') << "x+x0" << std::endl;
+				obf_randomized_polynomial_function_helper<T, obf_compile_time_prng(seed, 3), cycles - 1>::dbgPrint(offset + 2);
+			}
+		}
+#endif		
+	};
+
+	template<class T, OBFSEED seed, OBFCYCLES cycles>
+	struct obf_randomized_polynomial_function {
+		using FType = obf_randomized_polynomial_function_helper<T, seed, cycles>;
+		FORCEINLINE T operator()(T x) {
+			return FType()(x, x);
+		}
+
+#ifdef OBFUSCATE_DEBUG_ENABLE_DBGPRINT
+		static void dbgPrint(size_t offset = 0) {
+			std::cout << std::string(offset, ' ') << "obf_randomized_polynomial_function<" << obf_dbgPrintT<T>() << "," << seed << "," << cycles << ">" << std::endl;
+			FType::dbgPrint(offset + 1);
+		}
+#endif		
+	};
+
+	template<class T, OBFSEED seed, OBFCYCLES cycles>
+	struct obf_randomized_function {
+		using FType = obf_randomized_polynomial_function<T, seed, cycles>;//TODO: more than simply polynomial; injections(!)
+		FORCEINLINE T operator()(T x) {
+			return FType()(x);
+		}
+
+#ifdef OBFUSCATE_DEBUG_ENABLE_DBGPRINT
+		static void dbgPrint(size_t offset = 0) {
+			std::cout << std::string(offset, ' ') << "obf_randomized_function<" << obf_dbgPrintT<T>() << "," << seed << "," << cycles << ">" << std::endl;
+			FType::dbgPrint(offset + 1);
+		}
+#endif		
 	};
 
 	template <class T, class Context, OBFSEED seed, OBFCYCLES cycles>
@@ -336,9 +506,23 @@ constexpr OBFCYCLES obf_exp_cycles(int exp) {
 		static_assert(std::is_integral<T>::value);
 		static_assert(std::is_unsigned<T>::value);
 	public:
-		using RecursiveInjection = obf_injection<T, Context, obf_compile_time_prng(seed, 1), cycles - 15>;
+		static constexpr OBFCYCLES availCycles = cycles - obf_injection_version2_descr<T,Context>::own_min_cycles;
+		static_assert(availCycles >= 0);
+		constexpr static std::array<ObfDescriptor, 2> split {
+			ObfDescriptor(true,0,100),//f() 
+			ObfDescriptor(true,0,100)//RecursiveInjection
+		};
+		static constexpr auto splitCycles = obf_random_split(obf_compile_time_prng(seed, 1), availCycles, split);
+		static constexpr OBFCYCLES cycles_f = splitCycles[0];
+		static constexpr OBFCYCLES cycles_rInj = splitCycles[1];
+		static_assert(cycles_f + cycles_rInj <= availCycles);
+
+		using RecursiveInjection = obf_injection<T, Context, obf_compile_time_prng(seed, 2), cycles_rInj>;
 		using return_type = typename RecursiveInjection::return_type;
+
 		using halfT = typename obf_half_size_int<T>::value_type;
+		using FType = obf_randomized_function<halfT, obf_compile_time_prng(seed, 3), cycles_f>;
+
 		constexpr static int halfTBits = sizeof(halfT) * 8;
 		constexpr static T mask = ((T)1 << halfTBits) - 1;
 		FORCEINLINE constexpr static return_type injection(T x) {
@@ -356,39 +540,31 @@ constexpr OBFCYCLES obf_exp_cycles(int exp) {
 
 #ifdef OBFUSCATE_DEBUG_ENABLE_DBGPRINT
 		static void dbgPrint(size_t offset = 0) {
-			std::cout << std::string(offset, ' ') << "obf_injection_version<2/*kinda-Feistel*/,"<<obf_dbgPrintT<T>()<<"," << seed << "," << cycles << ">" << std::endl;
+			std::cout << std::string(offset, ' ') << "obf_injection_version<2/*kinda-Feistel*/,"<<obf_dbgPrintT<T>()<<"," << seed << "," << cycles << ">:" 
+				" availCycles=" << availCycles << " cycles_f=" << cycles_f << " cycles_rInj=" << cycles_rInj << std::endl;
+			//auto splitCyclesRT = obf_random_split(obf_compile_time_prng(seed, 1), availCycles, split);
+			std::cout << std::string(offset, ' ') << "f():" << std::endl;
+			FType::dbgPrint(offset + 1);
+			std::cout << std::string(offset, ' ') << "Recursive:" << std::endl;
 			RecursiveInjection::dbgPrint(offset + 1);
 		}
 #endif
 
 	private:
 		static constexpr halfT f(halfT x) {
-			constexpr auto func = obf_weak_random(obf_compile_time_prng(seed, 2), 3);
-			//TODO: change to obf_random_obf_from_list, including injections
-			if constexpr(func == 0) {
-				return x*x;
-			}
-			else if constexpr(func == 1) {
-				constexpr halfT a = (halfT)obf_compile_time_prng(seed, 3);
-				constexpr halfT c = (halfT)obf_compile_time_prng(seed, 4);
-				return x * a + c;
-			}
-			else if constexpr(func == 2) {
-				constexpr halfT c = (halfT)obf_compile_time_prng(seed, 4);
-				return x + c;
-			}
-			else {
-				assert(false);
-			}
+			return FType()(x);
 		}
 	};
 
 	//version 3: split-join
-	template<class T>
+	template<class T,class Context>
 	struct obf_injection_version3_descr {
+		static constexpr OBFCYCLES own_min_injection_cycles = 7;
+		static constexpr OBFCYCLES own_min_surjection_cycles = 7;
+		static constexpr OBFCYCLES own_min_cycles = Context::context_cycles + Context::calc_cycles(own_min_injection_cycles, own_min_surjection_cycles);
 		static constexpr ObfDescriptor descr =
 			sizeof(T) > 1 ?
-			ObfDescriptor(true, 15, 100) :
+			ObfDescriptor(true, own_min_cycles, 100) :
 			ObfDescriptor(false, 0, 0);
 	};
 
@@ -398,21 +574,47 @@ constexpr OBFCYCLES obf_exp_cycles(int exp) {
 		static_assert(std::is_unsigned<T>::value);
 	public:
 		//TODO:split-join based on union
+		static constexpr OBFCYCLES availCycles = cycles - obf_injection_version3_descr<T, Context>::own_min_cycles;
+		static_assert(availCycles >= 0);
+
 		using halfT = typename obf_half_size_int<T>::value_type;
 		constexpr static int halfTBits = sizeof(halfT) * 8;
 
-		static constexpr OBFCYCLES RemainingCycles1 = cycles - 5;
-		static constexpr OBFCYCLES RecursiveCycles = obf_weak_random(obf_compile_time_prng(seed, 1), RemainingCycles1 - 5);
-		using RecursiveInjection = obf_injection<T, Context, obf_compile_time_prng(seed, 2), RecursiveCycles>;
+		constexpr static std::array<ObfDescriptor, 3> split{
+			ObfDescriptor(true,0,200),//RecursiveInjection
+			ObfDescriptor(true,0,100),//LoInjection
+			ObfDescriptor(true,0,100),//HiInjection
+		};
+		static constexpr auto splitCycles = obf_random_split(obf_compile_time_prng(seed, 1), availCycles, split);
+		static constexpr OBFCYCLES cycles_rInj = splitCycles[0];
+		static constexpr OBFCYCLES cycles_lo = splitCycles[1];
+		static constexpr OBFCYCLES cycles_hi = splitCycles[2];
+		static_assert(cycles_rInj + cycles_lo + cycles_hi <= availCycles);
+
+		using RecursiveInjection = obf_injection<T, Context, obf_compile_time_prng(seed, 2), cycles_rInj>;
 		using return_type = typename RecursiveInjection::return_type;
 
-		static constexpr OBFCYCLES RemainingCycles2 = RemainingCycles1 - RecursiveCycles;
-		static constexpr OBFCYCLES HiCycles = obf_weak_random(obf_compile_time_prng(seed, 3), RemainingCycles2 - 2);
-		using HiInjection = obf_injection<halfT, typename ObfRecursiveContext<halfT, Context, obf_compile_time_prng(seed, 4),10/*TODO*/>::side_context_type/*ObfZeroContext<halfT>*/, obf_compile_time_prng(seed, 5), HiCycles>;
-		static constexpr OBFCYCLES LoCycles = RemainingCycles2 - HiCycles;
-		using LoInjection = obf_injection<halfT, typename ObfRecursiveContext<halfT, Context, obf_compile_time_prng(seed, 6), 10/*TODO*/>::side_context_type/*ObfZeroContext<halfT>*/, obf_compile_time_prng(seed, 7), LoCycles>;
-		static_assert(sizeof(HiInjection::return_type) == sizeof(halfT));//bijections ONLY; TODO: enforce
+		constexpr static std::array<ObfDescriptor, 2> splitLo {
+			ObfDescriptor(true,0,100),//Context
+			ObfDescriptor(true,0,100)//Injection
+		};
+		static constexpr auto splitCyclesLo = obf_random_split(obf_compile_time_prng(seed, 2), cycles_lo, splitLo);
+		static constexpr OBFCYCLES cycles_loCtx = splitCyclesLo[0];
+		static constexpr OBFCYCLES cycles_loInj = splitCyclesLo[1];
+		static_assert(cycles_loCtx + cycles_loInj <= cycles_lo);
+		using LoInjection = obf_injection<halfT, typename ObfRecursiveContext<halfT, Context, obf_compile_time_prng(seed, 3), cycles_loCtx>::side_context_type, obf_compile_time_prng(seed, 4), cycles_loInj>;
 		static_assert(sizeof(LoInjection::return_type) == sizeof(halfT));//bijections ONLY; TODO: enforce
+
+		constexpr static std::array<ObfDescriptor, 2> splitHi{
+			ObfDescriptor(true,0,100),//Context
+			ObfDescriptor(true,0,100)//Injection
+		};
+		static constexpr auto splitCyclesHi = obf_random_split(obf_compile_time_prng(seed, 5), cycles_hi, splitHi);
+		static constexpr OBFCYCLES cycles_hiCtx = splitCyclesHi[0];
+		static constexpr OBFCYCLES cycles_hiInj = splitCyclesHi[1];
+		static_assert(cycles_hiCtx + cycles_hiInj <= cycles_hi);
+		using HiInjection = obf_injection<halfT, typename ObfRecursiveContext<halfT, Context, obf_compile_time_prng(seed, 6), cycles_hiCtx>::side_context_type, obf_compile_time_prng(seed, 7), cycles_hiInj>;
+		static_assert(sizeof(HiInjection::return_type) == sizeof(halfT));//bijections ONLY; TODO: enforce
 
 		FORCEINLINE constexpr static return_type injection(T x) {
 			halfT lo = x >> halfTBits;
@@ -490,23 +692,35 @@ constexpr OBFCYCLES obf_exp_cycles(int exp) {
 		return lasty;
 	}
 
+	template<class Context>
 	struct obf_injection_version4_descr {
-		static constexpr ObfDescriptor descr = ObfDescriptor(true, 10, 100);
+		static constexpr OBFCYCLES own_min_injection_cycles = 3 + Context::literal_cycles;
+		static constexpr OBFCYCLES own_min_surjection_cycles = 3;
+		static constexpr OBFCYCLES own_min_cycles = Context::context_cycles + Context::calc_cycles(own_min_injection_cycles, own_min_surjection_cycles);
+		static constexpr ObfDescriptor descr = ObfDescriptor(true, own_min_cycles, 100);
 	};
 
 	template <class T, class Context, OBFSEED seed, OBFCYCLES cycles>
 	class obf_injection_version<4, T, Context, seed, cycles> {
 		static_assert(std::is_integral<T>::value);
 		static_assert(std::is_unsigned<T>::value);
+		static constexpr OBFCYCLES availCycles = cycles - obf_injection_version4_descr<Context>::own_min_cycles;
+		static_assert(availCycles >= 0);
+
 	public:
-		using RecursiveInjection = obf_injection<T, Context, obf_compile_time_prng(seed, 1), cycles - 3>;
+		using RecursiveInjection = obf_injection<T, Context, obf_compile_time_prng(seed, 1), availCycles>;
 		using return_type = typename RecursiveInjection::return_type;
-		constexpr static T C = (T)(obf_gen_const<T>(obf_compile_time_prng(seed, 2)) | 1);
+		//constexpr static T C = (T)(obf_gen_const<T>(obf_compile_time_prng(seed, 2)) | 1);
+		static constexpr std::array<T, 3> consts = { OBF_CONST_A,OBF_CONST_B,OBF_CONST_C };
+		constexpr static T C = obf_random_const<T>(obf_compile_time_prng(seed, 2), consts);
+		static_assert((C & 1) == 1);
 		constexpr static T CINV = obf_mul_inverse_mod2n(C);
 		static_assert((T)(C*CINV) == (T)1);
 
+		using literal = typename Context::template literal<T, CINV, obf_compile_time_prng(seed, 3)>::type;
+
 		FORCEINLINE constexpr static return_type injection(T x) {
-			return RecursiveInjection::injection(x * obf_literal<T,CINV, obf_compile_time_prng(seed, 3),std::min(10,cycles-3)>().value());//using CINV in injection to hide literals a bit better...
+			return RecursiveInjection::injection(x * literal().value());//using CINV in injection to hide literals a bit better...
 		}
 		FORCEINLINE constexpr static T surjection(return_type y) {
 			return RecursiveInjection::surjection(y) * C;
@@ -514,18 +728,24 @@ constexpr OBFCYCLES obf_exp_cycles(int exp) {
 
 #ifdef OBFUSCATE_DEBUG_ENABLE_DBGPRINT
 		static void dbgPrint(size_t offset = 0) {
-			std::cout << std::string(offset, ' ') << "obf_injection_version<4/*mul odd mod 2^N*/,"<<obf_dbgPrintT<T>()<<"," << seed << "," << cycles << ">: C=" << C << " CINV=" << CINV << std::endl;
+			std::cout << std::string(offset, ' ') << "obf_injection_version<4/*mul odd mod 2^N*/,"<<obf_dbgPrintT<T>()<<"," << seed << "," << cycles << ">: C=" << obf_dbgPrintC(C) << " CINV=" << obf_dbgPrintC(CINV) << std::endl;
+			std::cout << std::string(offset, ' ') << "literal:" << std::endl;
+			literal::dbgPrint(offset + 1);
+			std::cout << std::string(offset, ' ') << "Recursive:" << std::endl;
 			RecursiveInjection::dbgPrint(offset + 1);
 		}
 #endif
 	};
 
 	//version 5: split (w/o join)
-	template<class T>
+	template<class T, class Context>
 	struct obf_injection_version5_descr {
+		static constexpr OBFCYCLES own_min_injection_cycles = 3;
+		static constexpr OBFCYCLES own_min_surjection_cycles = 3;
+		static constexpr OBFCYCLES own_min_cycles = Context::context_cycles + Context::calc_cycles(own_min_injection_cycles, own_min_surjection_cycles);
 		static constexpr ObfDescriptor descr =
 			sizeof(T) > 1 ?
-			ObfDescriptor(true, 15, 100) :
+			ObfDescriptor(true, own_min_cycles, 100) :
 			ObfDescriptor(false, 0, 0);
 	};
 
@@ -537,11 +757,37 @@ constexpr OBFCYCLES obf_exp_cycles(int exp) {
 		using halfT = typename obf_half_size_int<T>::value_type;
 		constexpr static int halfTBits = sizeof(halfT) * 8;
 
-		static constexpr OBFCYCLES RemainingCycles = cycles - 5;
-		static constexpr OBFCYCLES HiCycles = obf_weak_random(obf_compile_time_prng(seed, 3), RemainingCycles - 2);
-		using RecursiveInjectionHi = obf_injection<halfT, typename ObfRecursiveContext<halfT,Context, obf_compile_time_prng(seed, 4),10/*TODO*/>::recursive_context_type/*ObfZeroContext<halfT>*/, obf_compile_time_prng(seed, 5), HiCycles>;
-		static constexpr OBFCYCLES LoCycles = RemainingCycles - HiCycles;
-		using RecursiveInjectionLo = obf_injection<halfT, typename ObfRecursiveContext<halfT,Context, obf_compile_time_prng(seed, 6),10/*TODO*/>::recursive_context_type/*ObfZeroContext<halfT>*/, obf_compile_time_prng(seed, 7), LoCycles>;
+		static constexpr OBFCYCLES availCycles = cycles - obf_injection_version5_descr<T,Context>::own_min_cycles;
+		static_assert(availCycles >= 0);
+
+		constexpr static std::array<ObfDescriptor, 2> split{
+			ObfDescriptor(true,0,100),//LoInjection
+			ObfDescriptor(true,0,100),//HiInjection
+		};
+		static constexpr auto splitCycles = obf_random_split(obf_compile_time_prng(seed, 1), availCycles, split);
+		static constexpr OBFCYCLES cycles_lo = splitCycles[0];
+		static constexpr OBFCYCLES cycles_hi = splitCycles[1];
+		static_assert(cycles_lo + cycles_hi <= availCycles);
+
+		constexpr static std::array<ObfDescriptor, 2> splitLo{
+			ObfDescriptor(true,0,100),//Context
+			ObfDescriptor(true,0,100)//Injection
+		};
+		static constexpr auto splitCyclesLo = obf_random_split(obf_compile_time_prng(seed, 2), cycles_lo, splitLo);
+		static constexpr OBFCYCLES cycles_loCtx = splitCyclesLo[0];
+		static constexpr OBFCYCLES cycles_loInj = splitCyclesLo[1];
+		static_assert(cycles_loCtx + cycles_loInj <= cycles_lo);
+		using RecursiveInjectionLo = obf_injection<halfT, typename ObfRecursiveContext<halfT, Context, obf_compile_time_prng(seed, 3), cycles_loCtx>::recursive_context_type, obf_compile_time_prng(seed, 4), cycles_loInj>;
+
+		constexpr static std::array<ObfDescriptor, 2> splitHi{
+			ObfDescriptor(true,0,100),//Context
+			ObfDescriptor(true,0,100)//Injection
+		};
+		static constexpr auto splitCyclesHi = obf_random_split(obf_compile_time_prng(seed, 5), cycles_hi, splitHi);
+		static constexpr OBFCYCLES cycles_hiCtx = splitCyclesHi[0];
+		static constexpr OBFCYCLES cycles_hiInj = splitCyclesHi[1];
+		static_assert(cycles_hiCtx + cycles_hiInj <= cycles_hi);
+		using RecursiveInjectionHi = obf_injection < halfT, typename ObfRecursiveContext<halfT, Context, obf_compile_time_prng(seed, 6), cycles_hiCtx>::recursive_context_type, obf_compile_time_prng(seed, 7), cycles_hiInj > ;
 
 		struct return_type {
 			typename RecursiveInjectionLo::return_type lo;
@@ -573,12 +819,12 @@ constexpr OBFCYCLES obf_exp_cycles(int exp) {
 		static_assert(std::is_integral<T>::value);
 		static_assert(std::is_unsigned<T>::value);
 		constexpr static std::array<ObfDescriptor, 6> descr{
-			obf_injection_version0_descr::descr,
-			obf_injection_version1_descr::descr,
-			obf_injection_version2_descr<T>::descr,
-			obf_injection_version3_descr<T>::descr,
-			obf_injection_version4_descr::descr,
-			obf_injection_version5_descr<T>::descr,
+			obf_injection_version0_descr<Context>::descr,
+			obf_injection_version1_descr<Context>::descr,
+			obf_injection_version2_descr<T,Context>::descr,
+			obf_injection_version3_descr<T,Context>::descr,
+			obf_injection_version4_descr<Context>::descr,
+			obf_injection_version5_descr<T,Context>::descr,
 		};
 		constexpr static size_t which = obf_random_obf_from_list(obf_compile_time_prng(seed, 1), cycles, descr);
 		using WhichType = obf_injection_version<which, T, Context, seed, cycles>;
@@ -617,6 +863,8 @@ constexpr OBFCYCLES obf_exp_cycles(int exp) {
 	struct ObfLiteralContext_version<0,T,seed> {
 		static_assert(std::is_integral<T>::value);
 		static_assert(std::is_unsigned<T>::value);
+		constexpr static OBFCYCLES context_cycles = obf_literal_context_version0_descr::descr.min_cycles;
+
 		static constexpr T final_injection(T x) {
 			return x;
 		}
@@ -640,7 +888,11 @@ constexpr OBFCYCLES obf_exp_cycles(int exp) {
 	struct ObfLiteralContext_version<1,T,seed> {
 		static_assert(std::is_integral<T>::value);
 		static_assert(std::is_unsigned<T>::value);
-		static constexpr T CC = obf_gen_const<T>(obf_compile_time_prng(seed, 1));
+		constexpr static OBFCYCLES context_cycles = obf_literal_context_version1_descr::descr.min_cycles;
+
+		//static constexpr T CC = obf_gen_const<T>(obf_compile_time_prng(seed, 1));
+		static constexpr std::array<T, 3> consts = { OBF_CONST_A,OBF_CONST_B,OBF_CONST_C };
+		constexpr static T CC = obf_random_const<T>(obf_compile_time_prng(seed, 1), consts);
 		static constexpr T final_injection(T x) {
 			return x + CC;
 		}
@@ -650,7 +902,7 @@ constexpr OBFCYCLES obf_exp_cycles(int exp) {
 
 #ifdef OBFUSCATE_DEBUG_ENABLE_DBGPRINT
 		static void dbgPrint(size_t offset = 0) {
-			std::cout << std::string(offset, ' ') << "ObfLiteralContext_version<1/*global volatile*/," << obf_dbgPrintT<T>() << "," << seed << ">: CC=" << CC << std::endl;
+			std::cout << std::string(offset, ' ') << "ObfLiteralContext_version<1/*global volatile*/," << obf_dbgPrintT<T>() << "," << seed << ">: CC=" << obf_dbgPrintC(CC) << std::endl;
 		}
 #endif
 	private:
@@ -662,7 +914,7 @@ constexpr OBFCYCLES obf_exp_cycles(int exp) {
 
 	//version 2: aliased pointers
 	struct obf_literal_context_version2_descr {
-		static constexpr ObfDescriptor descr = ObfDescriptor(true, 10, 100);
+		static constexpr ObfDescriptor descr = ObfDescriptor(true, 20, 100);
 	};
 
 	template<class T>//TODO: randomize contents of the function
@@ -676,6 +928,8 @@ constexpr OBFCYCLES obf_exp_cycles(int exp) {
 	struct ObfLiteralContext_version<2,T,seed> {
 		static_assert(std::is_integral<T>::value);
 		static_assert(std::is_unsigned<T>::value);
+		constexpr static OBFCYCLES context_cycles = obf_literal_context_version2_descr::descr.min_cycles;
+
 		static constexpr T final_injection(T x) {
 			return x;
 		}
@@ -707,7 +961,11 @@ constexpr OBFCYCLES obf_exp_cycles(int exp) {
 	struct ObfLiteralContext_version<3,T,seed> {
 		static_assert(std::is_integral<T>::value);
 		static_assert(std::is_unsigned<T>::value);
-		static constexpr T CC = obf_gen_const<T>(obf_compile_time_prng(seed, 1));
+		constexpr static OBFCYCLES context_cycles = obf_literal_context_version3_descr::descr.min_cycles;
+
+		//static constexpr T CC = obf_gen_const<T>(obf_compile_time_prng(seed, 1));
+		static constexpr std::array<T, 3> consts = { OBF_CONST_A,OBF_CONST_B,OBF_CONST_C };
+		constexpr static T CC = obf_random_const<T>(obf_compile_time_prng(seed, 1), consts);
 		static constexpr T final_injection(T x) {
 			return x + CC;
 		}
@@ -721,7 +979,7 @@ constexpr OBFCYCLES obf_exp_cycles(int exp) {
 
 #ifdef OBFUSCATE_DEBUG_ENABLE_DBGPRINT
 		static void dbgPrint(size_t offset = 0) {
-			std::cout << std::string(offset, ' ') << "ObfLiteralContext_version<3/*PEB*/," << obf_dbgPrintT<T>() << "," << seed << ">: CC=" << CC << std::endl;
+			std::cout << std::string(offset, ' ') << "ObfLiteralContext_version<3/*PEB*/," << obf_dbgPrintT<T>() << "," << seed << ">: CC=" << obf_dbgPrintC(CC) << std::endl;
 		}
 #endif
 	};
@@ -729,13 +987,17 @@ constexpr OBFCYCLES obf_exp_cycles(int exp) {
 
 	//version 4: global var-with-invariant
 	struct obf_literal_context_version4_descr {
-		static constexpr ObfDescriptor descr = ObfDescriptor(true, 10, 100);
+		static constexpr ObfDescriptor descr = ObfDescriptor(true, 100, 100);
+			//yes, it is up 100+ cycles now (due to worst-case MT caching issues)
+			//TODO: move invariant to thread_local, something else?
 	};
 
 	template<class T, OBFSEED seed>
 	struct ObfLiteralContext_version<4, T, seed> {
 		static_assert(std::is_integral<T>::value);
 		static_assert(std::is_unsigned<T>::value);
+		constexpr static OBFCYCLES context_cycles = obf_literal_context_version4_descr::descr.min_cycles;
+
 		static constexpr T PREMODRNDCONST = obf_gen_const<T>(obf_compile_time_prng(seed, 1));
 		static constexpr T PREMODMASK = (T(1) << (sizeof(T) * 4)) - 1;
 		static constexpr T PREMOD = PREMODRNDCONST & PREMODMASK;
@@ -784,7 +1046,7 @@ constexpr OBFCYCLES obf_exp_cycles(int exp) {
 
 #ifdef OBFUSCATE_DEBUG_ENABLE_DBGPRINT
 		static void dbgPrint(size_t offset = 0) {
-			std::cout << std::string(offset, ' ') << "ObfLiteralContext_version<4/*global volatile var-with-invariant*/," << obf_dbgPrintT<T>() << "," << seed << ">: CC=" << CC << std::endl;
+			std::cout << std::string(offset, ' ') << "ObfLiteralContext_version<4/*global volatile var-with-invariant*/," << obf_dbgPrintT<T>() << "," << seed << ">: CC=" << obf_dbgPrintC(CC) << std::endl;
 		}
 #endif
 	private:
@@ -803,11 +1065,20 @@ constexpr OBFCYCLES obf_exp_cycles(int exp) {
 	volatile T ObfLiteralContext_version<4, T, seed>::c = CC0;
 #endif
 
-	//ObfZeroContext
+	//ObfZeroLiteralContext
 	template<class T>
-	struct ObfZeroContext {
-		//uses the same injection as for ObfLiteralContext_version<0,...>,
-		//  but has different ObfRecursiveContext semantics
+	struct ObfZeroLiteralContext {
+		//same as ObfLiteralContext_version<0,...> but with additional stuff to make it suitable for use as Context parameter to injections
+		constexpr static OBFCYCLES context_cycles = 0;
+		constexpr static OBFCYCLES calc_cycles(OBFCYCLES inj, OBFCYCLES surj) {
+			return surj;//for literals, ONLY surjection costs apply in runtime (as injection applies in compile-time)
+		}
+		constexpr static OBFCYCLES literal_cycles = 0;
+		template<class T,T C,OBFSEED seed>
+		struct literal {
+			using type = obf_literal_ctx<T, C, ObfZeroLiteralContext<T>, seed, literal_cycles>;
+		};
+
 		static constexpr T final_injection(T x) {
 			return x;
 		}
@@ -822,9 +1093,9 @@ constexpr OBFCYCLES obf_exp_cycles(int exp) {
 #endif
 	};
 	template<class T, class T0, OBFSEED seed, OBFCYCLES cycles>
-	struct ObfRecursiveContext<T, ObfZeroContext<T0>, seed, cycles> {
-		using recursive_context_type = ObfZeroContext<T>;
-		using side_context_type = ObfZeroContext<T>;
+	struct ObfRecursiveContext<T, ObfZeroLiteralContext<T0>, seed, cycles> {
+		using recursive_context_type = ObfZeroLiteralContext<T>;
+		using side_context_type = ObfZeroLiteralContext<T>;
 	};
 
 	//ObfLiteralContext
@@ -843,12 +1114,24 @@ constexpr OBFCYCLES obf_exp_cycles(int exp) {
 		using WhichType = ObfLiteralContext_version<which, T, seed>;
 
 	public:
+		constexpr static OBFCYCLES context_cycles = WhichType::context_cycles;
+		constexpr static OBFCYCLES calc_cycles(OBFCYCLES inj, OBFCYCLES surj) {
+			return surj;//for literals, ONLY surjection costs apply in runtime (as injection applies in compile-time)
+		}
+
+		constexpr static OBFCYCLES literal_cycles = 0;
+		template<class T, T C, OBFSEED seed>
+		struct literal {
+			using type = obf_literal_ctx<T, C, ObfZeroLiteralContext<T>, seed, literal_cycles>;
+		};
+
 		static constexpr T final_injection(T x) {
 			return WhichType::final_injection(x);
 		}
 		static /*non-constexpr*/ T final_surjection(T y) {
 			return WhichType::final_surjection(y);
 		}
+
 
 	public:
 #ifdef OBFUSCATE_DEBUG_ENABLE_DBGPRINT
@@ -860,27 +1143,36 @@ constexpr OBFCYCLES obf_exp_cycles(int exp) {
 #endif
 	};
 
-	template<size_t which,class T, OBFSEED seed, OBFCYCLES cycles>
-	struct obf_literal_side_context_version;
-	template<class T, OBFSEED seed, OBFCYCLES cycles>
-	struct obf_literal_side_context_version<0, T, seed, cycles> {
-		using type = ObfZeroContext<T>;
-	};
-	template<class T, OBFSEED seed, OBFCYCLES cycles>
-	struct obf_literal_side_context_version<1, T, seed, cycles> {
-		using type = ObfLiteralContext<T, seed, cycles>;
-	};
-
 	template<class T, class T0, OBFSEED seed, OBFSEED seed0, OBFCYCLES cycles0,OBFCYCLES cycles>
 	struct ObfRecursiveContext<T, ObfLiteralContext<T0, seed0,cycles0>, seed, cycles> {
-		using recursive_context_type = ObfLiteralContext<T, seed,cycles>;
-
-		constexpr static std::array<size_t, 2> weights{100,10};//TODO: #define
-		static constexpr size_t which = obf_random_from_list(obf_compile_time_prng(seed,1), weights);
-		using side_context_type = typename obf_literal_side_context_version<which,T, obf_compile_time_prng(seed, 2), cycles>::type;
+		using recursive_context_type = ObfLiteralContext<T, obf_compile_time_prng(seed, 1),cycles>;
+		using side_context_type = typename ObfLiteralContext<T, obf_compile_time_prng(seed, 2), cycles>;//whenever cycles is low (which is very often), will fallback to version0
 	};
 
 	//obf_literal
+	template<class T, T C, class Context, OBFSEED seed, OBFCYCLES cycles>
+	class obf_literal_ctx {
+		static_assert(std::is_integral<T>::value);
+		static_assert(std::is_unsigned<T>::value);
+
+		using Injection = obf_injection<T, Context, obf_compile_time_prng(seed, 1), cycles>;
+	public:
+		constexpr obf_literal_ctx() : val(Injection::injection(C)) {
+		}
+		T value() const {
+			return Injection::surjection(val);
+		}
+
+#ifdef OBFUSCATE_DEBUG_ENABLE_DBGPRINT
+		static void dbgPrint(size_t offset = 0) {
+			std::cout << std::string(offset, ' ') << "obf_literal_ctx<" << obf_dbgPrintT<T>() << "," << C << "," << seed << "," << cycles << ">" << std::endl;
+			Injection::dbgPrint(offset + 1);
+		}
+#endif
+	private:
+		typename Injection::return_type val;
+	};
+
 	template<class T_, T_ C_, OBFSEED seed, OBFCYCLES cycles>
 	class obf_literal {
 		static_assert(std::is_integral<T_>::value);
@@ -909,6 +1201,18 @@ constexpr OBFCYCLES obf_exp_cycles(int exp) {
 	//ObfVarContext
 	template<class T,OBFSEED seed,OBFCYCLES cycles>
 	struct ObfVarContext {
+		constexpr static OBFCYCLES context_cycles = 0;
+		constexpr static OBFCYCLES calc_cycles(OBFCYCLES inj, OBFCYCLES surj) {
+			return inj + surj;//for variables, BOTH injection and surjection are executed in runtime
+		}
+
+		constexpr static OBFCYCLES literal_cycles = 50;//TODO: justify (or define?)
+		using LiteralContext = ObfLiteralContext<T, seed, literal_cycles>;
+		template<class T, T C, OBFSEED seed>
+		struct literal {
+			using type = obf_literal_ctx<T, C, LiteralContext, seed, literal_cycles>;
+		};
+
 		static constexpr T final_injection(T x) {
 			return x;
 		}
@@ -1072,6 +1376,12 @@ constexpr OBFCYCLES obf_exp_cycles(int exp) {
 	inline void obf_init() {
 		obf_preMain();
 	}
+#ifdef OBFUSCATE_DEBUG_ENABLE_DBGPRINT
+	inline void obf_dbgPrint() {
+		std::cout << "OBF_CONST_A=" << int(OBF_CONST_A) << " OBF_CONST_B=" << int(OBF_CONST_B) << " OBF_CONST_C=" << int(OBF_CONST_C) << std::endl;
+		//auto c = obf_const_x(obf_compile_time_prng(OBFUSCATE_SEED^UINT64_C(0xfb2de18f982a2d55), 1), obf_const_C_excluded);
+	}
+#endif
 
 	//USER-LEVEL:
 	/*think about it further //  obfN<> templates
@@ -1106,6 +1416,7 @@ constexpr OBFCYCLES obf_exp_cycles(int exp) {
 #define OBF3(type) obf::obf_var<type,obf::obf_seed_from_file_line(OBF_LOCATION,0),obf::obf_exp_cycles((OBFSCALE)+3)>
 #define OBF4(type) obf::obf_var<type,obf::obf_seed_from_file_line(OBF_LOCATION,0),obf::obf_exp_cycles((OBFSCALE)+4)>
 #define OBF5(type) obf::obf_var<type,obf::obf_seed_from_file_line(OBF_LOCATION,0),obf::obf_exp_cycles((OBFSCALE)+5)>
+#define OBF6(type) obf::obf_var<type,obf::obf_seed_from_file_line(OBF_LOCATION,0),obf::obf_exp_cycles((OBFSCALE)+6)>
 #else//_MSC_VER
 #define OBF0(type) obf::obf_var<type,obf::obf_seed_from_file_line(__FILE__,__LINE__),obf::obf_exp_cycles((OBFSCALE)+0)>
 #define OBF1(type) obf::obf_var<type,obf::obf_seed_from_file_line(__FILE__,__LINE__),obf::obf_exp_cycles((OBFSCALE)+1)>
@@ -1113,6 +1424,7 @@ constexpr OBFCYCLES obf_exp_cycles(int exp) {
 #define OBF3(type) obf::obf_var<type,obf::obf_seed_from_file_line(__FILE__,__LINE__),obf::obf_exp_cycles((OBFSCALE)+3)>
 #define OBF4(type) obf::obf_var<type,obf::obf_seed_from_file_line(__FILE__,__LINE__),obf::obf_exp_cycles((OBFSCALE)+4)>
 #define OBF5(type) obf::obf_var<type,obf::obf_seed_from_file_line(__FILE__,__LINE__),obf::obf_exp_cycles((OBFSCALE)+5)>
+#define OBF6(type) obf::obf_var<type,obf::obf_seed_from_file_line(__FILE__,__LINE__),obf::obf_exp_cycles((OBFSCALE)+6)>
 #endif
 
 #else//OBFUSCATE_SEED
@@ -1271,6 +1583,7 @@ constexpr OBFCYCLES obf_exp_cycles(int exp) {
 #define OBF3(type) obf::obf_var_dbg<type>
 #define OBF4(type) obf::obf_var_dbg<type>
 #define OBF5(type) obf::obf_var_dbg<type>
+#define OBF6(type) obf::obf_var_dbg<type>
 
 #endif //OBFUSCATE_SEED
 
