@@ -871,10 +871,10 @@ namespace obf {
 		static_assert(std::is_unsigned<T>::value);
 		constexpr static OBFCYCLES context_cycles = obf_literal_context_version0_descr::descr.min_cycles;
 
-		static constexpr T final_injection(T x) {
+		FORCEINLINE static constexpr T final_injection(T x) {
 			return x;
 		}
-		static constexpr T final_surjection(T y) {
+		FORCEINLINE static constexpr T final_surjection(T y) {
 			return y;
 		}
 
@@ -899,10 +899,10 @@ namespace obf {
 		//static constexpr T CC = obf_gen_const<T>(obf_compile_time_prng(seed, 1));
 		static constexpr std::array<T, 3> consts = { OBF_CONST_A,OBF_CONST_B,OBF_CONST_C };
 		constexpr static T CC = obf_random_const<T>(obf_compile_time_prng(seed, 1), consts);
-		static constexpr T final_injection(T x) {
+		FORCEINLINE static constexpr T final_injection(T x) {
 			return x + CC;
 		}
-		static T final_surjection(T y) {
+		FORCEINLINE static T final_surjection(T y) {
 			return y - c;
 		}
 
@@ -936,10 +936,10 @@ namespace obf {
 		static_assert(std::is_unsigned<T>::value);
 		constexpr static OBFCYCLES context_cycles = obf_literal_context_version2_descr::descr.min_cycles;
 
-		static constexpr T final_injection(T x) {
+		FORCEINLINE static constexpr T final_injection(T x) {
 			return x;
 		}
-		static /*non-constexpr*/ T final_surjection(T y) {
+		FORCEINLINE static /*non-constexpr*/ T final_surjection(T y) {
 			T x, yy;
 			T z = obf_aliased_zero(&x, &yy);
 			return y - z;
@@ -972,10 +972,10 @@ namespace obf {
 		//static constexpr T CC = obf_gen_const<T>(obf_compile_time_prng(seed, 1));
 		static constexpr std::array<T, 3> consts = { OBF_CONST_A,OBF_CONST_B,OBF_CONST_C };
 		constexpr static T CC = obf_random_const<T>(obf_compile_time_prng(seed, 1), consts);
-		static constexpr T final_injection(T x) {
+		FORCEINLINE static constexpr T final_injection(T x) {
 			return x + CC;
 		}
-		static T final_surjection(T y) {
+		FORCEINLINE static T final_surjection(T y) {
 #ifdef OBFUSCATE_DEBUG_DISABLE_ANTI_DEBUG
 			return y - CC;
 #else
@@ -1038,10 +1038,10 @@ namespace obf {
 		}
 		static_assert(test_n_iterations(CC0, OBF_COMPILE_TIME_TESTS));//test only
 
-		static constexpr T final_injection(T x) {
+		FORCEINLINE static constexpr T final_injection(T x) {
 			return x + CC;
 		}
-		static T final_surjection(T y) {
+		FORCEINLINE static T final_surjection(T y) {
 			//{MT-related:
 			T newC = (c+DELTA)%DELTAMOD;
 			c = newC;
@@ -1085,10 +1085,10 @@ namespace obf {
 			using type = obf_literal_ctx<T, C, ObfZeroLiteralContext<T>, seed, literal_cycles>;
 		};
 
-		static constexpr T final_injection(T x) {
+		FORCEINLINE static constexpr T final_injection(T x) {
 			return x;
 		}
-		static constexpr T final_surjection(T y) {
+		FORCEINLINE static constexpr T final_surjection(T y) {
 			return y;
 		}
 
@@ -1131,10 +1131,10 @@ namespace obf {
 			using type = obf_literal_ctx<T, C, ObfZeroLiteralContext<T>, seed, literal_cycles>;
 		};
 
-		static constexpr T final_injection(T x) {
+		FORCEINLINE static constexpr T final_injection(T x) {
 			return WhichType::final_injection(x);
 		}
-		static /*non-constexpr*/ T final_surjection(T y) {
+		FORCEINLINE static /*non-constexpr*/ T final_surjection(T y) {
 			return WhichType::final_surjection(y);
 		}
 
@@ -1163,9 +1163,9 @@ namespace obf {
 
 		using Injection = obf_injection<T, Context, obf_compile_time_prng(seed, 1), cycles>;
 	public:
-		constexpr obf_literal_ctx() : val(Injection::injection(C)) {
+		FORCEINLINE constexpr obf_literal_ctx() : val(Injection::injection(C)) {
 		}
-		T value() const {
+		FORCEINLINE T value() const {
 			return Injection::surjection(val);
 		}
 
@@ -1188,9 +1188,9 @@ namespace obf {
 		using Context = ObfLiteralContext<T, obf_compile_time_prng(seed, 1),cycles>;
 		using Injection = obf_injection<T, Context, obf_compile_time_prng(seed, 2), cycles>;
 	public:
-		constexpr obf_literal() : val(Injection::injection(C)) {
+		FORCEINLINE constexpr obf_literal() : val(Injection::injection(C)) {
 		}
-		T value() const {
+		FORCEINLINE T value() const {
 			return Injection::surjection(val);
 		}
 
@@ -1219,10 +1219,10 @@ namespace obf {
 			using type = obf_literal_ctx<T, C, LiteralContext, seed, literal_cycles>;
 		};
 
-		static constexpr T final_injection(T x) {
+		FORCEINLINE static constexpr T final_injection(T x) {
 			return x;
 		}
-		static constexpr T final_surjection(T y) {
+		FORCEINLINE static constexpr T final_surjection(T y) {
 			return y;
 		}
 
@@ -1248,121 +1248,121 @@ namespace obf {
 		using Injection = obf_injection<T, Context, obf_compile_time_prng(seed, 2), cycles>;
 
 	public:
-		obf_var(T_ t) : val(Injection::injection(T(t))) {
+		FORCEINLINE obf_var(T_ t) : val(Injection::injection(T(t))) {
 		}
 		template<class T2,OBFSEED seed2, OBFCYCLES cycles2>
-		obf_var(obf_var<T2, seed2, cycles2> t) : val(Injection::injection(T(T_(t.value())))) {//TODO: randomized injection implementation
+		FORCEINLINE obf_var(obf_var<T2, seed2, cycles2> t) : val(Injection::injection(T(T_(t.value())))) {//TODO: randomized injection implementation
 		}//TODO: template<obf_literal>
-		obf_var& operator =(T_ t) {
+		FORCEINLINE obf_var& operator =(T_ t) {
 			val = Injection::injection(T(t));//TODO: randomized injection implementation
 			return *this;
 		}
 		template<class T2,OBFSEED seed2, OBFCYCLES cycles2>
-		obf_var& operator =(obf_var<T2, seed2, cycles2> t) {
+		FORCEINLINE obf_var& operator =(obf_var<T2, seed2, cycles2> t) {
 			val = Injection::injection(T(T_(t.value())));//TODO: randomized injection implementation
 			return *this;
 		}//TODO: template<obf_literal>
-		T_ value() const {
+		FORCEINLINE T_ value() const {
 			return T_(Injection::surjection(val));
 		}
 
-		operator T_() const { return value(); }
-		obf_var& operator ++() { *this = value() + 1; return *this; }
-		obf_var& operator --() { *this = value() - 1; return *this; }
-		obf_var operator++(int) { obf_var ret = obf_var(value());  *this = value() + 1; return ret; }
-		obf_var operator--(int) { obf_var ret = obf_var(value());  *this = value() + 1; return ret; }
+		FORCEINLINE operator T_() const { return value(); }
+		FORCEINLINE obf_var& operator ++() { *this = value() + 1; return *this; }
+		FORCEINLINE obf_var& operator --() { *this = value() - 1; return *this; }
+		FORCEINLINE obf_var operator++(int) { obf_var ret = obf_var(value());  *this = value() + 1; return ret; }
+		FORCEINLINE obf_var operator--(int) { obf_var ret = obf_var(value());  *this = value() + 1; return ret; }
 
 		template<class T2>
-		bool operator <(T2 t) { return value() < t; }
+		FORCEINLINE bool operator <(T2 t) { return value() < t; }
 		template<class T2>
-		bool operator >(T2 t) { return value() > t; }
+		FORCEINLINE bool operator >(T2 t) { return value() > t; }
 		template<class T2>
-		bool operator ==(T2 t) { return value() == t; }
+		FORCEINLINE bool operator ==(T2 t) { return value() == t; }
 		template<class T2>
-		bool operator !=(T2 t) { return value() != t; }
+		FORCEINLINE bool operator !=(T2 t) { return value() != t; }
 		template<class T2>
-		bool operator <=(T2 t) { return value() <= t; }
+		FORCEINLINE bool operator <=(T2 t) { return value() <= t; }
 		template<class T2>
-		bool operator >=(T2 t) { return value() >= t; }
+		FORCEINLINE bool operator >=(T2 t) { return value() >= t; }
 
 		template<class T2, OBFSEED seed2, OBFCYCLES cycles2>
-		bool operator <(obf_var<T2, seed2, cycles2> t) {
+		FORCEINLINE bool operator <(obf_var<T2, seed2, cycles2> t) {
 			return value() < t.value();
 		}//TODO: template<obf_literal>(for ALL comparisons)
 		template<class T2, OBFSEED seed2, OBFCYCLES cycles2>
-		bool operator >(obf_var<T2, seed2, cycles2> t) {
+		FORCEINLINE bool operator >(obf_var<T2, seed2, cycles2> t) {
 			return value() > t.value();
 		}
 		template<class T2, OBFSEED seed2, OBFCYCLES cycles2>
-		bool operator ==(obf_var<T2, seed2, cycles2> t) {
+		FORCEINLINE bool operator ==(obf_var<T2, seed2, cycles2> t) {
 			return value() == t.value();
 		}
 		template<class T2, OBFSEED seed2, OBFCYCLES cycles2>
-		bool operator !=(obf_var<T2, seed2, cycles2> t) {
+		FORCEINLINE bool operator !=(obf_var<T2, seed2, cycles2> t) {
 			return value() != t.value();
 		}
 		template<class T2, OBFSEED seed2, OBFCYCLES cycles2>
-		bool operator <=(obf_var<T2, seed2, cycles2> t) {
+		FORCEINLINE bool operator <=(obf_var<T2, seed2, cycles2> t) {
 			return value() <= t.value();
 		}
 		template<class T2, OBFSEED seed2, OBFCYCLES cycles2>
-		bool operator >=(obf_var<T2, seed2, cycles2> t) {
+		FORCEINLINE bool operator >=(obf_var<T2, seed2, cycles2> t) {
 			return value() >= t.value();
 		}
 
 		template<class T2>
-		obf_var& operator +=(T2 t) { *this = value() + t; return *this; }
+		FORCEINLINE obf_var& operator +=(T2 t) { *this = value() + t; return *this; }
 		template<class T2>
-		obf_var& operator -=(T2 t) { *this = value() - t; return *this; }
+		FORCEINLINE obf_var& operator -=(T2 t) { *this = value() - t; return *this; }
 		template<class T2>
-		obf_var& operator *=(T2 t) { *this = value() * t; return *this; }
+		FORCEINLINE obf_var& operator *=(T2 t) { *this = value() * t; return *this; }
 		template<class T2>
-		obf_var& operator /=(T2 t) { *this = value() / t; return *this; }
+		FORCEINLINE obf_var& operator /=(T2 t) { *this = value() / t; return *this; }
 		template<class T2>
-		obf_var& operator %=(T2 t) { *this = value() % t; return *this; }
+		FORCEINLINE obf_var& operator %=(T2 t) { *this = value() % t; return *this; }
 
 		template<class T2, OBFSEED seed2, OBFCYCLES cycles2>
-		obf_var& operator +=(obf_var<T2, seed2, cycles2> t) {
+		FORCEINLINE obf_var& operator +=(obf_var<T2, seed2, cycles2> t) {
 			return *this += t.value();
 		}//TODO: template<obf_literal>(for ALL ?= operations)
 		template<class T2, OBFSEED seed2, OBFCYCLES cycles2>
-		obf_var& operator -=(obf_var<T2, seed2, cycles2> t) {
+		FORCEINLINE obf_var& operator -=(obf_var<T2, seed2, cycles2> t) {
 			return *this -= t.value();
 		}
 		template<class T2, OBFSEED seed2, OBFCYCLES cycles2>
-		obf_var& operator *=(obf_var<T2, seed2, cycles2> t) {
+		FORCEINLINE obf_var& operator *=(obf_var<T2, seed2, cycles2> t) {
 			return *this *= t.value();
 		}
 		template<class T2, OBFSEED seed2, OBFCYCLES cycles2>
-		obf_var& operator /=(obf_var<T2, seed2, cycles2> t) {
+		FORCEINLINE obf_var& operator /=(obf_var<T2, seed2, cycles2> t) {
 			return *this /= t.value();
 		}
 		template<class T2, OBFSEED seed2, OBFCYCLES cycles2>
-		obf_var& operator %=(obf_var<T2, seed2, cycles2> t) {
+		FORCEINLINE obf_var& operator %=(obf_var<T2, seed2, cycles2> t) {
 			return *this %= t.value();
 		}
 
 		template<class T2>
-		obf_var operator +(T2 t) { return obf_var(value()+t); }
+		FORCEINLINE obf_var operator +(T2 t) { return obf_var(value()+t); }
 		template<class T2>
-		obf_var operator -(T2 t) { return obf_var(value() - t); }
+		FORCEINLINE obf_var operator -(T2 t) { return obf_var(value() - t); }
 		template<class T2>
-		obf_var operator *(T2 t) { return obf_var(value() * t); }
+		FORCEINLINE obf_var operator *(T2 t) { return obf_var(value() * t); }
 		template<class T2>
-		obf_var operator /(T2 t) { return obf_var(value() / t); }
+		FORCEINLINE obf_var operator /(T2 t) { return obf_var(value() / t); }
 		template<class T2>
-		obf_var operator %(T2 t) { return obf_var(value() % t); }
+		FORCEINLINE obf_var operator %(T2 t) { return obf_var(value() % t); }
 		
 		template<class T2, OBFSEED seed2, OBFCYCLES cycles2>//TODO: template<obf_literal_dbg>(for ALL binary operations)
-		obf_var operator +(obf_var<T2,seed2,cycles2> t) { return obf_var(value() + t.value()); }
+		FORCEINLINE obf_var operator +(obf_var<T2,seed2,cycles2> t) { return obf_var(value() + t.value()); }
 		template<class T2, OBFSEED seed2, OBFCYCLES cycles2>
-		obf_var operator -(obf_var<T2, seed2, cycles2> t) { return obf_var(value() - t.value()); }
+		FORCEINLINE obf_var operator -(obf_var<T2, seed2, cycles2> t) { return obf_var(value() - t.value()); }
 		template<class T2, OBFSEED seed2, OBFCYCLES cycles2>
-		obf_var operator *(obf_var<T2, seed2, cycles2> t) { return obf_var(value() * t.value()); }
+		FORCEINLINE obf_var operator *(obf_var<T2, seed2, cycles2> t) { return obf_var(value() * t.value()); }
 		template<class T2, OBFSEED seed2, OBFCYCLES cycles2>
-		obf_var operator /(obf_var<T2, seed2, cycles2> t) { return obf_var(value() / t.value()); }
+		FORCEINLINE obf_var operator /(obf_var<T2, seed2, cycles2> t) { return obf_var(value() / t.value()); }
 		template<class T2, OBFSEED seed2, OBFCYCLES cycles2>
-		obf_var operator %(obf_var<T2, seed2, cycles2> t) { return obf_var(value() % t.value()); }
+		FORCEINLINE obf_var operator %(obf_var<T2, seed2, cycles2> t) { return obf_var(value() % t.value()); }
 
 		//TODO: bitwise
 
