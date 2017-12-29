@@ -421,73 +421,112 @@ namespace obf {
 			ObfDescriptor(false, 0, 0);
 	};
 
-	template<class T, OBFSEED seed, OBFCYCLES cycles>
-	struct obf_randomized_polynomial_function_helper {
-		static constexpr bool is_id = cycles == 0;
-		static constexpr bool is_plus = !is_id && cycles < 3;
-		static constexpr std::array<size_t, 2> weights{ 100,100 };
-		static constexpr size_t which = obf_random_from_list(obf_compile_time_prng(seed, 1), weights);
+	template<size_t which, class T, OBFSEED seed, OBFCYCLES cycles>
+	struct obf_randomized_non_reversible_function_version;
+	//IMPORTANT: Feistel-like non-reversible functions SHOULD be short, to avoid creating code 'signatures'
+	//  Therefore, currently we're NOT using any recursions here
 
-		FORCEINLINE T operator()(T x0, T x) {
-			assert(cycles >= 0);
-			if constexpr(is_id) {
-				return x;
-			}
-			else if constexpr(is_plus) {
-				return x + x0;
-			}
-			else {
-				if constexpr(which)
-					return obf_randomized_polynomial_function_helper<T, obf_compile_time_prng(seed, 2), cycles - 3>()(x0, x*x0);
-				else
-					return obf_randomized_polynomial_function_helper<T, obf_compile_time_prng(seed, 3), cycles - 1>()(x0, x + x0);
-			}
-		}
-
-#ifdef OBFUSCATE_DEBUG_ENABLE_DBGPRINT
-		static void dbgPrint(size_t offset = 0, const char* prefix = "") {
-			std::cout << std::string(offset, ' ') << "obf_randomized_polynomial_function_helper<" << obf_dbgPrintT<T>() << "," << seed << "," << cycles << ">" << std::endl;
-			if constexpr(is_id)
-				std::cout << std::string(offset + 1, ' ') << "x" << std::endl;
-			else if constexpr(is_plus)
-				std::cout << std::string(offset + 1, ' ') << "x+x0" << std::endl;
-			else if constexpr(which) {
-				std::cout << std::string(offset + 1, ' ') << "x*x0" << std::endl;
-				obf_randomized_polynomial_function_helper<T, obf_compile_time_prng(seed, 2), cycles - 3>::dbgPrint(offset + 2);
-			}
-			else {
-				std::cout << std::string(offset + 1, ' ') << "x+x0" << std::endl;
-				obf_randomized_polynomial_function_helper<T, obf_compile_time_prng(seed, 3), cycles - 1>::dbgPrint(offset + 2);
-			}
-		}
-#endif		
+	struct obf_randomized_non_reversible_function_version0_descr {
+		static constexpr ObfDescriptor descr = ObfDescriptor(false, 0, 100);
 	};
 
 	template<class T, OBFSEED seed, OBFCYCLES cycles>
-	struct obf_randomized_polynomial_function {
-		using FType = obf_randomized_polynomial_function_helper<T, seed, cycles>;
+	struct obf_randomized_non_reversible_function_version<0, T, seed, cycles> {
 		FORCEINLINE T operator()(T x) {
-			return FType()(x, x);
+			return x;
 		}
 
 #ifdef OBFUSCATE_DEBUG_ENABLE_DBGPRINT
 		static void dbgPrint(size_t offset = 0, const char* prefix = "") {
-			std::cout << std::string(offset, ' ') << prefix << "obf_randomized_polynomial_function<" << obf_dbgPrintT<T>() << "," << seed << "," << cycles << ">" << std::endl;
-			FType::dbgPrint(offset + 1);
+			std::cout << std::string(offset, ' ') << prefix << "obf_randomized_non_reversible_function<0/*identity*/," << obf_dbgPrintT<T>() << "," << seed << "," << cycles << ">" << std::endl;
 		}
 #endif		
 	};
 
+	struct obf_randomized_non_reversible_function_version1_descr {
+		static constexpr ObfDescriptor descr = ObfDescriptor(true, 3, 100);
+	};
+
 	template<class T, OBFSEED seed, OBFCYCLES cycles>
-	struct obf_randomized_function {
-		using FType = obf_randomized_polynomial_function<T, seed, cycles>;//TODO: more than simply polynomial; injections(!)
+	struct obf_randomized_non_reversible_function_version<1,T,seed,cycles> {
+		FORCEINLINE T operator()(T x) {
+			return x*x;
+		}
+
+#ifdef OBFUSCATE_DEBUG_ENABLE_DBGPRINT
+		static void dbgPrint(size_t offset = 0, const char* prefix = "") {
+			std::cout << std::string(offset, ' ') << prefix << "obf_randomized_non_reversible_function<1/*x^2*/," << obf_dbgPrintT<T>() << "," << seed << "," << cycles << ">" << std::endl;
+		}
+#endif		
+	};
+
+	struct obf_randomized_non_reversible_function_version2_descr {
+		static constexpr ObfDescriptor descr = ObfDescriptor(true, 7, 100);
+	};
+
+	template<class T, OBFSEED seed, OBFCYCLES cycles>
+	struct obf_randomized_non_reversible_function_version<2, T, seed, cycles> {
+		static constexpr std::array<T, 3> consts = { OBF_CONST_A,OBF_CONST_B,OBF_CONST_C };
+		constexpr static T C = obf_random_const<T>(obf_compile_time_prng(seed, 1), consts);
+		FORCEINLINE T operator()(T x) {
+			return x * x * x + C;
+		}
+
+#ifdef OBFUSCATE_DEBUG_ENABLE_DBGPRINT
+		static void dbgPrint(size_t offset = 0, const char* prefix = "") {
+			std::cout << std::string(offset, ' ') << prefix << "obf_randomized_non_reversible_function<2/*x^3+C*/," << obf_dbgPrintT<T>() << "," << seed << "," << cycles << ">" << std::endl;
+		}
+#endif		
+	};
+
+	struct obf_randomized_non_reversible_function_version3_descr {
+		static constexpr ObfDescriptor descr = ObfDescriptor(true, 7, 100);
+	};
+
+	template<class T, OBFSEED seed, OBFCYCLES cycles>
+	struct obf_randomized_non_reversible_function_version<3, T, seed, cycles> {
+		using ST = typename std::make_signed<T>::type;
+		FORCEINLINE T operator()(T x) {
+			ST sx = ST(x);
+			return T(sx < 0 ? -sx : sx);
+		}
+
+#ifdef OBFUSCATE_DEBUG_ENABLE_DBGPRINT
+		static void dbgPrint(size_t offset = 0, const char* prefix = "") {
+			std::cout << std::string(offset, ' ') << prefix << "obf_randomized_non_reversible_function<3/*abs*/," << obf_dbgPrintT<T>() << "," << seed << "," << cycles << ">" << std::endl;
+		}
+#endif		
+	};
+
+	template<size_t N>
+	constexpr OBFCYCLES obf_max_min_descr(std::array<ObfDescriptor,N> descr) {
+		OBFCYCLES ret = 0;
+		for (size_t i = 0; i < N; ++i) {
+			OBFCYCLES mn = descr[i].min_cycles;
+			if (ret < mn)
+				ret = mn;
+		}
+		return ret;
+	}
+
+	template<class T, OBFSEED seed, OBFCYCLES cycles>
+	struct obf_randomized_non_reversible_function {
+		constexpr static std::array<ObfDescriptor, 4> descr{
+			obf_randomized_non_reversible_function_version0_descr::descr,
+			obf_randomized_non_reversible_function_version1_descr::descr,
+			obf_randomized_non_reversible_function_version2_descr::descr,
+			obf_randomized_non_reversible_function_version3_descr::descr,
+		};
+		constexpr static size_t max_cycles_that_make_sense = obf_max_min_descr(descr);
+		constexpr static size_t which = obf_random_obf_from_list(obf_compile_time_prng(seed, 1), cycles, descr);
+		using FType = obf_randomized_non_reversible_function_version<which, T, seed, cycles>;
 		FORCEINLINE T operator()(T x) {
 			return FType()(x);
 		}
 
 #ifdef OBFUSCATE_DEBUG_ENABLE_DBGPRINT
 		static void dbgPrint(size_t offset = 0, const char* prefix = "") {
-			std::cout << std::string(offset, ' ') << prefix << "obf_randomized_function<" << obf_dbgPrintT<T>() << "," << seed << "," << cycles << ">" << std::endl;
+			std::cout << std::string(offset, ' ') << prefix << "obf_randomized_non_reversible_function<" << obf_dbgPrintT<T>() << "," << seed << "," << cycles << ">: which=" << which << std::endl;
 			FType::dbgPrint(offset + 1);
 		}
 #endif		
@@ -505,15 +544,22 @@ namespace obf {
 			ObfDescriptor(true,0,100)//RecursiveInjection
 		};
 		static constexpr auto splitCycles = obf_random_split(obf_compile_time_prng(seed, 1), availCycles, split);
-		static constexpr OBFCYCLES cycles_f = splitCycles[0];
-		static constexpr OBFCYCLES cycles_rInj = splitCycles[1];
+		static constexpr OBFCYCLES cycles_f0 = splitCycles[0];
+		static constexpr OBFCYCLES cycles_rInj0 = splitCycles[1];
+		static_assert(cycles_f0 + cycles_rInj0 <= availCycles);
+
+		//doesn't make sense to use more than max_cycles_that_make_sense cycles for f...
+		static constexpr OBFCYCLES max_cycles_that_make_sense = obf_randomized_non_reversible_function<T, 0, 0>::max_cycles_that_make_sense;
+		static constexpr OBFCYCLES delta_f = cycles_f0 > max_cycles_that_make_sense ? cycles_f0 - max_cycles_that_make_sense : 0;
+		static constexpr OBFCYCLES cycles_f = cycles_f0 - delta_f;
+		static constexpr OBFCYCLES cycles_rInj = cycles_rInj0 + delta_f;
 		static_assert(cycles_f + cycles_rInj <= availCycles);
 
 		using RecursiveInjection = obf_injection<T, Context, obf_compile_time_prng(seed, 2), cycles_rInj+ Context::context_cycles,ObfDefaultInjectionContext>;
 		using return_type = typename RecursiveInjection::return_type;
 
 		using halfT = typename obf_half_size_int<T>::value_type;
-		using FType = obf_randomized_function<halfT, obf_compile_time_prng(seed, 3), cycles_f>;
+		using FType = obf_randomized_non_reversible_function<halfT, obf_compile_time_prng(seed, 3), cycles_f>;
 
 		constexpr static int halfTBits = sizeof(halfT) * 8;
 		constexpr static T mask = ((T)1 << halfTBits) - 1;
