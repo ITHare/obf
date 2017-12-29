@@ -192,7 +192,7 @@ namespace obf {
 	};
 
 	template<size_t N>
-	constexpr size_t obf_random_obf_from_list(OBFSEED seed, OBFCYCLES cycles, std::array<ObfDescriptor, N> descr) {
+	constexpr size_t obf_random_obf_from_list(OBFSEED seed, OBFCYCLES cycles, std::array<ObfDescriptor, N> descr,size_t exclude_version=size_t(-1)) {
 		//returns index in descr
 		size_t sz = descr.size();
 		std::array<size_t, N> nr_weights = {};
@@ -200,7 +200,7 @@ namespace obf {
 		size_t sum_r = 0;
 		size_t sum_nr = 0;
 		for (size_t i = 0; i < sz; ++i) {
-			if (cycles >= descr[i].min_cycles)
+			if (i != exclude_version && cycles >= descr[i].min_cycles)
 				if (descr[i].is_recursive) {
 					r_weights[i] = descr[i].weight;
 					sum_r += r_weights[i];
@@ -310,7 +310,10 @@ namespace obf {
 	};
 
 	//forward declarations
-	template<class T, class Context, OBFSEED seed, OBFCYCLES cycles>
+	struct ObfDefaultInjectionContext {
+		static constexpr size_t exclude_version = size_t(-1);
+	};
+	template<class T, class Context, OBFSEED seed, OBFCYCLES cycles,class InjectionContext>
 	class obf_injection;
 	template<class T, T C, class Context, OBFSEED seed, OBFCYCLES cycles>
 	class obf_literal_ctx;
@@ -400,7 +403,11 @@ namespace obf {
 		static constexpr OBFCYCLES availCycles = cycles - obf_injection_version1_descr<Context>::own_min_cycles;
 		static_assert(availCycles >= 0);
 
-		using RecursiveInjection = obf_injection<T, Context, obf_compile_time_prng(seed, 1), availCycles+Context::context_cycles>;
+		struct RecursiveInjContext {
+			static constexpr size_t exclude_version = 1;
+		};
+
+		using RecursiveInjection = obf_injection<T, Context, obf_compile_time_prng(seed, 1), availCycles+Context::context_cycles,RecursiveInjContext>;
 		using return_type = typename RecursiveInjection::return_type;
 		static constexpr std::array<T, 4> consts = { 1,OBF_CONST_A,OBF_CONST_B,OBF_CONST_C };
 		constexpr static T C = obf_random_const<T>(obf_compile_time_prng(seed, 2), consts);
@@ -519,7 +526,7 @@ namespace obf {
 		static constexpr OBFCYCLES cycles_rInj = splitCycles[1];
 		static_assert(cycles_f + cycles_rInj <= availCycles);
 
-		using RecursiveInjection = obf_injection<T, Context, obf_compile_time_prng(seed, 2), cycles_rInj+Context::context_cycles>;
+		using RecursiveInjection = obf_injection<T, Context, obf_compile_time_prng(seed, 2), cycles_rInj+Context::context_cycles,ObfDefaultInjectionContext>;
 		using return_type = typename RecursiveInjection::return_type;
 
 		using halfT = typename obf_half_size_int<T>::value_type;
@@ -593,7 +600,7 @@ namespace obf {
 		static constexpr OBFCYCLES cycles_hi = splitCycles[2];
 		static_assert(cycles_rInj + cycles_lo + cycles_hi <= availCycles);
 
-		using RecursiveInjection = obf_injection<T, Context, obf_compile_time_prng(seed, 2), cycles_rInj+Context::context_cycles>;
+		using RecursiveInjection = obf_injection<T, Context, obf_compile_time_prng(seed, 2), cycles_rInj+Context::context_cycles, ObfDefaultInjectionContext>;
 		using return_type = typename RecursiveInjection::return_type;
 
 		constexpr static std::array<ObfDescriptor, 2> splitLo {
@@ -605,7 +612,7 @@ namespace obf {
 		static constexpr OBFCYCLES cycles_loInj = splitCyclesLo[1];
 		static_assert(cycles_loCtx + cycles_loInj <= cycles_lo);
 		using LoContext = typename ObfRecursiveContext < halfT, Context, obf_compile_time_prng(seed, 3), cycles_loCtx>::side_context_type;
-		using LoInjection = obf_injection<halfT, LoContext, obf_compile_time_prng(seed, 4), cycles_loInj+LoContext::context_cycles>;
+		using LoInjection = obf_injection<halfT, LoContext, obf_compile_time_prng(seed, 4), cycles_loInj+LoContext::context_cycles, ObfDefaultInjectionContext>;
 		static_assert(sizeof(LoInjection::return_type) == sizeof(halfT));//bijections ONLY; TODO: enforce
 
 		constexpr static std::array<ObfDescriptor, 2> splitHi{
@@ -617,7 +624,7 @@ namespace obf {
 		static constexpr OBFCYCLES cycles_hiInj = splitCyclesHi[1];
 		static_assert(cycles_hiCtx + cycles_hiInj <= cycles_hi);
 		using HiContext = typename ObfRecursiveContext<halfT, Context, obf_compile_time_prng(seed, 6), cycles_hiCtx>::side_context_type;
-		using HiInjection = obf_injection<halfT, HiContext, obf_compile_time_prng(seed, 7), cycles_hiInj+HiContext::context_cycles>;
+		using HiInjection = obf_injection<halfT, HiContext, obf_compile_time_prng(seed, 7), cycles_hiInj+HiContext::context_cycles, ObfDefaultInjectionContext>;
 		static_assert(sizeof(HiInjection::return_type) == sizeof(halfT));//bijections ONLY; TODO: enforce
 
 		FORCEINLINE constexpr static return_type injection(T x) {
@@ -711,8 +718,12 @@ namespace obf {
 		static constexpr OBFCYCLES availCycles = cycles - obf_injection_version4_descr<Context>::own_min_cycles;
 		static_assert(availCycles >= 0);
 
+		struct RecursiveInjectionContext {
+			static constexpr size_t exclude_version = 4;
+		};
+
 	public:
-		using RecursiveInjection = obf_injection<T, Context, obf_compile_time_prng(seed, 1), availCycles+Context::context_cycles>;
+		using RecursiveInjection = obf_injection<T, Context, obf_compile_time_prng(seed, 1), availCycles+Context::context_cycles,RecursiveInjectionContext>;
 		using return_type = typename RecursiveInjection::return_type;
 		//constexpr static T C = (T)(obf_gen_const<T>(obf_compile_time_prng(seed, 2)) | 1);
 		static constexpr std::array<T, 3> consts = { OBF_CONST_A,OBF_CONST_B,OBF_CONST_C };
@@ -781,8 +792,8 @@ namespace obf {
 		static constexpr OBFCYCLES cycles_loCtx = splitCyclesLo[0];
 		static constexpr OBFCYCLES cycles_loInj = splitCyclesLo[1];
 		static_assert(cycles_loCtx + cycles_loInj <= cycles_lo);
-		using RecursiveInjectionLoContext = typename ObfRecursiveContext<halfT, Context, obf_compile_time_prng(seed, 3), cycles_loCtx>::recursive_context_type;
-		using RecursiveInjectionLo = obf_injection<halfT, RecursiveInjectionLoContext, obf_compile_time_prng(seed, 4), cycles_loInj+ RecursiveInjectionLoContext::context_cycles>;
+		using RecursiveLoContext = typename ObfRecursiveContext<halfT, Context, obf_compile_time_prng(seed, 3), cycles_loCtx>::recursive_context_type;
+		using RecursiveInjectionLo = obf_injection<halfT, RecursiveLoContext, obf_compile_time_prng(seed, 4), cycles_loInj+ RecursiveLoContext::context_cycles,ObfDefaultInjectionContext>;
 
 		constexpr static std::array<ObfDescriptor, 2> splitHi{
 			ObfDescriptor(true,0,100),//Context
@@ -792,8 +803,8 @@ namespace obf {
 		static constexpr OBFCYCLES cycles_hiCtx = splitCyclesHi[0];
 		static constexpr OBFCYCLES cycles_hiInj = splitCyclesHi[1];
 		static_assert(cycles_hiCtx + cycles_hiInj <= cycles_hi);
-		using RecursiveInjectionHiContext = typename ObfRecursiveContext<halfT, Context, obf_compile_time_prng(seed, 6), cycles_hiCtx>::recursive_context_type;
-		using RecursiveInjectionHi = obf_injection < halfT, RecursiveInjectionHiContext, obf_compile_time_prng(seed, 7), cycles_hiInj+ RecursiveInjectionHiContext::context_cycles > ;
+		using RecursiveHiContext = typename ObfRecursiveContext<halfT, Context, obf_compile_time_prng(seed, 6), cycles_hiCtx>::recursive_context_type;
+		using RecursiveInjectionHi = obf_injection < halfT, RecursiveHiContext, obf_compile_time_prng(seed, 7), cycles_hiInj+ RecursiveHiContext::context_cycles,ObfDefaultInjectionContext > ;
 
 		struct return_type {
 			typename RecursiveInjectionLo::return_type lo;
@@ -820,7 +831,7 @@ namespace obf {
 #endif
 	};
 	//obf_injection: combining obf_injection_version
-	template<class T, class Context, OBFSEED seed, OBFCYCLES cycles>
+	template<class T, class Context, OBFSEED seed, OBFCYCLES cycles,class InjectionContext>
 	class obf_injection {
 		static_assert(std::is_integral<T>::value);
 		static_assert(std::is_unsigned<T>::value);
@@ -832,7 +843,7 @@ namespace obf {
 			obf_injection_version4_descr<Context>::descr,
 			obf_injection_version5_descr<T,Context>::descr,
 		};
-		constexpr static size_t which = obf_random_obf_from_list(obf_compile_time_prng(seed, 1), cycles, descr);
+		constexpr static size_t which = obf_random_obf_from_list(obf_compile_time_prng(seed, 1), cycles, descr,InjectionContext::exclude_version);
 		using WhichType = obf_injection_version<which, T, Context, seed, cycles>;
 
 	public:
@@ -1161,7 +1172,7 @@ namespace obf {
 		static_assert(std::is_integral<T>::value);
 		static_assert(std::is_unsigned<T>::value);
 
-		using Injection = obf_injection<T, Context, obf_compile_time_prng(seed, 1), cycles>;
+		using Injection = obf_injection<T, Context, obf_compile_time_prng(seed, 1), cycles,ObfDefaultInjectionContext>;
 	public:
 		FORCEINLINE constexpr obf_literal_ctx() : val(Injection::injection(C)) {
 		}
@@ -1186,7 +1197,7 @@ namespace obf {
 		static constexpr T C = (T)C_;
 
 		using Context = ObfLiteralContext<T, obf_compile_time_prng(seed, 1),cycles>;
-		using Injection = obf_injection<T, Context, obf_compile_time_prng(seed, 2), cycles>;
+		using Injection = obf_injection<T, Context, obf_compile_time_prng(seed, 2), cycles,ObfDefaultInjectionContext>;
 	public:
 		FORCEINLINE constexpr obf_literal() : val(Injection::injection(C)) {
 		}
@@ -1245,7 +1256,7 @@ namespace obf {
 		using T = typename std::make_unsigned<T_>::type;//from this point on, unsigned only
 
 		using Context = ObfVarContext<T, obf_compile_time_prng(seed, 1), cycles>;
-		using Injection = obf_injection<T, Context, obf_compile_time_prng(seed, 2), cycles>;
+		using Injection = obf_injection<T, Context, obf_compile_time_prng(seed, 2), cycles, ObfDefaultInjectionContext>;
 
 	public:
 		FORCEINLINE obf_var(T_ t) : val(Injection::injection(T(t))) {
