@@ -220,12 +220,13 @@ namespace obf {
 
 	template<size_t N>
 	constexpr std::array<OBFCYCLES, N> obf_random_split(OBFSEED seed, OBFCYCLES cycles, std::array<ObfDescriptor, N> elements) {
-		OBFCYCLES leftovers = cycles;
 		//size_t totalWeight = 0;
+		OBFCYCLES mins = 0;
 		for (size_t i = 0; i < N; ++i) {
-			leftovers -= elements[i].min_cycles;
+			mins += elements[i].min_cycles;
 			//totalWeight += elements[i].weight;
 		}
+		OBFCYCLES leftovers = cycles - mins;
 		assert(leftovers >= 0);
 		std::array<OBFCYCLES, N> ret = {};
 		size_t totalWeight = 0;
@@ -236,10 +237,10 @@ namespace obf {
 		size_t totalWeight2 = 0;
 		double q = double(leftovers) / double(totalWeight);
 		for (size_t i = 0; i < N; ++i) {
-			ret[i] = OBFCYCLES(double(ret[i]) * double(q));
+			ret[i] = elements[i].min_cycles+OBFCYCLES(double(ret[i]) * double(q));
 			totalWeight2 += ret[i];
 		}
-		assert(OBFCYCLES(totalWeight2) <= leftovers);
+		assert(OBFCYCLES(totalWeight2) <= mins + leftovers);
 		return ret;
 	}
 
@@ -489,14 +490,14 @@ namespace obf {
 		static_assert(availCycles >= 0);
 		constexpr static std::array<ObfDescriptor, 2> split {
 			ObfDescriptor(true,0,100),//f() 
-			ObfDescriptor(true,0,100)//RecursiveInjection
+			ObfDescriptor(true,Context::context_cycles,100)//RecursiveInjection
 		};
 		static constexpr auto splitCycles = obf_random_split(obf_compile_time_prng(seed, 1), availCycles, split);
 		static constexpr OBFCYCLES cycles_f = splitCycles[0];
 		static constexpr OBFCYCLES cycles_rInj = splitCycles[1];
 		static_assert(cycles_f + cycles_rInj <= availCycles);
 
-		using RecursiveInjection = obf_injection<T, Context, obf_compile_time_prng(seed, 2), cycles_rInj+Context::context_cycles,ObfDefaultInjectionContext>;
+		using RecursiveInjection = obf_injection<T, Context, obf_compile_time_prng(seed, 2), cycles_rInj,ObfDefaultInjectionContext>;
 		using return_type = typename RecursiveInjection::return_type;
 
 		using halfT = typename obf_half_size_int<T>::value_type;
@@ -560,7 +561,7 @@ namespace obf {
 		constexpr static int halfTBits = sizeof(halfT) * 8;
 
 		constexpr static std::array<ObfDescriptor, 3> split{
-			ObfDescriptor(true,0,200),//RecursiveInjection
+			ObfDescriptor(true,Context::context_cycles,200),//RecursiveInjection
 			ObfDescriptor(true,0,100),//LoInjection
 			ObfDescriptor(true,0,100),//HiInjection
 		};
@@ -570,7 +571,7 @@ namespace obf {
 		static constexpr OBFCYCLES cycles_hi = splitCycles[2];
 		static_assert(cycles_rInj + cycles_lo + cycles_hi <= availCycles);
 
-		using RecursiveInjection = obf_injection<T, Context, obf_compile_time_prng(seed, 2), cycles_rInj+Context::context_cycles, ObfDefaultInjectionContext>;
+		using RecursiveInjection = obf_injection<T, Context, obf_compile_time_prng(seed, 2), cycles_rInj, ObfDefaultInjectionContext>;
 		using return_type = typename RecursiveInjection::return_type;
 
 		constexpr static std::array<ObfDescriptor, 2> splitLo {
