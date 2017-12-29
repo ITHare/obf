@@ -930,6 +930,53 @@ namespace obf {
 #endif
 	};
 
+	#if 0 //COMMENTED OUT - TOO OBVIOUS IN DECOMPILE :-(
+	//version 7: 1-bit rotation 
+	template<class Context>
+	struct obf_injection_version7_descr {
+		static constexpr OBFCYCLES own_min_injection_cycles = 5;//relying on compiler generating cmovns etc.
+		static constexpr OBFCYCLES own_min_surjection_cycles = 5;//relying on compiler generating cmovns etc.
+		static constexpr OBFCYCLES own_min_cycles = Context::context_cycles + Context::calc_cycles(own_min_injection_cycles, own_min_surjection_cycles);
+		static constexpr ObfDescriptor descr = ObfDescriptor(true, own_min_cycles, 100);
+	};
+
+	template <class T, class Context, OBFSEED seed, OBFCYCLES cycles>
+	class obf_injection_version<7, T, Context, seed, cycles> {
+		static_assert(std::is_integral<T>::value);
+		static_assert(std::is_unsigned<T>::value);
+	public:
+		static constexpr OBFCYCLES availCycles = cycles - obf_injection_version7_descr<Context>::own_min_cycles;
+		static_assert(availCycles >= 0);
+
+		using RecursiveInjection = obf_injection<T, Context, obf_compile_time_prng(seed, 1), availCycles + Context::context_cycles, ObfDefaultInjectionContext>;
+		using return_type = typename RecursiveInjection::return_type;
+		using ST = typename std::make_signed<T>::type;
+		static constexpr T highbit = T(1) << (sizeof(T) * 8 - 1);
+		FORCEINLINE constexpr static return_type injection(T x) {
+			if ((x % 2) == 0)
+				x = x >> 1;
+			else
+				x = ( x >> 1 ) + highbit;
+			return RecursiveInjection::injection(x);
+		}
+		FORCEINLINE constexpr static T surjection(return_type y) {
+			T yy = RecursiveInjection::surjection(y);
+			ST syy = ST(yy);
+			if (syy < 0)
+				return yy + yy + 1;
+			else
+				return yy+yy;
+		}
+
+#ifdef OBFUSCATE_DEBUG_ENABLE_DBGPRINT
+		static void dbgPrint(size_t offset = 0, const char* prefix = "") {
+			std::cout << std::string(offset, ' ') << prefix << "obf_injection_version<7/*1-bit rotation*/," << obf_dbgPrintT<T>() << "," << seed << "," << cycles << ">" << std::endl;
+			RecursiveInjection::dbgPrint(offset + 1);
+		}
+#endif
+	};
+#endif//#if 0
+
 	//obf_injection: combining obf_injection_version
 	template<class T, class Context, OBFSEED seed, OBFCYCLES cycles,class InjectionContext>
 	class obf_injection {
@@ -943,6 +990,7 @@ namespace obf {
 			obf_injection_version4_descr<Context>::descr,
 			obf_injection_version5_descr<T,Context>::descr,
 			obf_injection_version6_descr<T,Context>::descr,
+			//obf_injection_version7_descr<Context>::descr,
 		};
 		constexpr static size_t which = obf_random_obf_from_list(obf_compile_time_prng(seed, 1), cycles, descr,InjectionContext::exclude_version);
 		using WhichType = obf_injection_version<which, T, Context, seed, cycles>;
