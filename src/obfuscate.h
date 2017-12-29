@@ -28,7 +28,7 @@
 //#define OBFUSCATE_DEBUG_ENABLE_DBGPRINT
 //#if 0
 
-#define OBFUSCATE_SEED 0x0c7dfa61a867b130ui64 //example for MSVC
+#define OBFUSCATE_SEED 0x0c7dfa61a867b125ui64 //example for MSVC
 #define OBFUSCATE_INIT 
 	//enables rather nasty obfuscations (including PEB-based debugger detection),
 	//  but requires you to call obf_init() BEFORE ANY obf<> objects are used. 
@@ -1556,6 +1556,9 @@ namespace obf {
 		template<class T>
 		std::string obf_dbgPrintT() {
 			return std::string("T(sizeof=") + std::to_string(sizeof(T)) + ")";
+		}
+
+		inline void obf_dbgPrint() {
 		}
 #endif
 
