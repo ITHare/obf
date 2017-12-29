@@ -392,9 +392,9 @@ namespace obf {
 
 		using RecursiveInjection = obf_injection<T, Context, obf_compile_time_prng(seed, 1), availCycles+Context::context_cycles,RecursiveInjectionContext>;
 		using return_type = typename RecursiveInjection::return_type;
-		static constexpr std::array<T, 4> consts = { 1,OBF_CONST_A,OBF_CONST_B,OBF_CONST_C };
+		static constexpr std::array<T, 5> consts = { 0,1,OBF_CONST_A,OBF_CONST_B,OBF_CONST_C };
 		constexpr static T C = obf_random_const<T>(obf_compile_time_prng(seed, 2), consts);
-		static constexpr bool neg = obf_weak_random(obf_compile_time_prng(seed, 3),2) == 0;
+		static constexpr bool neg = C == 0 ? true : obf_weak_random(obf_compile_time_prng(seed, 3),2) == 0;
 		using ST = typename std::make_signed<T>::type;
 		FORCEINLINE constexpr static return_type injection(T x) {
 			if constexpr(neg) {
