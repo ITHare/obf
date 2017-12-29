@@ -10,6 +10,11 @@
 //  3. compile with -DOBFUSCATE_SEED=0x<really-random-64-bit-seed>u64 for deployments (MSVC)
 //  3a. GCC is not supported (yet)
 
+#ifdef OBF_INTERNAL_DBG
+//enable assert() in Release
+//#undef NDEBUG
+#endif
+
 #include <stdint.h>
 #include <inttypes.h>
 #include <array>
@@ -23,7 +28,7 @@
 //#define OBFUSCATE_DEBUG_ENABLE_DBGPRINT
 //#if 0
 
-#define OBFUSCATE_SEED 0x0c7dfa61a867b125ui64 //example for MSVC
+#define OBFUSCATE_SEED 0x0c7dfa61a867b130ui64 //example for MSVC
 #define OBFUSCATE_INIT 
 	//enables rather nasty obfuscations (including PEB-based debugger detection),
 	//  but requires you to call obf_init() BEFORE ANY obf<> objects are used. 
@@ -125,7 +130,9 @@ namespace obf {
 
 	template<class MAX>
 	constexpr MAX obf_weak_random(OBFSEED seed, MAX n) {
-		return (seed >> (sizeof(OBFSEED)*4) ) % n;//biased, but for our purposes will do
+		assert(n > 0);
+		OBFSEED hi = seed >> (sizeof(OBFSEED) * 4);
+		return  hi % n;//biased, but for our purposes will do
 	}
 
 	template<size_t N>
@@ -134,6 +141,7 @@ namespace obf {
 		size_t totalWeight = 0;
 		for (size_t i = 0; i < weights.size(); ++i)
 			totalWeight += weights[i];
+		assert(totalWeight > 0);
 		size_t refWeight = obf_weak_random(seed, totalWeight);
 		assert(refWeight < totalWeight);
 		for (size_t i = 0; i < weights.size(); ++i) {
@@ -221,8 +229,11 @@ namespace obf {
 	template<size_t N>
 	constexpr std::array<OBFCYCLES, N> obf_random_split(OBFSEED seed, OBFCYCLES cycles, std::array<ObfDescriptor, N> elements) {
 		//size_t totalWeight = 0;
+		assert(cycles >= 0);
 		OBFCYCLES mins = 0;
 		for (size_t i = 0; i < N; ++i) {
+			assert(elements[i].min_cycles==0);//mins NOT to be used within calls to obf_random_split 
+											  //  (it not a problem with this function, but they tend to cause WAY too much trouble in injection_version<> code
 			mins += elements[i].min_cycles;
 			//totalWeight += elements[i].weight;
 		}
@@ -238,6 +249,7 @@ namespace obf {
 		double q = double(leftovers) / double(totalWeight);
 		for (size_t i = 0; i < N; ++i) {
 			ret[i] = elements[i].min_cycles+OBFCYCLES(double(ret[i]) * double(q));
+			assert(ret[i] >= elements[i].min_cycles);
 			totalWeight2 += ret[i];
 		}
 		assert(OBFCYCLES(totalWeight2) <= mins + leftovers);
@@ -490,14 +502,14 @@ namespace obf {
 		static_assert(availCycles >= 0);
 		constexpr static std::array<ObfDescriptor, 2> split {
 			ObfDescriptor(true,0,100),//f() 
-			ObfDescriptor(true,Context::context_cycles,100)//RecursiveInjection
+			ObfDescriptor(true,0,100)//RecursiveInjection
 		};
 		static constexpr auto splitCycles = obf_random_split(obf_compile_time_prng(seed, 1), availCycles, split);
 		static constexpr OBFCYCLES cycles_f = splitCycles[0];
 		static constexpr OBFCYCLES cycles_rInj = splitCycles[1];
 		static_assert(cycles_f + cycles_rInj <= availCycles);
 
-		using RecursiveInjection = obf_injection<T, Context, obf_compile_time_prng(seed, 2), cycles_rInj,ObfDefaultInjectionContext>;
+		using RecursiveInjection = obf_injection<T, Context, obf_compile_time_prng(seed, 2), cycles_rInj+ Context::context_cycles,ObfDefaultInjectionContext>;
 		using return_type = typename RecursiveInjection::return_type;
 
 		using halfT = typename obf_half_size_int<T>::value_type;
@@ -561,7 +573,7 @@ namespace obf {
 		constexpr static int halfTBits = sizeof(halfT) * 8;
 
 		constexpr static std::array<ObfDescriptor, 3> split{
-			ObfDescriptor(true,Context::context_cycles,200),//RecursiveInjection
+			ObfDescriptor(true,0,200),//RecursiveInjection
 			ObfDescriptor(true,0,100),//LoInjection
 			ObfDescriptor(true,0,100),//HiInjection
 		};
@@ -571,7 +583,7 @@ namespace obf {
 		static constexpr OBFCYCLES cycles_hi = splitCycles[2];
 		static_assert(cycles_rInj + cycles_lo + cycles_hi <= availCycles);
 
-		using RecursiveInjection = obf_injection<T, Context, obf_compile_time_prng(seed, 2), cycles_rInj, ObfDefaultInjectionContext>;
+		using RecursiveInjection = obf_injection<T, Context, obf_compile_time_prng(seed, 2), cycles_rInj+ Context::context_cycles, ObfDefaultInjectionContext>;
 		using return_type = typename RecursiveInjection::return_type;
 
 		constexpr static std::array<ObfDescriptor, 2> splitLo {
@@ -582,7 +594,7 @@ namespace obf {
 		static constexpr OBFCYCLES cycles_loCtx = splitCyclesLo[0];
 		static constexpr OBFCYCLES cycles_loInj = splitCyclesLo[1];
 		static_assert(cycles_loCtx + cycles_loInj <= cycles_lo);
-		using LoContext = typename ObfRecursiveContext < halfT, Context, obf_compile_time_prng(seed, 3), cycles_loCtx>::side_context_type;
+		using LoContext = typename ObfRecursiveContext < halfT, Context, obf_compile_time_prng(seed, 3), cycles_loCtx>::intermediate_context_type;
 		using LoInjection = obf_injection<halfT, LoContext, obf_compile_time_prng(seed, 4), cycles_loInj+LoContext::context_cycles, ObfDefaultInjectionContext>;
 		static_assert(sizeof(LoInjection::return_type) == sizeof(halfT));//bijections ONLY; TODO: enforce
 
@@ -594,7 +606,7 @@ namespace obf {
 		static constexpr OBFCYCLES cycles_hiCtx = splitCyclesHi[0];
 		static constexpr OBFCYCLES cycles_hiInj = splitCyclesHi[1];
 		static_assert(cycles_hiCtx + cycles_hiInj <= cycles_hi);
-		using HiContext = typename ObfRecursiveContext<halfT, Context, obf_compile_time_prng(seed, 6), cycles_hiCtx>::side_context_type;
+		using HiContext = typename ObfRecursiveContext<halfT, Context, obf_compile_time_prng(seed, 6), cycles_hiCtx>::intermediate_context_type;
 		using HiInjection = obf_injection<halfT, HiContext, obf_compile_time_prng(seed, 7), cycles_hiInj+HiContext::context_cycles, ObfDefaultInjectionContext>;
 		static_assert(sizeof(HiInjection::return_type) == sizeof(halfT));//bijections ONLY; TODO: enforce
 
@@ -728,7 +740,7 @@ namespace obf {
 	struct obf_injection_version5_descr {
 		static constexpr OBFCYCLES own_min_injection_cycles = 3;
 		static constexpr OBFCYCLES own_min_surjection_cycles = 3;
-		static constexpr OBFCYCLES own_min_cycles = Context::context_cycles + Context::calc_cycles(own_min_injection_cycles, own_min_surjection_cycles);
+		static constexpr OBFCYCLES own_min_cycles = 2*Context::context_cycles /* have to allocate context_cycles for BOTH branches */ + Context::calc_cycles(own_min_injection_cycles, own_min_surjection_cycles);
 		static constexpr ObfDescriptor descr =
 			sizeof(T) > 1 ?
 			ObfDescriptor(true, own_min_cycles, 100) :
@@ -763,7 +775,7 @@ namespace obf {
 		static constexpr OBFCYCLES cycles_loCtx = splitCyclesLo[0];
 		static constexpr OBFCYCLES cycles_loInj = splitCyclesLo[1];
 		static_assert(cycles_loCtx + cycles_loInj <= cycles_lo);
-		using RecursiveLoContext = typename ObfRecursiveContext<halfT, Context, obf_compile_time_prng(seed, 3), cycles_loCtx>::recursive_context_type;
+		using RecursiveLoContext = typename ObfRecursiveContext<halfT, Context, obf_compile_time_prng(seed, 3), cycles_loCtx+Context::context_cycles>::recursive_context_type;
 		using RecursiveInjectionLo = obf_injection<halfT, RecursiveLoContext, obf_compile_time_prng(seed, 4), cycles_loInj+ RecursiveLoContext::context_cycles,ObfDefaultInjectionContext>;
 
 		constexpr static std::array<ObfDescriptor, 2> splitHi{
@@ -774,7 +786,7 @@ namespace obf {
 		static constexpr OBFCYCLES cycles_hiCtx = splitCyclesHi[0];
 		static constexpr OBFCYCLES cycles_hiInj = splitCyclesHi[1];
 		static_assert(cycles_hiCtx + cycles_hiInj <= cycles_hi);
-		using RecursiveHiContext = typename ObfRecursiveContext<halfT, Context, obf_compile_time_prng(seed, 6), cycles_hiCtx>::recursive_context_type;
+		using RecursiveHiContext = typename ObfRecursiveContext<halfT, Context, obf_compile_time_prng(seed, 6), cycles_hiCtx+Context::context_cycles>::recursive_context_type;
 		using RecursiveInjectionHi = obf_injection < halfT, RecursiveHiContext, obf_compile_time_prng(seed, 7), cycles_hiInj+ RecursiveHiContext::context_cycles,ObfDefaultInjectionContext > ;
 
 		struct return_type {
@@ -1086,7 +1098,7 @@ namespace obf {
 	template<class T, class T0, OBFSEED seed, OBFCYCLES cycles>
 	struct ObfRecursiveContext<T, ObfZeroLiteralContext<T0>, seed, cycles> {
 		using recursive_context_type = ObfZeroLiteralContext<T>;
-		using side_context_type = ObfZeroLiteralContext<T>;
+		using intermediate_context_type = ObfZeroLiteralContext<T>;
 	};
 
 	//ObfLiteralContext
@@ -1136,8 +1148,8 @@ namespace obf {
 
 	template<class T, class T0, OBFSEED seed, OBFSEED seed0, OBFCYCLES cycles0,OBFCYCLES cycles>
 	struct ObfRecursiveContext<T, ObfLiteralContext<T0, seed0,cycles0>, seed, cycles> {
-		using recursive_context_type = ObfLiteralContext<T, obf_compile_time_prng(seed, 1),cycles>;
-		using side_context_type = typename ObfLiteralContext<T, obf_compile_time_prng(seed, 2), cycles>;//whenever cycles is low (which is very often), will fallback to version0
+		using recursive_context_type = ObfLiteralContext<T, obf_compile_time_prng(seed, 1),cycles>;//@@
+		using intermediate_context_type = typename ObfLiteralContext<T, obf_compile_time_prng(seed, 2), cycles>;//whenever cycles is low (which is very often), will fallback to version0
 	};
 
 	//obf_literal
@@ -1220,7 +1232,7 @@ namespace obf {
 	template<class T, class T0, OBFSEED seed0, OBFCYCLES cycles0, OBFSEED seed, OBFCYCLES cycles>
 	struct ObfRecursiveContext<T, ObfVarContext<T0,seed0,cycles0>, seed, cycles> {
 		using recursive_context_type = ObfVarContext<T,seed,cycles>;
-		using side_context_type = ObfVarContext<T,seed,cycles>;
+		using intermediate_context_type = ObfVarContext<T,seed,cycles>;
 	};
 
 	//obf_var
