@@ -243,36 +243,6 @@ namespace obf {
 		return ret;
 	}
 
-	/*
-	#ifndef OBF_WEIGHTLARGECONST
-	#define OBF_WEIGHTLARGECONST 0//currently RECOMMENDED 0; large constants tend to act as "signatures" within the code, so finding reverse one becomes easy...
-	#endif
-	#ifndef OBF_WEIGHTSMALLCONST
-	#define OBF_WEIGHTSMALLCONST 100
-	#endif
-	#ifndef OBF_WEIGHTSPECIALCONST
-	#define OBF_WEIGHTSPECIALCONST 100
-	#endif
-
-	template<class T>
-	constexpr T obf_gen_const(OBFSEED seed) {//TODO! remove, alongside OBF_WEIGHT*CONST
-		static_assert(std::is_integral<T>::value);
-		static_assert(sizeof(OBFSEED) >= sizeof(T));
-		constexpr std::array<size_t, 3> weights = { OBF_WEIGHTLARGECONST , OBF_WEIGHTSMALLCONST, OBF_WEIGHTSPECIALCONST };
-		size_t idx = obf_random_from_list(obf_compile_time_prng(seed, 1), weights);
-		if (idx == 0)//large const
-			return (T)obf_compile_time_prng(seed, 2);
-		else if (idx == 1)//small const
-			return ((T)obf_compile_time_prng(seed, 2)) & 0xFF;
-		else {//special const
-			assert(idx == 2);
-			const std::array<T, 31> specials{ 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 16, 20, 24, 25, 30, 31, 32, 48, 64, 80, 96, 100, 120, 144, 160, 200, 240, 255 };
-			size_t sIdx = obf_weak_random(obf_compile_time_prng(seed, 2), specials.size());
-			return specials[sIdx];
-		}
-		return 0;
-	}*/
-
 	//type helpers
 	//obf_half_size_int<>
 	//TODO: obf_traits<>, including obf_traits<>::half_size_int
