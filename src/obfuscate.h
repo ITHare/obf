@@ -6,8 +6,8 @@
 //  1a. OBFX() roughly means 'add no more than 10^(X/2) CPU cycles for obfuscation'
 //      i.e. OBF2() adds up to 10 CPU cycles, OBF3() - up to 30 CPU cycles, 
 //           and OBF5() - up to 300 CPU cycles
-//  2. compile your code without -DOBFUSCATE_SEED for debugging and during development
-//  3. compile with -DOBFUSCATE_SEED=0x<really-random-64-bit-seed>u64 for deployments (MSVC)
+//  2. compile your code without -DITHARE_OBF_SEED for debugging and during development
+//  3. compile with -DITHARE_OBF_SEED=0x<really-random-64-bit-seed>u64 for deployments (MSVC)
 //  3a. GCC is not supported (yet)
 
 #ifdef ITHARE_OBF_INTERNAL_DBG
@@ -20,7 +20,7 @@
 #include <array>
 #include <assert.h>
 #include <type_traits>
-#include <atomic>//for OBF_STRICT_MT
+#include <atomic>//for ITHARE_OBF_STRICT_MT
 #include <string>//for dbgPrint() only
 #include <iostream>//for dbgPrint() only
 
@@ -28,21 +28,23 @@
 //#define ITHARE_OBF_ENABLE_DBGPRINT
 //#if 0
 
-#define OBFUSCATE_SEED 0x0c7dfa61a867b125ui64 //example for MSVC
-#define OBFUSCATE_INIT 
+#define ITHARE_OBF_SEED 0x0c7dfa61a867b125ui64 //example for MSVC
+#define ITHARE_OBF_INIT 
 	//enables rather nasty obfuscations (including PEB-based debugger detection),
 	//  but requires you to call obf_init() BEFORE ANY obf<> objects are used. 
 	//  As a result - it can backfire for obfuscations-used-from-global-constructors :-(.
 
-#define OBF_STRICT_MT//strict multithreading. Short story: as of now, more recommended than not.
+#define ITHARE_OBF_STRICT_MT//strict multithreading. Short story: as of now, more recommended than not.
 	//Long story: in practice, with proper alignments should be MT-safe even without it, 
 	//      but is formally UB, so future compilers MAY generate code which will fail under heavy MT (hard to imagine, but...) :-( 
 	//      OTOH, at least for x64 generates not-too-obvious XCHG instruction (with implicit LOCK completely missed by current IDA decompiler)
 
-#define OBFUSCATE_DEBUG_DISABLE_ANTI_DEBUG
-	//disables built-in anti-debugger kinda-protections
+//#define ITHARE_OBF_NO_ANTI_DEBUG
+	//disables built-in anti-debug kinda-protections in a clean way
+//#define ITHARE_OBF_DEBUG_ANTI_DEBUG_ALWAYS_FALSE
+	//makes built-in anti-debugger kinda-protections to return 'not being debugged' (NOT clean, use ONLY for debugging purposes)
 
-#define OBF_COMPILE_TIME_TESTS 100//supposed to affect ONLY time of compilation
+#define ITHARE_OBF_COMPILE_TIME_TESTS 100//supposed to affect ONLY time of compilation
 
 //THE FOLLOWING MUST BE NOT USED FOR PRODUCTION BUILDS:
 #define ITHARE_OBF_ENABLE_DBGPRINT
@@ -51,24 +53,31 @@
 
 #ifdef _MSC_VER
 #pragma warning (disable:4307)
-#define FORCEINLINE __forceinline
-#define NOINLINE __declspec(noinline)
+#define ITHARE_OBF_FORCEINLINE __forceinline
+#define ITHARE_OBF_NOINLINE __declspec(noinline)
 #else
 #error non-MSVC compilers are not supported (yet?)
 #endif
 
-#ifdef OBFUSCATE_SEED
-	using OBFSEED = uint64_t;
-	using OBFCYCLES = int32_t;//signed!
+#ifdef ITHARE_OBF_SEED
 
-#ifndef OBFSCALE//#define for libraries, using OBFN() macros; 
-				//  allows to promote/demote obfuscation scale of the whole library by OBFSCALE
-				//  OBFSCALE = 1 'converts' all OBF0()'s into OBF1()'s, and so on...
+#ifndef ITHARE_OBF_SCALE//#define for libraries, using OBFN() macros; 
+				//  allows to promote/demote obfuscation scale of the whole library by ITHARE_OBF_SCALE
+				//  ITHARE_OBF_SCALE = 1 'converts' all OBF0()'s into OBF1()'s, and so on...
 				//  DOES NOT affect obfN<> without macros(!)
-#define OBFSCALE 0
+#define ITHARE_OBF_SCALE 0
 #endif
 namespace ithare {
 namespace obf {
+	//NAMESPACE POLICIES:
+	//  EVERYTHING goes into ithare::obf namespace - except for #defines
+	//  ALL #defines are prefixed with ITHARE_OBF_
+	//    THE ONLY exception is OBF0()...OBF6() macros
+	//      These can be disabled using ITHARE_OBF_NO_SHORT_DEFINES macro 
+	//        If disabling - use equivalent ITHARE_OBF0()...ITHARE_OBF6()
+
+	using OBFSEED = uint64_t;
+	using OBFCYCLES = int32_t;//signed!
 
 	//POTENTIALLY user-modifiable constexpr function:
 	constexpr OBFCYCLES obf_exp_cycles(int exp) {
@@ -98,7 +107,7 @@ namespace obf {
 	}
 
 	constexpr OBFSEED obf_seed_from_file_line(const char* file, int line) {
-		OBFSEED ret = OBFUSCATE_SEED ^ line;
+		OBFSEED ret = ITHARE_OBF_SEED ^ line;
 		for (const char* p = file; *p; ++p)//effectively djb2 by Dan Bernstein, albeit with different initializer
 			ret = ((ret << 5) + ret) + *p;
 		return obf_compile_time_prng(ret, 1);//to reduce ill effects from a low-quality PRNG
@@ -177,11 +186,11 @@ namespace obf {
 
 	//XOR-ed constants are merely random numbers with no special meaning
 	constexpr std::array<uint8_t, 0> obf_const_A_excluded = {};
-	constexpr uint8_t OBF_CONST_A = obf_const_x(obf_compile_time_prng(OBFUSCATE_SEED^UINT64_C(0xcec4b8ea4b89a1a9),1), obf_const_A_excluded);
+	constexpr uint8_t OBF_CONST_A = obf_const_x(obf_compile_time_prng(ITHARE_OBF_SEED^UINT64_C(0xcec4b8ea4b89a1a9),1), obf_const_A_excluded);
 	constexpr std::array<uint8_t, 1> obf_const_B_excluded = { OBF_CONST_A };
-	constexpr uint8_t OBF_CONST_B = obf_const_x(obf_compile_time_prng(OBFUSCATE_SEED^UINT64_C(0x5eec23716fa1d0aa),1), obf_const_B_excluded);
+	constexpr uint8_t OBF_CONST_B = obf_const_x(obf_compile_time_prng(ITHARE_OBF_SEED^UINT64_C(0x5eec23716fa1d0aa),1), obf_const_B_excluded);
 	constexpr std::array<uint8_t, 2> obf_const_C_excluded = { OBF_CONST_A, OBF_CONST_B };
-	constexpr uint8_t OBF_CONST_C = obf_const_x(obf_compile_time_prng(OBFUSCATE_SEED^UINT64_C(0xfb2de18f982a2d55),1), obf_const_C_excluded);
+	constexpr uint8_t OBF_CONST_C = obf_const_x(obf_compile_time_prng(ITHARE_OBF_SEED^UINT64_C(0xfb2de18f982a2d55),1), obf_const_C_excluded);
 
 	template<class T, size_t N>
 	constexpr T obf_random_const(OBFSEED seed, std::array<T, N> lst) {
@@ -354,10 +363,10 @@ namespace obf {
 
 	public:
 		using return_type = T;
-		FORCEINLINE constexpr static return_type injection(T x) {
+		ITHARE_OBF_FORCEINLINE constexpr static return_type injection(T x) {
 			return Context::final_injection(x);
 		}
-		FORCEINLINE constexpr static T surjection(return_type y) {
+		ITHARE_OBF_FORCEINLINE constexpr static T surjection(return_type y) {
 			return Context::final_surjection(y);
 		}
 
@@ -396,7 +405,7 @@ namespace obf {
 		constexpr static T C = obf_random_const<T>(obf_compile_time_prng(seed, 2), consts);
 		static constexpr bool neg = C == 0 ? true : obf_weak_random(obf_compile_time_prng(seed, 3),2) == 0;
 		using ST = typename std::make_signed<T>::type;
-		FORCEINLINE constexpr static return_type injection(T x) {
+		ITHARE_OBF_FORCEINLINE constexpr static return_type injection(T x) {
 			if constexpr(neg) {
 				ST sx = ST(x);
 				return RecursiveInjection::injection(T(-sx) + C);
@@ -404,7 +413,7 @@ namespace obf {
 			else
 				return RecursiveInjection::injection(x + C);
 		}
-		FORCEINLINE constexpr static T surjection(return_type y) {
+		ITHARE_OBF_FORCEINLINE constexpr static T surjection(return_type y) {
 			T yy = RecursiveInjection::surjection(y) - C;
 			if constexpr(neg) {
 				ST syy = ST(yy);
@@ -434,7 +443,7 @@ namespace obf {
 
 	template<class T, OBFSEED seed, OBFCYCLES cycles>
 	struct obf_randomized_non_reversible_function_version<0, T, seed, cycles> {
-		FORCEINLINE T operator()(T x) {
+		ITHARE_OBF_FORCEINLINE T operator()(T x) {
 			return x;
 		}
 
@@ -451,7 +460,7 @@ namespace obf {
 
 	template<class T, OBFSEED seed, OBFCYCLES cycles>
 	struct obf_randomized_non_reversible_function_version<1,T,seed,cycles> {
-		FORCEINLINE T operator()(T x) {
+		ITHARE_OBF_FORCEINLINE T operator()(T x) {
 			return x*x;
 		}
 
@@ -469,7 +478,7 @@ namespace obf {
 	template<class T, OBFSEED seed, OBFCYCLES cycles>
 	struct obf_randomized_non_reversible_function_version<2, T, seed, cycles> {
 		using ST = typename std::make_signed<T>::type;
-		FORCEINLINE T operator()(T x) {
+		ITHARE_OBF_FORCEINLINE T operator()(T x) {
 			ST sx = ST(x);
 			return T(sx < 0 ? -sx : sx);
 		}
@@ -502,7 +511,7 @@ namespace obf {
 		constexpr static size_t max_cycles_that_make_sense = obf_max_min_descr(descr);
 		constexpr static size_t which = obf_random_obf_from_list(obf_compile_time_prng(seed, 1), cycles, descr);
 		using FType = obf_randomized_non_reversible_function_version<which, T, seed, cycles>;
-		FORCEINLINE T operator()(T x) {
+		ITHARE_OBF_FORCEINLINE T operator()(T x) {
 			return FType()(x);
 		}
 
@@ -557,13 +566,13 @@ namespace obf {
 
 		constexpr static int halfTBits = sizeof(halfT) * 8;
 		//constexpr static T mask = ((T)1 << halfTBits) - 1;
-		FORCEINLINE constexpr static return_type injection(T x) {
+		ITHARE_OBF_FORCEINLINE constexpr static return_type injection(T x) {
 			T lo = x >> halfTBits;
 			//T hi = (x & mask) + f((halfT)lo);
 			T hi = x + f((halfT)lo);
 			return RecursiveInjection::injection((hi << halfTBits) + lo);
 		}
-		FORCEINLINE constexpr static T surjection(return_type y_) {
+		ITHARE_OBF_FORCEINLINE constexpr static T surjection(return_type y_) {
 			T y = RecursiveInjection::surjection(y_);
 			halfT hi = y >> halfTBits;
 			T lo = y;
@@ -585,7 +594,7 @@ namespace obf {
 #endif
 
 	private:
-		FORCEINLINE static constexpr halfT f(halfT x) {
+		ITHARE_OBF_FORCEINLINE static constexpr halfT f(halfT x) {
 			return FType()(x);
 		}
 	};
@@ -652,7 +661,7 @@ namespace obf {
 		using HiInjection = obf_injection<halfT, HiContext, obf_compile_time_prng(seed, 7), cycles_hiInj+HiContext::context_cycles, ObfDefaultInjectionContext>;
 		static_assert(sizeof(HiInjection::return_type) == sizeof(halfT));//bijections ONLY; TODO: enforce
 
-		FORCEINLINE constexpr static return_type injection(T x) {
+		ITHARE_OBF_FORCEINLINE constexpr static return_type injection(T x) {
 			halfT lo = x >> halfTBits;
 			typename LoInjection::return_type lo1 = LoInjection::injection(lo);
 			lo = *reinterpret_cast<halfT*>(&lo1);//relies on static_assert(sizeof(return_type)==sizeof(halfT)) above
@@ -661,7 +670,7 @@ namespace obf {
 			hi = *reinterpret_cast<halfT*>(&hi1);//relies on static_assert(sizeof(return_type)==sizeof(halfT)) above
 			return RecursiveInjection::injection((T(hi) << halfTBits) + T(lo));
 		}
-		FORCEINLINE constexpr static T surjection(return_type y_) {
+		ITHARE_OBF_FORCEINLINE constexpr static T surjection(return_type y_) {
 			auto y = RecursiveInjection::surjection(y_);
 			halfT hi0 = y >> halfTBits;
 			halfT lo0 = (halfT)y;
@@ -759,10 +768,10 @@ namespace obf {
 
 		using literal = typename Context::template literal<T, CINV, obf_compile_time_prng(seed, 3)>::type;
 
-		FORCEINLINE constexpr static return_type injection(T x) {
+		ITHARE_OBF_FORCEINLINE constexpr static return_type injection(T x) {
 			return RecursiveInjection::injection(x * literal().value());//using CINV in injection to hide literals a bit better...
 		}
-		FORCEINLINE constexpr static T surjection(return_type y) {
+		ITHARE_OBF_FORCEINLINE constexpr static T surjection(return_type y) {
 			return RecursiveInjection::surjection(y) * C;
 		}
 
@@ -835,11 +844,11 @@ namespace obf {
 			typename RecursiveInjectionLo::return_type lo;
 			typename RecursiveInjectionHi::return_type hi;
 		};
-		FORCEINLINE constexpr static return_type injection(T x) {
+		ITHARE_OBF_FORCEINLINE constexpr static return_type injection(T x) {
 			return_type ret{ RecursiveInjectionLo::injection((halfT)x), RecursiveInjectionHi::injection(x >> halfTBits) };
 			return ret;
 		}
-		FORCEINLINE constexpr static T surjection(return_type y_) {
+		ITHARE_OBF_FORCEINLINE constexpr static T surjection(return_type y_) {
 			halfT hi = RecursiveInjectionHi::surjection(y_.hi);
 			halfT lo = RecursiveInjectionLo::surjection(y_.lo);
 			return (T)lo + ((T)hi << halfTBits);
@@ -908,13 +917,13 @@ namespace obf {
 		using LoInjection = obf_injection<halfT, LoContext, obf_compile_time_prng(seed, 5), cycles_loInj + LoContext::context_cycles, ObfDefaultInjectionContext>;
 		static_assert(sizeof(LoInjection::return_type) == sizeof(halfT));//bijections ONLY; TODO: enforce
 
-		FORCEINLINE constexpr static return_type injection(T x) {
+		ITHARE_OBF_FORCEINLINE constexpr static return_type injection(T x) {
 			halfT lo0 = halfT(x);
 			typename LoInjection::return_type lo1 = LoInjection::injection(lo0);
 			halfT lo = *reinterpret_cast<halfT*>(&lo1);//relies on static_assert(sizeof(return_type)==sizeof(halfT)) above
 			return RecursiveInjection::injection(x - T(lo0) + lo);
 		}
-		FORCEINLINE constexpr static T surjection(return_type yy) {
+		ITHARE_OBF_FORCEINLINE constexpr static T surjection(return_type yy) {
 			T y = RecursiveInjection::surjection(yy);
 			halfT lo0 = halfT(y);
 			halfT lo = LoInjection::surjection(*reinterpret_cast<typename LoInjection::return_type*>(&lo0));//relies on static_assert(sizeof(return_type)==sizeof(halfT)) above
@@ -952,14 +961,14 @@ namespace obf {
 		using return_type = typename RecursiveInjection::return_type;
 		using ST = typename std::make_signed<T>::type;
 		static constexpr T highbit = T(1) << (sizeof(T) * 8 - 1);
-		FORCEINLINE constexpr static return_type injection(T x) {
+		ITHARE_OBF_FORCEINLINE constexpr static return_type injection(T x) {
 			if ((x % 2) == 0)
 				x = x >> 1;
 			else
 				x = ( x >> 1 ) + highbit;
 			return RecursiveInjection::injection(x);
 		}
-		FORCEINLINE constexpr static T surjection(return_type y) {
+		ITHARE_OBF_FORCEINLINE constexpr static T surjection(return_type y) {
 			T yy = RecursiveInjection::surjection(y);
 			ST syy = ST(yy);
 			if (syy < 0)
@@ -997,10 +1006,10 @@ namespace obf {
 
 	public:
 		using return_type = typename WhichType::return_type;
-		FORCEINLINE constexpr static return_type injection(T x) {
+		ITHARE_OBF_FORCEINLINE constexpr static return_type injection(T x) {
 			return WhichType::injection(x);
 		}
-		FORCEINLINE constexpr static T surjection(return_type y) {
+		ITHARE_OBF_FORCEINLINE constexpr static T surjection(return_type y) {
 			return WhichType::surjection(y);
 		}
 
@@ -1034,10 +1043,10 @@ namespace obf {
 		static_assert(std::is_unsigned<T>::value);
 		constexpr static OBFCYCLES context_cycles = obf_literal_context_version0_descr::descr.min_cycles;
 
-		FORCEINLINE static constexpr T final_injection(T x) {
+		ITHARE_OBF_FORCEINLINE static constexpr T final_injection(T x) {
 			return x;
 		}
-		FORCEINLINE static constexpr T final_surjection(T y) {
+		ITHARE_OBF_FORCEINLINE static constexpr T final_surjection(T y) {
 			return y;
 		}
 
@@ -1062,10 +1071,10 @@ namespace obf {
 		//static constexpr T CC = obf_gen_const<T>(obf_compile_time_prng(seed, 1));
 		static constexpr std::array<T, 3> consts = { OBF_CONST_A,OBF_CONST_B,OBF_CONST_C };
 		constexpr static T CC = obf_random_const<T>(obf_compile_time_prng(seed, 1), consts);
-		FORCEINLINE static constexpr T final_injection(T x) {
+		ITHARE_OBF_FORCEINLINE static constexpr T final_injection(T x) {
 			return x + CC;
 		}
-		FORCEINLINE static T final_surjection(T y) {
+		ITHARE_OBF_FORCEINLINE static T final_surjection(T y) {
 			return y - c;
 		}
 
@@ -1087,7 +1096,7 @@ namespace obf {
 	};
 
 	template<class T>//TODO: randomize contents of the function
-	NOINLINE T obf_aliased_zero(T* x, T* y) {
+	ITHARE_OBF_NOINLINE T obf_aliased_zero(T* x, T* y) {
 		*x = 0;
 		*y = 1;
 		return *x;
@@ -1099,10 +1108,10 @@ namespace obf {
 		static_assert(std::is_unsigned<T>::value);
 		constexpr static OBFCYCLES context_cycles = obf_literal_context_version2_descr::descr.min_cycles;
 
-		FORCEINLINE static constexpr T final_injection(T x) {
+		ITHARE_OBF_FORCEINLINE static constexpr T final_injection(T x) {
 			return x;
 		}
-		FORCEINLINE static /*non-constexpr*/ T final_surjection(T y) {
+		ITHARE_OBF_FORCEINLINE static /*non-constexpr*/ T final_surjection(T y) {
 			T x, yy;
 			T z = obf_aliased_zero(&x, &yy);
 			return y - z;
@@ -1116,7 +1125,7 @@ namespace obf {
 
 	//version 3: Windows/PEB
 	struct obf_literal_context_version3_descr {
-#ifdef _MSC_VER
+#if defined(_MSC_VER) && defined(ITHARE_OBF_INIT) && !defined(ITHARE_OBF_NO_ANTI_DEBUG)
 		static constexpr ObfDescriptor descr = ObfDescriptor(true, 10, 100);
 #else
 		static constexpr ObfDescriptor descr = ObfDescriptor(false, 0, 0);
@@ -1135,11 +1144,11 @@ namespace obf {
 		//static constexpr T CC = obf_gen_const<T>(obf_compile_time_prng(seed, 1));
 		static constexpr std::array<T, 3> consts = { OBF_CONST_A,OBF_CONST_B,OBF_CONST_C };
 		constexpr static T CC = obf_random_const<T>(obf_compile_time_prng(seed, 1), consts);
-		FORCEINLINE static constexpr T final_injection(T x) {
+		ITHARE_OBF_FORCEINLINE static constexpr T final_injection(T x) {
 			return x + CC;
 		}
-		FORCEINLINE static T final_surjection(T y) {
-#ifdef OBFUSCATE_DEBUG_DISABLE_ANTI_DEBUG
+		ITHARE_OBF_FORCEINLINE static T final_surjection(T y) {
+#ifdef ITHARE_OBF_DEBUG_ANTI_DEBUG_ALWAYS_FALSE
 			return y - CC;
 #else
 			return y - CC * (1 + obf_peb[2]);
@@ -1199,12 +1208,12 @@ namespace obf {
 			assert(newC%MOD == CC);
 			return test_n_iterations(newC,n-1);
 		}
-		static_assert(test_n_iterations(CC0, OBF_COMPILE_TIME_TESTS));//test only
+		static_assert(test_n_iterations(CC0, ITHARE_OBF_COMPILE_TIME_TESTS));//test only
 
-		FORCEINLINE static constexpr T final_injection(T x) {
+		ITHARE_OBF_FORCEINLINE static constexpr T final_injection(T x) {
 			return x + CC;
 		}
-		FORCEINLINE static T final_surjection(T y) {
+		ITHARE_OBF_FORCEINLINE static T final_surjection(T y) {
 			//{MT-related:
 			T newC = (c+DELTA)%DELTAMOD;
 			c = newC;
@@ -1219,14 +1228,14 @@ namespace obf {
 		}
 #endif
 	private:
-#ifdef OBF_STRICT_MT
+#ifdef ITHARE_OBF_STRICT_MT
 		static std::atomic<T> c;
 #else
 		static volatile T c;
 #endif
 	};
 
-#ifdef OBF_STRICT_MT
+#ifdef ITHARE_OBF_STRICT_MT
 	template<class T, OBFSEED seed>
 	std::atomic<T> ObfLiteralContext_version<4, T, seed>::c = CC0;
 #else
@@ -1248,10 +1257,10 @@ namespace obf {
 			using type = obf_literal_ctx<T, C, ObfZeroLiteralContext<T>, seed, literal_cycles>;
 		};
 
-		FORCEINLINE static constexpr T final_injection(T x) {
+		ITHARE_OBF_FORCEINLINE static constexpr T final_injection(T x) {
 			return x;
 		}
-		FORCEINLINE static constexpr T final_surjection(T y) {
+		ITHARE_OBF_FORCEINLINE static constexpr T final_surjection(T y) {
 			return y;
 		}
 
@@ -1294,10 +1303,10 @@ namespace obf {
 			using type = obf_literal_ctx<T, C, ObfZeroLiteralContext<T>, seed, literal_cycles>;
 		};
 
-		FORCEINLINE static constexpr T final_injection(T x) {
+		ITHARE_OBF_FORCEINLINE static constexpr T final_injection(T x) {
 			return WhichType::final_injection(x);
 		}
-		FORCEINLINE static /*non-constexpr*/ T final_surjection(T y) {
+		ITHARE_OBF_FORCEINLINE static /*non-constexpr*/ T final_surjection(T y) {
 			return WhichType::final_surjection(y);
 		}
 
@@ -1326,9 +1335,9 @@ namespace obf {
 
 		using Injection = obf_injection<T, Context, obf_compile_time_prng(seed, 1), cycles,ObfDefaultInjectionContext>;
 	public:
-		FORCEINLINE constexpr obf_literal_ctx() : val(Injection::injection(C)) {
+		ITHARE_OBF_FORCEINLINE constexpr obf_literal_ctx() : val(Injection::injection(C)) {
 		}
-		FORCEINLINE T value() const {
+		ITHARE_OBF_FORCEINLINE T value() const {
 			return Injection::surjection(val);
 		}
 
@@ -1351,9 +1360,9 @@ namespace obf {
 		using Context = ObfLiteralContext<T, obf_compile_time_prng(seed, 1),cycles>;
 		using Injection = obf_injection<T, Context, obf_compile_time_prng(seed, 2), cycles,ObfDefaultInjectionContext>;
 	public:
-		FORCEINLINE constexpr obf_literal() : val(Injection::injection(C)) {
+		ITHARE_OBF_FORCEINLINE constexpr obf_literal() : val(Injection::injection(C)) {
 		}
-		FORCEINLINE T value() const {
+		ITHARE_OBF_FORCEINLINE T value() const {
 			return Injection::surjection(val);
 		}
 
@@ -1382,10 +1391,10 @@ namespace obf {
 			using type = obf_literal_ctx<T, C, LiteralContext, seed, literal_cycles>;
 		};
 
-		FORCEINLINE static constexpr T final_injection(T x) {
+		ITHARE_OBF_FORCEINLINE static constexpr T final_injection(T x) {
 			return x;
 		}
-		FORCEINLINE static constexpr T final_surjection(T y) {
+		ITHARE_OBF_FORCEINLINE static constexpr T final_surjection(T y) {
 			return y;
 		}
 
@@ -1411,121 +1420,121 @@ namespace obf {
 		using Injection = obf_injection<T, Context, obf_compile_time_prng(seed, 2), cycles, ObfDefaultInjectionContext>;
 
 	public:
-		FORCEINLINE obf_var(T_ t) : val(Injection::injection(T(t))) {
+		ITHARE_OBF_FORCEINLINE obf_var(T_ t) : val(Injection::injection(T(t))) {
 		}
 		template<class T2,OBFSEED seed2, OBFCYCLES cycles2>
-		FORCEINLINE obf_var(obf_var<T2, seed2, cycles2> t) : val(Injection::injection(T(T_(t.value())))) {//TODO: randomized injection implementation
+		ITHARE_OBF_FORCEINLINE obf_var(obf_var<T2, seed2, cycles2> t) : val(Injection::injection(T(T_(t.value())))) {//TODO: randomized injection implementation
 		}//TODO: template<obf_literal>
-		FORCEINLINE obf_var& operator =(T_ t) {
+		ITHARE_OBF_FORCEINLINE obf_var& operator =(T_ t) {
 			val = Injection::injection(T(t));//TODO: randomized injection implementation
 			return *this;
 		}
 		template<class T2,OBFSEED seed2, OBFCYCLES cycles2>
-		FORCEINLINE obf_var& operator =(obf_var<T2, seed2, cycles2> t) {
+		ITHARE_OBF_FORCEINLINE obf_var& operator =(obf_var<T2, seed2, cycles2> t) {
 			val = Injection::injection(T(T_(t.value())));//TODO: randomized injection implementation
 			return *this;
 		}//TODO: template<obf_literal>
-		FORCEINLINE T_ value() const {
+		ITHARE_OBF_FORCEINLINE T_ value() const {
 			return T_(Injection::surjection(val));
 		}
 
-		FORCEINLINE operator T_() const { return value(); }
-		FORCEINLINE obf_var& operator ++() { *this = value() + 1; return *this; }
-		FORCEINLINE obf_var& operator --() { *this = value() - 1; return *this; }
-		FORCEINLINE obf_var operator++(int) { obf_var ret = obf_var(value());  *this = value() + 1; return ret; }
-		FORCEINLINE obf_var operator--(int) { obf_var ret = obf_var(value());  *this = value() + 1; return ret; }
+		ITHARE_OBF_FORCEINLINE operator T_() const { return value(); }
+		ITHARE_OBF_FORCEINLINE obf_var& operator ++() { *this = value() + 1; return *this; }
+		ITHARE_OBF_FORCEINLINE obf_var& operator --() { *this = value() - 1; return *this; }
+		ITHARE_OBF_FORCEINLINE obf_var operator++(int) { obf_var ret = obf_var(value());  *this = value() + 1; return ret; }
+		ITHARE_OBF_FORCEINLINE obf_var operator--(int) { obf_var ret = obf_var(value());  *this = value() + 1; return ret; }
 
 		template<class T2>
-		FORCEINLINE bool operator <(T2 t) { return value() < t; }
+		ITHARE_OBF_FORCEINLINE bool operator <(T2 t) { return value() < t; }
 		template<class T2>
-		FORCEINLINE bool operator >(T2 t) { return value() > t; }
+		ITHARE_OBF_FORCEINLINE bool operator >(T2 t) { return value() > t; }
 		template<class T2>
-		FORCEINLINE bool operator ==(T2 t) { return value() == t; }
+		ITHARE_OBF_FORCEINLINE bool operator ==(T2 t) { return value() == t; }
 		template<class T2>
-		FORCEINLINE bool operator !=(T2 t) { return value() != t; }
+		ITHARE_OBF_FORCEINLINE bool operator !=(T2 t) { return value() != t; }
 		template<class T2>
-		FORCEINLINE bool operator <=(T2 t) { return value() <= t; }
+		ITHARE_OBF_FORCEINLINE bool operator <=(T2 t) { return value() <= t; }
 		template<class T2>
-		FORCEINLINE bool operator >=(T2 t) { return value() >= t; }
+		ITHARE_OBF_FORCEINLINE bool operator >=(T2 t) { return value() >= t; }
 
 		template<class T2, OBFSEED seed2, OBFCYCLES cycles2>
-		FORCEINLINE bool operator <(obf_var<T2, seed2, cycles2> t) {
+		ITHARE_OBF_FORCEINLINE bool operator <(obf_var<T2, seed2, cycles2> t) {
 			return value() < t.value();
 		}//TODO: template<obf_literal>(for ALL comparisons)
 		template<class T2, OBFSEED seed2, OBFCYCLES cycles2>
-		FORCEINLINE bool operator >(obf_var<T2, seed2, cycles2> t) {
+		ITHARE_OBF_FORCEINLINE bool operator >(obf_var<T2, seed2, cycles2> t) {
 			return value() > t.value();
 		}
 		template<class T2, OBFSEED seed2, OBFCYCLES cycles2>
-		FORCEINLINE bool operator ==(obf_var<T2, seed2, cycles2> t) {
+		ITHARE_OBF_FORCEINLINE bool operator ==(obf_var<T2, seed2, cycles2> t) {
 			return value() == t.value();
 		}
 		template<class T2, OBFSEED seed2, OBFCYCLES cycles2>
-		FORCEINLINE bool operator !=(obf_var<T2, seed2, cycles2> t) {
+		ITHARE_OBF_FORCEINLINE bool operator !=(obf_var<T2, seed2, cycles2> t) {
 			return value() != t.value();
 		}
 		template<class T2, OBFSEED seed2, OBFCYCLES cycles2>
-		FORCEINLINE bool operator <=(obf_var<T2, seed2, cycles2> t) {
+		ITHARE_OBF_FORCEINLINE bool operator <=(obf_var<T2, seed2, cycles2> t) {
 			return value() <= t.value();
 		}
 		template<class T2, OBFSEED seed2, OBFCYCLES cycles2>
-		FORCEINLINE bool operator >=(obf_var<T2, seed2, cycles2> t) {
+		ITHARE_OBF_FORCEINLINE bool operator >=(obf_var<T2, seed2, cycles2> t) {
 			return value() >= t.value();
 		}
 
 		template<class T2>
-		FORCEINLINE obf_var& operator +=(T2 t) { *this = value() + t; return *this; }
+		ITHARE_OBF_FORCEINLINE obf_var& operator +=(T2 t) { *this = value() + t; return *this; }
 		template<class T2>
-		FORCEINLINE obf_var& operator -=(T2 t) { *this = value() - t; return *this; }
+		ITHARE_OBF_FORCEINLINE obf_var& operator -=(T2 t) { *this = value() - t; return *this; }
 		template<class T2>
-		FORCEINLINE obf_var& operator *=(T2 t) { *this = value() * t; return *this; }
+		ITHARE_OBF_FORCEINLINE obf_var& operator *=(T2 t) { *this = value() * t; return *this; }
 		template<class T2>
-		FORCEINLINE obf_var& operator /=(T2 t) { *this = value() / t; return *this; }
+		ITHARE_OBF_FORCEINLINE obf_var& operator /=(T2 t) { *this = value() / t; return *this; }
 		template<class T2>
-		FORCEINLINE obf_var& operator %=(T2 t) { *this = value() % t; return *this; }
+		ITHARE_OBF_FORCEINLINE obf_var& operator %=(T2 t) { *this = value() % t; return *this; }
 
 		template<class T2, OBFSEED seed2, OBFCYCLES cycles2>
-		FORCEINLINE obf_var& operator +=(obf_var<T2, seed2, cycles2> t) {
+		ITHARE_OBF_FORCEINLINE obf_var& operator +=(obf_var<T2, seed2, cycles2> t) {
 			return *this += t.value();
 		}//TODO: template<obf_literal>(for ALL ?= operations)
 		template<class T2, OBFSEED seed2, OBFCYCLES cycles2>
-		FORCEINLINE obf_var& operator -=(obf_var<T2, seed2, cycles2> t) {
+		ITHARE_OBF_FORCEINLINE obf_var& operator -=(obf_var<T2, seed2, cycles2> t) {
 			return *this -= t.value();
 		}
 		template<class T2, OBFSEED seed2, OBFCYCLES cycles2>
-		FORCEINLINE obf_var& operator *=(obf_var<T2, seed2, cycles2> t) {
+		ITHARE_OBF_FORCEINLINE obf_var& operator *=(obf_var<T2, seed2, cycles2> t) {
 			return *this *= t.value();
 		}
 		template<class T2, OBFSEED seed2, OBFCYCLES cycles2>
-		FORCEINLINE obf_var& operator /=(obf_var<T2, seed2, cycles2> t) {
+		ITHARE_OBF_FORCEINLINE obf_var& operator /=(obf_var<T2, seed2, cycles2> t) {
 			return *this /= t.value();
 		}
 		template<class T2, OBFSEED seed2, OBFCYCLES cycles2>
-		FORCEINLINE obf_var& operator %=(obf_var<T2, seed2, cycles2> t) {
+		ITHARE_OBF_FORCEINLINE obf_var& operator %=(obf_var<T2, seed2, cycles2> t) {
 			return *this %= t.value();
 		}
 
 		template<class T2>
-		FORCEINLINE obf_var operator +(T2 t) { return obf_var(value()+t); }
+		ITHARE_OBF_FORCEINLINE obf_var operator +(T2 t) { return obf_var(value()+t); }
 		template<class T2>
-		FORCEINLINE obf_var operator -(T2 t) { return obf_var(value() - t); }
+		ITHARE_OBF_FORCEINLINE obf_var operator -(T2 t) { return obf_var(value() - t); }
 		template<class T2>
-		FORCEINLINE obf_var operator *(T2 t) { return obf_var(value() * t); }
+		ITHARE_OBF_FORCEINLINE obf_var operator *(T2 t) { return obf_var(value() * t); }
 		template<class T2>
-		FORCEINLINE obf_var operator /(T2 t) { return obf_var(value() / t); }
+		ITHARE_OBF_FORCEINLINE obf_var operator /(T2 t) { return obf_var(value() / t); }
 		template<class T2>
-		FORCEINLINE obf_var operator %(T2 t) { return obf_var(value() % t); }
+		ITHARE_OBF_FORCEINLINE obf_var operator %(T2 t) { return obf_var(value() % t); }
 		
 		template<class T2, OBFSEED seed2, OBFCYCLES cycles2>//TODO: template<obf_literal_dbg>(for ALL binary operations)
-		FORCEINLINE obf_var operator +(obf_var<T2,seed2,cycles2> t) { return obf_var(value() + t.value()); }
+		ITHARE_OBF_FORCEINLINE obf_var operator +(obf_var<T2,seed2,cycles2> t) { return obf_var(value() + t.value()); }
 		template<class T2, OBFSEED seed2, OBFCYCLES cycles2>
-		FORCEINLINE obf_var operator -(obf_var<T2, seed2, cycles2> t) { return obf_var(value() - t.value()); }
+		ITHARE_OBF_FORCEINLINE obf_var operator -(obf_var<T2, seed2, cycles2> t) { return obf_var(value() - t.value()); }
 		template<class T2, OBFSEED seed2, OBFCYCLES cycles2>
-		FORCEINLINE obf_var operator *(obf_var<T2, seed2, cycles2> t) { return obf_var(value() * t.value()); }
+		ITHARE_OBF_FORCEINLINE obf_var operator *(obf_var<T2, seed2, cycles2> t) { return obf_var(value() * t.value()); }
 		template<class T2, OBFSEED seed2, OBFCYCLES cycles2>
-		FORCEINLINE obf_var operator /(obf_var<T2, seed2, cycles2> t) { return obf_var(value() / t.value()); }
+		ITHARE_OBF_FORCEINLINE obf_var operator /(obf_var<T2, seed2, cycles2> t) { return obf_var(value() / t.value()); }
 		template<class T2, OBFSEED seed2, OBFCYCLES cycles2>
-		FORCEINLINE obf_var operator %(obf_var<T2, seed2, cycles2> t) { return obf_var(value() % t.value()); }
+		ITHARE_OBF_FORCEINLINE obf_var operator %(obf_var<T2, seed2, cycles2> t) { return obf_var(value() % t.value()); }
 
 		//TODO: bitwise
 
@@ -1548,7 +1557,7 @@ namespace obf {
 #ifdef ITHARE_OBF_ENABLE_DBGPRINT
 	inline void obf_dbgPrint() {
 		std::cout << "OBF_CONST_A=" << int(OBF_CONST_A) << " OBF_CONST_B=" << int(OBF_CONST_B) << " OBF_CONST_C=" << int(OBF_CONST_C) << std::endl;
-		//auto c = obf_const_x(obf_compile_time_prng(OBFUSCATE_SEED^UINT64_C(0xfb2de18f982a2d55), 1), obf_const_C_excluded);
+		//auto c = obf_const_x(obf_compile_time_prng(ITHARE_OBF_SEED^UINT64_C(0xfb2de18f982a2d55), 1), obf_const_C_excluded);
 	}
 #endif
 
@@ -1576,28 +1585,28 @@ namespace obf {
  //direct use of __LINE__ doesn't count as constexpr in MSVC - don't ask why...
 
  //along the lines of https://stackoverflow.com/questions/19343205/c-concatenating-file-and-line-macros:
-#define OBF_S1(x) #x
-#define OBF_S2(x) OBF_S1(x)
-#define OBF_LOCATION __FILE__ " : " OBF_S2(__LINE__)
+#define ITHARE_OBF_S1(x) #x
+#define ITHARE_OBF_S2(x) ITHARE_OBF_S1(x)
+#define ITHARE_OBF_LOCATION __FILE__ " : " ITHARE_OBF_S2(__LINE__)
 
-#define ITHARE_OBF0(type) ithare::obf::obf_var<type,ithare::obf::obf_seed_from_file_line(OBF_LOCATION,0),ithare::obf::obf_exp_cycles((OBFSCALE)+0)>
-#define ITHARE_OBF1(type) ithare::obf::obf_var<type,ithare::obf::obf_seed_from_file_line(OBF_LOCATION,0),ithare::obf::obf_exp_cycles((OBFSCALE)+1)>
-#define ITHARE_OBF2(type) ithare::obf::obf_var<type,ithare::obf::obf_seed_from_file_line(OBF_LOCATION,0),ithare::obf::obf_exp_cycles((OBFSCALE)+2)>
-#define ITHARE_OBF3(type) ithare::obf::obf_var<type,ithare::obf::obf_seed_from_file_line(OBF_LOCATION,0),ithare::obf::obf_exp_cycles((OBFSCALE)+3)>
-#define ITHARE_OBF4(type) ithare::obf::obf_var<type,ithare::obf::obf_seed_from_file_line(OBF_LOCATION,0),ithare::obf::obf_exp_cycles((OBFSCALE)+4)>
-#define ITHARE_OBF5(type) ithare::obf::obf_var<type,ithare::obf::obf_seed_from_file_line(OBF_LOCATION,0),ithare::obf::obf_exp_cycles((OBFSCALE)+5)>
-#define ITHARE_OBF6(type) ithare::obf::obf_var<type,ithare::obf::obf_seed_from_file_line(OBF_LOCATION,0),ithare::obf::obf_exp_cycles((OBFSCALE)+6)>
+#define ITHARE_OBF0(type) ithare::obf::obf_var<type,ithare::obf::obf_seed_from_file_line(ITHARE_OBF_LOCATION,0),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+0)>
+#define ITHARE_OBF1(type) ithare::obf::obf_var<type,ithare::obf::obf_seed_from_file_line(ITHARE_OBF_LOCATION,0),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+1)>
+#define ITHARE_OBF2(type) ithare::obf::obf_var<type,ithare::obf::obf_seed_from_file_line(ITHARE_OBF_LOCATION,0),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+2)>
+#define ITHARE_OBF3(type) ithare::obf::obf_var<type,ithare::obf::obf_seed_from_file_line(ITHARE_OBF_LOCATION,0),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+3)>
+#define ITHARE_OBF4(type) ithare::obf::obf_var<type,ithare::obf::obf_seed_from_file_line(ITHARE_OBF_LOCATION,0),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+4)>
+#define ITHARE_OBF5(type) ithare::obf::obf_var<type,ithare::obf::obf_seed_from_file_line(ITHARE_OBF_LOCATION,0),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+5)>
+#define ITHARE_OBF6(type) ithare::obf::obf_var<type,ithare::obf::obf_seed_from_file_line(ITHARE_OBF_LOCATION,0),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+6)>
 #else//_MSC_VER
-#define ITHARE_OBF0(type) ithare::obf::obf_var<type,ithare::obf::obf_seed_from_file_line(__FILE__,__LINE__),ithare::obf::obf_exp_cycles((OBFSCALE)+0)>
-#define ITHARE_OBF1(type) ithare::obf::obf_var<type,ithare::obf::obf_seed_from_file_line(__FILE__,__LINE__),ithare::obf::obf_exp_cycles((OBFSCALE)+1)>
-#define ITHARE_OBF2(type) ithare::obf::obf_var<type,ithare::obf::obf_seed_from_file_line(__FILE__,__LINE__),ithare::obf::obf_exp_cycles((OBFSCALE)+2)>
-#define ITHARE_OBF3(type) ithare::obf::obf_var<type,ithare::obf::obf_seed_from_file_line(__FILE__,__LINE__),ithare::obf::obf_exp_cycles((OBFSCALE)+3)>
-#define ITHARE_OBF4(type) ithare::obf::obf_var<type,ithare::obf::obf_seed_from_file_line(__FILE__,__LINE__),ithare::obf::obf_exp_cycles((OBFSCALE)+4)>
-#define ITHARE_OBF5(type) ithare::obf::obf_var<type,ithare::obf::obf_seed_from_file_line(__FILE__,__LINE__),ithare::obf::obf_exp_cycles((OBFSCALE)+5)>
-#define ITHARE_OBF6(type) ithare::obf::obf_var<type,ithare::obf::obf_seed_from_file_line(__FILE__,__LINE__),ithare::obf::obf_exp_cycles((OBFSCALE)+6)>
+#define ITHARE_OBF0(type) ithare::obf::obf_var<type,ithare::obf::obf_seed_from_file_line(__FILE__,__LINE__),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+0)>
+#define ITHARE_OBF1(type) ithare::obf::obf_var<type,ithare::obf::obf_seed_from_file_line(__FILE__,__LINE__),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+1)>
+#define ITHARE_OBF2(type) ithare::obf::obf_var<type,ithare::obf::obf_seed_from_file_line(__FILE__,__LINE__),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+2)>
+#define ITHARE_OBF3(type) ithare::obf::obf_var<type,ithare::obf::obf_seed_from_file_line(__FILE__,__LINE__),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+3)>
+#define ITHARE_OBF4(type) ithare::obf::obf_var<type,ithare::obf::obf_seed_from_file_line(__FILE__,__LINE__),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+4)>
+#define ITHARE_OBF5(type) ithare::obf::obf_var<type,ithare::obf::obf_seed_from_file_line(__FILE__,__LINE__),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+5)>
+#define ITHARE_OBF6(type) ithare::obf::obf_var<type,ithare::obf::obf_seed_from_file_line(__FILE__,__LINE__),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+6)>
 #endif
 
-#else//OBFUSCATE_SEED
+#else//ITHARE_OBF_SEED
 namespace ithare {
 	namespace obf {
 #ifdef ITHARE_OBF_ENABLE_DBGPRINT
@@ -1759,7 +1768,7 @@ namespace ithare {
 #define ITHARE_OBF5(type) ithare::obf::obf_var_dbg<type>
 #define ITHARE_OBF6(type) ithare::obf::obf_var_dbg<type>
 
-#endif //OBFUSCATE_SEED
+#endif //ITHARE_OBF_SEED
 
 #ifndef ITHARE_OBF_NO_SHORT_DEFINES//#define to avoid polluting global namespace w/o prefix
 #define OBF0 ITHARE_OBF0
