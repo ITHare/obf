@@ -1580,21 +1580,21 @@ namespace obf {
 #define OBF_S2(x) OBF_S1(x)
 #define OBF_LOCATION __FILE__ " : " OBF_S2(__LINE__)
 
-#define OBF0(type) ithare::obf::obf_var<type,ithare::obf::obf_seed_from_file_line(OBF_LOCATION,0),ithare::obf::obf_exp_cycles((OBFSCALE)+0)>
-#define OBF1(type) ithare::obf::obf_var<type,ithare::obf::obf_seed_from_file_line(OBF_LOCATION,0),ithare::obf::obf_exp_cycles((OBFSCALE)+1)>
-#define OBF2(type) ithare::obf::obf_var<type,ithare::obf::obf_seed_from_file_line(OBF_LOCATION,0),ithare::obf::obf_exp_cycles((OBFSCALE)+2)>
-#define OBF3(type) ithare::obf::obf_var<type,ithare::obf::obf_seed_from_file_line(OBF_LOCATION,0),ithare::obf::obf_exp_cycles((OBFSCALE)+3)>
-#define OBF4(type) ithare::obf::obf_var<type,ithare::obf::obf_seed_from_file_line(OBF_LOCATION,0),ithare::obf::obf_exp_cycles((OBFSCALE)+4)>
-#define OBF5(type) ithare::obf::obf_var<type,ithare::obf::obf_seed_from_file_line(OBF_LOCATION,0),ithare::obf::obf_exp_cycles((OBFSCALE)+5)>
-#define OBF6(type) ithare::obf::obf_var<type,ithare::obf::obf_seed_from_file_line(OBF_LOCATION,0),ithare::obf::obf_exp_cycles((OBFSCALE)+6)>
+#define ITHARE_OBF0(type) ithare::obf::obf_var<type,ithare::obf::obf_seed_from_file_line(OBF_LOCATION,0),ithare::obf::obf_exp_cycles((OBFSCALE)+0)>
+#define ITHARE_OBF1(type) ithare::obf::obf_var<type,ithare::obf::obf_seed_from_file_line(OBF_LOCATION,0),ithare::obf::obf_exp_cycles((OBFSCALE)+1)>
+#define ITHARE_OBF2(type) ithare::obf::obf_var<type,ithare::obf::obf_seed_from_file_line(OBF_LOCATION,0),ithare::obf::obf_exp_cycles((OBFSCALE)+2)>
+#define ITHARE_OBF3(type) ithare::obf::obf_var<type,ithare::obf::obf_seed_from_file_line(OBF_LOCATION,0),ithare::obf::obf_exp_cycles((OBFSCALE)+3)>
+#define ITHARE_OBF4(type) ithare::obf::obf_var<type,ithare::obf::obf_seed_from_file_line(OBF_LOCATION,0),ithare::obf::obf_exp_cycles((OBFSCALE)+4)>
+#define ITHARE_OBF5(type) ithare::obf::obf_var<type,ithare::obf::obf_seed_from_file_line(OBF_LOCATION,0),ithare::obf::obf_exp_cycles((OBFSCALE)+5)>
+#define ITHARE_OBF6(type) ithare::obf::obf_var<type,ithare::obf::obf_seed_from_file_line(OBF_LOCATION,0),ithare::obf::obf_exp_cycles((OBFSCALE)+6)>
 #else//_MSC_VER
-#define OBF0(type) ithare::obf::obf_var<type,ithare::obf::obf_seed_from_file_line(__FILE__,__LINE__),ithare::obf::obf_exp_cycles((OBFSCALE)+0)>
-#define OBF1(type) ithare::obf::obf_var<type,ithare::obf::obf_seed_from_file_line(__FILE__,__LINE__),ithare::obf::obf_exp_cycles((OBFSCALE)+1)>
-#define OBF2(type) ithare::obf::obf_var<type,ithare::obf::obf_seed_from_file_line(__FILE__,__LINE__),ithare::obf::obf_exp_cycles((OBFSCALE)+2)>
-#define OBF3(type) ithare::obf::obf_var<type,ithare::obf::obf_seed_from_file_line(__FILE__,__LINE__),ithare::obf::obf_exp_cycles((OBFSCALE)+3)>
-#define OBF4(type) ithare::obf::obf_var<type,ithare::obf::obf_seed_from_file_line(__FILE__,__LINE__),ithare::obf::obf_exp_cycles((OBFSCALE)+4)>
-#define OBF5(type) ithare::obf::obf_var<type,ithare::obf::obf_seed_from_file_line(__FILE__,__LINE__),ithare::obf::obf_exp_cycles((OBFSCALE)+5)>
-#define OBF6(type) ithare::obf::obf_var<type,ithare::obf::obf_seed_from_file_line(__FILE__,__LINE__),ithare::obf::obf_exp_cycles((OBFSCALE)+6)>
+#define ITHARE_OBF0(type) ithare::obf::obf_var<type,ithare::obf::obf_seed_from_file_line(__FILE__,__LINE__),ithare::obf::obf_exp_cycles((OBFSCALE)+0)>
+#define ITHARE_OBF1(type) ithare::obf::obf_var<type,ithare::obf::obf_seed_from_file_line(__FILE__,__LINE__),ithare::obf::obf_exp_cycles((OBFSCALE)+1)>
+#define ITHARE_OBF2(type) ithare::obf::obf_var<type,ithare::obf::obf_seed_from_file_line(__FILE__,__LINE__),ithare::obf::obf_exp_cycles((OBFSCALE)+2)>
+#define ITHARE_OBF3(type) ithare::obf::obf_var<type,ithare::obf::obf_seed_from_file_line(__FILE__,__LINE__),ithare::obf::obf_exp_cycles((OBFSCALE)+3)>
+#define ITHARE_OBF4(type) ithare::obf::obf_var<type,ithare::obf::obf_seed_from_file_line(__FILE__,__LINE__),ithare::obf::obf_exp_cycles((OBFSCALE)+4)>
+#define ITHARE_OBF5(type) ithare::obf::obf_var<type,ithare::obf::obf_seed_from_file_line(__FILE__,__LINE__),ithare::obf::obf_exp_cycles((OBFSCALE)+5)>
+#define ITHARE_OBF6(type) ithare::obf::obf_var<type,ithare::obf::obf_seed_from_file_line(__FILE__,__LINE__),ithare::obf::obf_exp_cycles((OBFSCALE)+6)>
 #endif
 
 #else//OBFUSCATE_SEED
@@ -1751,14 +1751,24 @@ namespace ithare {
 	}//namespace obf
 }//namespace ithare
 
-#define OBF0(type) ithare::obf::obf_var_dbg<type>
-#define OBF1(type) ithare::obf::obf_var_dbg<type>
-#define OBF2(type) ithare::obf::obf_var_dbg<type>
-#define OBF3(type) ithare::obf::obf_var_dbg<type>
-#define OBF4(type) ithare::obf::obf_var_dbg<type>
-#define OBF5(type) ithare::obf::obf_var_dbg<type>
-#define OBF6(type) ithare::obf::obf_var_dbg<type>
+#define ITHARE_OBF0(type) ithare::obf::obf_var_dbg<type>
+#define ITHARE_OBF1(type) ithare::obf::obf_var_dbg<type>
+#define ITHARE_OBF2(type) ithare::obf::obf_var_dbg<type>
+#define ITHARE_OBF3(type) ithare::obf::obf_var_dbg<type>
+#define ITHARE_OBF4(type) ithare::obf::obf_var_dbg<type>
+#define ITHARE_OBF5(type) ithare::obf::obf_var_dbg<type>
+#define ITHARE_OBF6(type) ithare::obf::obf_var_dbg<type>
 
 #endif //OBFUSCATE_SEED
+
+#ifndef ITHARE_OBF_NO_SHORT_DEFINES//#define to avoid polluting global namespace w/o prefix
+#define OBF0 ITHARE_OBF0
+#define OBF1 ITHARE_OBF1
+#define OBF2 ITHARE_OBF2
+#define OBF3 ITHARE_OBF3
+#define OBF4 ITHARE_OBF4
+#define OBF5 ITHARE_OBF5
+#define OBF6 ITHARE_OBF6
+#endif
 
 #endif//obfuscate_h_included
