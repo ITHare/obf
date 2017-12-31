@@ -10,7 +10,7 @@
 //  3. compile with -DOBFUSCATE_SEED=0x<really-random-64-bit-seed>u64 for deployments (MSVC)
 //  3a. GCC is not supported (yet)
 
-#ifdef OBF_INTERNAL_DBG
+#ifdef ITHARE_OBF_INTERNAL_DBG
 //enable assert() in Release
 //#undef NDEBUG
 #endif
@@ -24,8 +24,8 @@
 #include <string>//for dbgPrint() only
 #include <iostream>//for dbgPrint() only
 
-#ifdef OBF_INTERNAL_DBG // set of settings currently used for internal testing. DON'T rely on it!
-//#define OBFUSCATE_DEBUG_ENABLE_DBGPRINT
+#ifdef ITHARE_OBF_INTERNAL_DBG // set of settings currently used for internal testing. DON'T rely on it!
+//#define ITHARE_OBF_ENABLE_DBGPRINT
 //#if 0
 
 #define OBFUSCATE_SEED 0x0c7dfa61a867b125ui64 //example for MSVC
@@ -45,9 +45,9 @@
 #define OBF_COMPILE_TIME_TESTS 100//supposed to affect ONLY time of compilation
 
 //THE FOLLOWING MUST BE NOT USED FOR PRODUCTION BUILDS:
-#define OBFUSCATE_DEBUG_ENABLE_DBGPRINT
+#define ITHARE_OBF_ENABLE_DBGPRINT
 	//enables dbgPrint()
-#endif//OBF_INTERNAL_DBG
+#endif//ITHARE_OBF_INTERNAL_DBG
 
 #ifdef _MSC_VER
 #pragma warning (disable:4307)
@@ -303,7 +303,7 @@ namespace obf {
 	template<class T_, T_ C_, OBFSEED seed, OBFCYCLES cycles>
 	class obf_literal;
 
-#ifdef OBFUSCATE_DEBUG_ENABLE_DBGPRINT
+#ifdef ITHARE_OBF_ENABLE_DBGPRINT
 	//dbgPrint helpers
 	template<class T>
 	std::string obf_dbgPrintT() {
@@ -361,7 +361,7 @@ namespace obf {
 			return Context::final_surjection(y);
 		}
 
-#ifdef OBFUSCATE_DEBUG_ENABLE_DBGPRINT
+#ifdef ITHARE_OBF_ENABLE_DBGPRINT
 		static void dbgPrint(size_t offset = 0,const char* prefix="") {
 			std::cout << std::string(offset, ' ') << prefix << "obf_injection_version<0/*identity*/," << obf_dbgPrintT<T>() << "," << seed << "," << cycles << ">: availCycles=" << availCycles << std::endl;
 			Context::dbgPrint(offset + 1);
@@ -414,7 +414,7 @@ namespace obf {
 				return yy;
 		}
 
-#ifdef OBFUSCATE_DEBUG_ENABLE_DBGPRINT
+#ifdef ITHARE_OBF_ENABLE_DBGPRINT
 		static void dbgPrint(size_t offset = 0, const char* prefix = "") {
 			std::cout << std::string(offset, ' ') << prefix << "obf_injection_version<1/*add mod 2^N*/," << obf_dbgPrintT<T>() << "," << seed << "," << cycles << ">: C=" << obf_dbgPrintC(C) << " neg=" << neg << std::endl;
 			RecursiveInjection::dbgPrint(offset + 1);
@@ -438,7 +438,7 @@ namespace obf {
 			return x;
 		}
 
-#ifdef OBFUSCATE_DEBUG_ENABLE_DBGPRINT
+#ifdef ITHARE_OBF_ENABLE_DBGPRINT
 		static void dbgPrint(size_t offset = 0, const char* prefix = "") {
 			std::cout << std::string(offset, ' ') << prefix << "obf_randomized_non_reversible_function<0/*identity*/," << obf_dbgPrintT<T>() << "," << seed << "," << cycles << ">" << std::endl;
 		}
@@ -455,7 +455,7 @@ namespace obf {
 			return x*x;
 		}
 
-#ifdef OBFUSCATE_DEBUG_ENABLE_DBGPRINT
+#ifdef ITHARE_OBF_ENABLE_DBGPRINT
 		static void dbgPrint(size_t offset = 0, const char* prefix = "") {
 			std::cout << std::string(offset, ' ') << prefix << "obf_randomized_non_reversible_function<1/*x^2*/," << obf_dbgPrintT<T>() << "," << seed << "," << cycles << ">" << std::endl;
 		}
@@ -474,7 +474,7 @@ namespace obf {
 			return T(sx < 0 ? -sx : sx);
 		}
 
-#ifdef OBFUSCATE_DEBUG_ENABLE_DBGPRINT
+#ifdef ITHARE_OBF_ENABLE_DBGPRINT
 		static void dbgPrint(size_t offset = 0, const char* prefix = "") {
 			std::cout << std::string(offset, ' ') << prefix << "obf_randomized_non_reversible_function<2/*abs*/," << obf_dbgPrintT<T>() << "," << seed << "," << cycles << ">" << std::endl;
 		}
@@ -506,7 +506,7 @@ namespace obf {
 			return FType()(x);
 		}
 
-#ifdef OBFUSCATE_DEBUG_ENABLE_DBGPRINT
+#ifdef ITHARE_OBF_ENABLE_DBGPRINT
 		static void dbgPrint(size_t offset = 0, const char* prefix = "") {
 			std::cout << std::string(offset, ' ') << prefix << "obf_randomized_non_reversible_function<" << obf_dbgPrintT<T>() << "," << seed << "," << cycles << ">: which=" << which << std::endl;
 			FType::dbgPrint(offset + 1);
@@ -572,7 +572,7 @@ namespace obf {
 			return z + (lo << halfTBits);
 		}
 
-#ifdef OBFUSCATE_DEBUG_ENABLE_DBGPRINT
+#ifdef ITHARE_OBF_ENABLE_DBGPRINT
 		static void dbgPrint(size_t offset = 0, const char* prefix = "") {
 			std::cout << std::string(offset, ' ') << prefix << "obf_injection_version<2/*kinda-Feistel*/,"<<obf_dbgPrintT<T>()<<"," << seed << "," << cycles << ">:" 
 				" availCycles=" << availCycles << " cycles_f=" << cycles_f << " cycles_rInj=" << cycles_rInj << std::endl;
@@ -670,7 +670,7 @@ namespace obf {
 			return T(hi) + (T(lo) << halfTBits);
 		}
 
-#ifdef OBFUSCATE_DEBUG_ENABLE_DBGPRINT
+#ifdef ITHARE_OBF_ENABLE_DBGPRINT
 		static void dbgPrint(size_t offset = 0, const char* prefix = "") {
 			std::cout << std::string(offset, ' ') << prefix << "obf_injection_version<3/*split-join*/,"<<obf_dbgPrintT<T>()<<"," << seed << "," << cycles << ">" << std::endl;
 			//std::cout << std::string(offset, ' ') << " Lo:" << std::endl;
@@ -766,7 +766,7 @@ namespace obf {
 			return RecursiveInjection::surjection(y) * C;
 		}
 
-#ifdef OBFUSCATE_DEBUG_ENABLE_DBGPRINT
+#ifdef ITHARE_OBF_ENABLE_DBGPRINT
 		static void dbgPrint(size_t offset = 0, const char* prefix = "") {
 			std::cout << std::string(offset, ' ') << prefix << "obf_injection_version<4/*mul odd mod 2^N*/,"<<obf_dbgPrintT<T>()<<"," << seed << "," << cycles << ">: C=" << obf_dbgPrintC(C) << " CINV=" << obf_dbgPrintC(CINV) << std::endl;
 			//std::cout << std::string(offset, ' ') << " literal:" << std::endl;
@@ -845,7 +845,7 @@ namespace obf {
 			return (T)lo + ((T)hi << halfTBits);
 		}
 
-#ifdef OBFUSCATE_DEBUG_ENABLE_DBGPRINT
+#ifdef ITHARE_OBF_ENABLE_DBGPRINT
 		static void dbgPrint(size_t offset = 0, const char* prefix = "") {
 			std::cout << std::string(offset, ' ') << prefix << "obf_injection_version<5/*split*/,"<<obf_dbgPrintT<T>()<<"," << seed << "," << cycles << ">" << std::endl;
 			//std::cout << std::string(offset, ' ') << " Lo:" << std::endl;
@@ -921,7 +921,7 @@ namespace obf {
 			return y - T(lo0) + lo;
 		}
 
-#ifdef OBFUSCATE_DEBUG_ENABLE_DBGPRINT
+#ifdef ITHARE_OBF_ENABLE_DBGPRINT
 		static void dbgPrint(size_t offset = 0, const char* prefix = "") {
 			std::cout << std::string(offset, ' ') << prefix << "obf_injection_version<6/*injection(halfT)*/," << obf_dbgPrintT<T>() << "," << seed << "," << cycles << ">" << std::endl;
 			LoInjection::dbgPrint(offset + 1, "Lo:");
@@ -968,7 +968,7 @@ namespace obf {
 				return yy+yy;
 		}
 
-#ifdef OBFUSCATE_DEBUG_ENABLE_DBGPRINT
+#ifdef ITHARE_OBF_ENABLE_DBGPRINT
 		static void dbgPrint(size_t offset = 0, const char* prefix = "") {
 			std::cout << std::string(offset, ' ') << prefix << "obf_injection_version<7/*1-bit rotation*/," << obf_dbgPrintT<T>() << "," << seed << "," << cycles << ">" << std::endl;
 			RecursiveInjection::dbgPrint(offset + 1);
@@ -1004,7 +1004,7 @@ namespace obf {
 			return WhichType::surjection(y);
 		}
 
-#ifdef OBFUSCATE_DEBUG_ENABLE_DBGPRINT
+#ifdef ITHARE_OBF_ENABLE_DBGPRINT
 		static void dbgPrint(size_t offset = 0, const char* prefix = "") {
 			size_t dbgWhich = obf_random_obf_from_list(obf_compile_time_prng(seed, 1), cycles, descr);
 			std::cout << std::string(offset, ' ') << prefix << "obf_injection<"<<obf_dbgPrintT<T>()<<"," << seed << "," << cycles << ">: which=" << which << " dbgWhich=" << dbgWhich << std::endl;
@@ -1041,7 +1041,7 @@ namespace obf {
 			return y;
 		}
 
-#ifdef OBFUSCATE_DEBUG_ENABLE_DBGPRINT
+#ifdef ITHARE_OBF_ENABLE_DBGPRINT
 		static void dbgPrint(size_t offset = 0, const char* prefix = "") {
 			std::cout << std::string(offset, ' ') << prefix << "ObfLiteralContext_version<0/*identity*/," << obf_dbgPrintT<T>() << ">" << std::endl;
 		}
@@ -1069,7 +1069,7 @@ namespace obf {
 			return y - c;
 		}
 
-#ifdef OBFUSCATE_DEBUG_ENABLE_DBGPRINT
+#ifdef ITHARE_OBF_ENABLE_DBGPRINT
 		static void dbgPrint(size_t offset = 0, const char* prefix = "") {
 			std::cout << std::string(offset, ' ') << prefix << "ObfLiteralContext_version<1/*global volatile*/," << obf_dbgPrintT<T>() << "," << seed << ">: CC=" << obf_dbgPrintC(CC) << std::endl;
 		}
@@ -1107,7 +1107,7 @@ namespace obf {
 			T z = obf_aliased_zero(&x, &yy);
 			return y - z;
 		}
-#ifdef OBFUSCATE_DEBUG_ENABLE_DBGPRINT
+#ifdef ITHARE_OBF_ENABLE_DBGPRINT
 		static void dbgPrint(size_t offset = 0, const char* prefix = "") {
 			std::cout << std::string(offset, ' ') << prefix << "ObfLiteralContext_version<2/*func with aliased pointers*/," << obf_dbgPrintT<T>() << "," << seed << ">:" << std::endl;
 		}
@@ -1146,7 +1146,7 @@ namespace obf {
 #endif
 		}
 
-#ifdef OBFUSCATE_DEBUG_ENABLE_DBGPRINT
+#ifdef ITHARE_OBF_ENABLE_DBGPRINT
 		static void dbgPrint(size_t offset = 0, const char* prefix = "") {
 			std::cout << std::string(offset, ' ') << prefix << "ObfLiteralContext_version<3/*PEB*/," << obf_dbgPrintT<T>() << "," << seed << ">: CC=" << obf_dbgPrintC(CC) << std::endl;
 		}
@@ -1213,7 +1213,7 @@ namespace obf {
 			return y - (c%MOD);
 		}
 
-#ifdef OBFUSCATE_DEBUG_ENABLE_DBGPRINT
+#ifdef ITHARE_OBF_ENABLE_DBGPRINT
 		static void dbgPrint(size_t offset = 0, const char* prefix = "") {
 			std::cout << std::string(offset, ' ') << prefix << "ObfLiteralContext_version<4/*global volatile var-with-invariant*/," << obf_dbgPrintT<T>() << "," << seed << ">: CC=" << obf_dbgPrintC(CC) << std::endl;
 		}
@@ -1255,7 +1255,7 @@ namespace obf {
 			return y;
 		}
 
-#ifdef OBFUSCATE_DEBUG_ENABLE_DBGPRINT
+#ifdef ITHARE_OBF_ENABLE_DBGPRINT
 		static void dbgPrint(size_t offset = 0, const char* prefix = "") {
 			std::cout << std::string(offset, ' ') << prefix << "ObfZeroContext<" << obf_dbgPrintT<T>() << ">" << std::endl;
 		}
@@ -1303,7 +1303,7 @@ namespace obf {
 
 
 	public:
-#ifdef OBFUSCATE_DEBUG_ENABLE_DBGPRINT
+#ifdef ITHARE_OBF_ENABLE_DBGPRINT
 		static void dbgPrint(size_t offset = 0, const char* prefix = "") {
 			size_t dbgWhich = obf_random_obf_from_list(obf_compile_time_prng(seed, 1), cycles, descr);
 			std::cout << std::string(offset, ' ') << prefix << "ObfLiteralContext<" << obf_dbgPrintT<T>() << "," << seed << "," << cycles << ">: which=" << which << " dbgWhich=" << dbgWhich << std::endl;
@@ -1332,7 +1332,7 @@ namespace obf {
 			return Injection::surjection(val);
 		}
 
-#ifdef OBFUSCATE_DEBUG_ENABLE_DBGPRINT
+#ifdef ITHARE_OBF_ENABLE_DBGPRINT
 		static void dbgPrint(size_t offset = 0, const char* prefix = "") {
 			std::cout << std::string(offset, ' ') << prefix << "obf_literal_ctx<" << obf_dbgPrintT<T>() << "," << obf_dbgPrintC(C) << "," << seed << "," << cycles << ">" << std::endl;
 			Injection::dbgPrint(offset + 1);
@@ -1357,7 +1357,7 @@ namespace obf {
 			return Injection::surjection(val);
 		}
 
-#ifdef OBFUSCATE_DEBUG_ENABLE_DBGPRINT
+#ifdef ITHARE_OBF_ENABLE_DBGPRINT
 		static void dbgPrint(size_t offset = 0, const char* prefix = "") {
 			std::cout << std::string(offset, ' ') << prefix << "obf_literal<"<<obf_dbgPrintT<T>()<<"," << C << "," << seed << "," << cycles << ">" << std::endl;
 			Injection::dbgPrint(offset + 1);
@@ -1389,7 +1389,7 @@ namespace obf {
 			return y;
 		}
 
-#ifdef OBFUSCATE_DEBUG_ENABLE_DBGPRINT
+#ifdef ITHARE_OBF_ENABLE_DBGPRINT
 		static void dbgPrint(size_t offset = 0, const char* prefix = "") {
 			std::cout << std::string(offset, ' ') << prefix << "ObfVarContext<" << obf_dbgPrintT<T>() << ">" << std::endl;
 		}
@@ -1529,7 +1529,7 @@ namespace obf {
 
 		//TODO: bitwise
 
-#ifdef OBFUSCATE_DEBUG_ENABLE_DBGPRINT
+#ifdef ITHARE_OBF_ENABLE_DBGPRINT
 		static void dbgPrint(size_t offset = 0, const char* prefix = "") {
 			std::cout << std::string(offset, ' ') << prefix << "obf_var<" << obf_dbgPrintT<T>() << "," << seed <<","<<cycles<<">" << std::endl;
 			Injection::dbgPrint(offset+1);
@@ -1545,7 +1545,7 @@ namespace obf {
 	inline void obf_init() {
 		obf_preMain();
 	}
-#ifdef OBFUSCATE_DEBUG_ENABLE_DBGPRINT
+#ifdef ITHARE_OBF_ENABLE_DBGPRINT
 	inline void obf_dbgPrint() {
 		std::cout << "OBF_CONST_A=" << int(OBF_CONST_A) << " OBF_CONST_B=" << int(OBF_CONST_B) << " OBF_CONST_C=" << int(OBF_CONST_C) << std::endl;
 		//auto c = obf_const_x(obf_compile_time_prng(OBFUSCATE_SEED^UINT64_C(0xfb2de18f982a2d55), 1), obf_const_C_excluded);
@@ -1600,7 +1600,7 @@ namespace obf {
 #else//OBFUSCATE_SEED
 namespace ithare {
 	namespace obf {
-#ifdef OBFUSCATE_DEBUG_ENABLE_DBGPRINT
+#ifdef ITHARE_OBF_ENABLE_DBGPRINT
 		//dbgPrint helpers
 		template<class T>
 		std::string obf_dbgPrintT() {
@@ -1735,7 +1735,7 @@ namespace ithare {
 
 			//TODO: bitwise
 
-#ifdef OBFUSCATE_DEBUG_ENABLE_DBGPRINT
+#ifdef ITHARE_OBF_ENABLE_DBGPRINT
 			static void dbgPrint(size_t offset = 0) {
 				std::cout << std::string(offset, ' ') << "obf_var_dbg<" << obf_dbgPrintT<T>() << ">" << std::endl;
 			}
