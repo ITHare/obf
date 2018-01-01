@@ -1,5 +1,5 @@
-#ifndef obfuscate_h_included
-#define obfuscate_h_included
+#ifndef ithare_obf_obfuscate_h_included
+#define ithare_obf_obfuscate_h_included
 
 //Usage: 
 //  1. Use OBF?() throughout your code to indicate the need for obfuscation
@@ -1780,4 +1780,4 @@ namespace ithare {
 #define OBF6 ITHARE_OBF6
 #endif
 
-#endif//obfuscate_h_included
+#endif//ithare_obf_obfuscate_h_included
