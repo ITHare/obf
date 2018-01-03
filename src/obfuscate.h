@@ -1365,6 +1365,9 @@ namespace obf {
 		ITHARE_OBF_FORCEINLINE T value() const {
 			return Injection::surjection(val);
 		}
+		ITHARE_OBF_FORCEINLINE operator T() const {
+			return value();
+		}
 
 #ifdef ITHARE_OBF_ENABLE_DBGPRINT
 		static void dbgPrint(size_t offset = 0, const char* prefix = "") {
@@ -1424,7 +1427,10 @@ namespace obf {
 		}
 		template<class T2,OBFSEED seed2, OBFCYCLES cycles2>
 		ITHARE_OBF_FORCEINLINE obf_var(obf_var<T2, seed2, cycles2> t) : val(Injection::injection(T(T_(t.value())))) {//TODO: randomized injection implementation
-		}//TODO: template<obf_literal>
+		}
+		template<class T2, T2 C2, OBFSEED seed2, OBFCYCLES cycles2>
+		ITHARE_OBF_FORCEINLINE obf_var(obf_literal<T2, C2, seed2, cycles2> t) : val(Injection::injection(T(T_(t.value())))) {//TODO: randomized injection implementation
+		}
 		ITHARE_OBF_FORCEINLINE obf_var& operator =(T_ t) {
 			val = Injection::injection(T(t));//TODO: randomized injection implementation
 			return *this;
@@ -1433,7 +1439,12 @@ namespace obf {
 		ITHARE_OBF_FORCEINLINE obf_var& operator =(obf_var<T2, seed2, cycles2> t) {
 			val = Injection::injection(T(T_(t.value())));//TODO: randomized injection implementation
 			return *this;
-		}//TODO: template<obf_literal>
+		}
+		template<class T2, T2 C2, OBFSEED seed2, OBFCYCLES cycles2>
+		ITHARE_OBF_FORCEINLINE obf_var& operator =(obf_literal<T2, C2, seed2, cycles2> t) {
+			val = Injection::injection(T(T_(t.value())));//TODO: randomized injection implementation
+			return *this;
+		}
 		ITHARE_OBF_FORCEINLINE T_ value() const {
 			return T_(Injection::surjection(val));
 		}
@@ -1596,6 +1607,15 @@ namespace obf {
 #define ITHARE_OBF4(type) ithare::obf::obf_var<type,ithare::obf::obf_seed_from_file_line(ITHARE_OBF_LOCATION,0),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+4)>
 #define ITHARE_OBF5(type) ithare::obf::obf_var<type,ithare::obf::obf_seed_from_file_line(ITHARE_OBF_LOCATION,0),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+5)>
 #define ITHARE_OBF6(type) ithare::obf::obf_var<type,ithare::obf::obf_seed_from_file_line(ITHARE_OBF_LOCATION,0),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+6)>
+
+#define ITHARE_OBF0L(c) obf_literal<decltype(c),c,ithare::obf::obf_seed_from_file_line(ITHARE_OBF_LOCATION,0),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+0)>()
+#define ITHARE_OBF1L(c) obf_literal<decltype(c),c,ithare::obf::obf_seed_from_file_line(ITHARE_OBF_LOCATION,0),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+1)>()
+#define ITHARE_OBF2L(c) obf_literal<decltype(c),c,ithare::obf::obf_seed_from_file_line(ITHARE_OBF_LOCATION,0),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+2)>()
+#define ITHARE_OBF3L(c) obf_literal<decltype(c),c,ithare::obf::obf_seed_from_file_line(ITHARE_OBF_LOCATION,0),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+3)>()
+#define ITHARE_OBF4L(c) obf_literal<decltype(c),c,ithare::obf::obf_seed_from_file_line(ITHARE_OBF_LOCATION,0),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+4)>()
+#define ITHARE_OBF5L(c) obf_literal<decltype(c),c,ithare::obf::obf_seed_from_file_line(ITHARE_OBF_LOCATION,0),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+5)>()
+#define ITHARE_OBF6L(c) obf_literal<decltype(c),c,ithare::obf::obf_seed_from_file_line(ITHARE_OBF_LOCATION,0),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+6)>()
+
 #else//_MSC_VER
 #define ITHARE_OBF0(type) ithare::obf::obf_var<type,ithare::obf::obf_seed_from_file_line(__FILE__,__LINE__),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+0)>
 #define ITHARE_OBF1(type) ithare::obf::obf_var<type,ithare::obf::obf_seed_from_file_line(__FILE__,__LINE__),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+1)>
@@ -1604,6 +1624,15 @@ namespace obf {
 #define ITHARE_OBF4(type) ithare::obf::obf_var<type,ithare::obf::obf_seed_from_file_line(__FILE__,__LINE__),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+4)>
 #define ITHARE_OBF5(type) ithare::obf::obf_var<type,ithare::obf::obf_seed_from_file_line(__FILE__,__LINE__),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+5)>
 #define ITHARE_OBF6(type) ithare::obf::obf_var<type,ithare::obf::obf_seed_from_file_line(__FILE__,__LINE__),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+6)>
+
+#define ITHARE_OBF0L(c) obf_literal<decltype(c),c,ithare::obf::obf_seed_from_file_line(__FILE__,__LINE__),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+0)>()
+#define ITHARE_OBF1L(c) obf_literal<decltype(c),c,ithare::obf::obf_seed_from_file_line(__FILE__,__LINE__),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+1)>()
+#define ITHARE_OBF2L(c) obf_literal<decltype(c),c,ithare::obf::obf_seed_from_file_line(__FILE__,__LINE__),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+2)>()
+#define ITHARE_OBF3L(c) obf_literal<decltype(c),c,ithare::obf::obf_seed_from_file_line(__FILE__,__LINE__),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+3)>()
+#define ITHARE_OBF4L(c) obf_literal<decltype(c),c,ithare::obf::obf_seed_from_file_line(__FILE__,__LINE__),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+4)>()
+#define ITHARE_OBF5L(c) obf_literal<decltype(c),c,ithare::obf::obf_seed_from_file_line(__FILE__,__LINE__),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+5)>()
+#define ITHARE_OBF6L(c) obf_literal<decltype(c),c,ithare::obf::obf_seed_from_file_line(__FILE__,__LINE__),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+6)>()
+
 #endif
 
 #else//ITHARE_OBF_SEED
@@ -1778,6 +1807,14 @@ namespace ithare {
 #define OBF4 ITHARE_OBF4
 #define OBF5 ITHARE_OBF5
 #define OBF6 ITHARE_OBF6
+
+#define OBF0L ITHARE_OBF0L
+#define OBF1L ITHARE_OBF1L
+#define OBF2L ITHARE_OBF2L
+#define OBF3L ITHARE_OBF3L
+#define OBF4L ITHARE_OBF4L
+#define OBF5L ITHARE_OBF5L
+#define OBF6L ITHARE_OBF6L
 #endif
 
 #endif//ithare_obf_obfuscate_h_included
