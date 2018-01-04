@@ -673,18 +673,18 @@ namespace obf {
 		ITHARE_OBF_FORCEINLINE constexpr static return_type injection(T x) {
 			halfT lo = x >> halfTBits;
 			typename LoInjection::return_type lo1 = LoInjection::injection(lo);
-			lo = lo1;// *reinterpret_cast<halfT*>(&lo1);//relies on static_assert(sizeof(return_type)==sizeof(halfT)) above
+			lo = halfT(lo1);// *reinterpret_cast<halfT*>(&lo1);//relies on static_assert(sizeof(return_type)==sizeof(halfT)) above
 			halfT hi = (halfT)x;
 			typename HiInjection::return_type hi1 = HiInjection::injection(hi);
-			hi = hi1;// *reinterpret_cast<halfT*>(&hi1);//relies on static_assert(sizeof(return_type)==sizeof(halfT)) above
+			hi = halfT(hi1);// *reinterpret_cast<halfT*>(&hi1);//relies on static_assert(sizeof(return_type)==sizeof(halfT)) above
 			return RecursiveInjection::injection((T(hi) << halfTBits) + T(lo));
 		}
 		ITHARE_OBF_FORCEINLINE constexpr static T surjection(return_type y_) {
 			auto y = RecursiveInjection::surjection(y_);
 			halfT hi0 = y >> halfTBits;
 			halfT lo0 = (halfT)y;
-			halfT hi = HiInjection::surjection(/* *reinterpret_cast<typename HiInjection::return_type*>(&hi0)*/hi0);//relies on static_assert(sizeof(return_type)==sizeof(halfT)) above
-			halfT lo = LoInjection::surjection(/**reinterpret_cast<typename LoInjection::return_type*>(&lo0)*/ lo0);//relies on static_assert(sizeof(return_type)==sizeof(halfT)) above
+			halfT hi = HiInjection::surjection(/* *reinterpret_cast<typename HiInjection::return_type*>(&hi0)*/typename HiInjection::return_type(hi0));//relies on static_assert(sizeof(return_type)==sizeof(halfT)) above
+			halfT lo = LoInjection::surjection(/**reinterpret_cast<typename LoInjection::return_type*>(&lo0)*/ typename LoInjection::return_type(lo0));//relies on static_assert(sizeof(return_type)==sizeof(halfT)) above
 			return T(hi) + (T(lo) << halfTBits);
 		}
 
@@ -852,6 +852,18 @@ namespace obf {
 		struct return_type {
 			typename RecursiveInjectionLo::return_type lo;
 			typename RecursiveInjectionHi::return_type hi;
+
+			constexpr return_type(halfT lo_, halfT hi_)
+				: lo(lo_), hi(hi_) {
+			}
+			constexpr return_type(T x) 
+			: lo(halfT(x)), hi(halfT(x>>halfTBits)){
+			}
+			constexpr operator T() {
+				halfT lo1 = halfT(lo);
+				halfT hi1 = halfT(hi);
+				return ( T(hi1) << halfTBits ) + T(lo1);
+			}
 		};
 		ITHARE_OBF_FORCEINLINE constexpr static return_type injection(T x) {
 			return_type ret{ RecursiveInjectionLo::injection((halfT)x), RecursiveInjectionHi::injection(x >> halfTBits) };
@@ -929,13 +941,14 @@ namespace obf {
 		ITHARE_OBF_FORCEINLINE constexpr static return_type injection(T x) {
 			halfT lo0 = halfT(x);
 			typename LoInjection::return_type lo1 = LoInjection::injection(lo0);
-			halfT lo = *reinterpret_cast<halfT*>(&lo1);//relies on static_assert(sizeof(return_type)==sizeof(halfT)) above
+			//halfT lo = *reinterpret_cast<halfT*>(&lo1);//relies on static_assert(sizeof(return_type)==sizeof(halfT)) above
+			halfT lo = halfT(lo1);
 			return RecursiveInjection::injection(x - T(lo0) + lo);
 		}
 		ITHARE_OBF_FORCEINLINE constexpr static T surjection(return_type yy) {
 			T y = RecursiveInjection::surjection(yy);
 			halfT lo0 = halfT(y);
-			halfT lo = LoInjection::surjection(*reinterpret_cast<typename LoInjection::return_type*>(&lo0));//relies on static_assert(sizeof(return_type)==sizeof(halfT)) above
+			halfT lo = LoInjection::surjection(/* *reinterpret_cast<typename LoInjection::return_type*>(&lo0)*/ typename LoInjection::return_type(lo0));//relies on static_assert(sizeof(return_type)==sizeof(halfT)) above
 			return y - T(lo0) + lo;
 		}
 
@@ -1006,7 +1019,7 @@ namespace obf {
 			obf_injection_version2_descr<T,Context>::descr,
 			obf_injection_version3_descr<T,Context>::descr,
 			obf_injection_version4_descr<Context>::descr,
-			ObfDescriptor(false,0,0),//obf_injection_version5_descr<T,Context>::descr,//TODO!: re-enable
+			obf_injection_version5_descr<T,Context>::descr,
 			obf_injection_version6_descr<T,Context>::descr,
 			//obf_injection_version7_descr<Context>::descr,
 		};
