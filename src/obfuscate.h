@@ -96,6 +96,12 @@ namespace obf {
 	}
 
 	//helper constexpr functions
+	constexpr size_t obf_strlen(const char* s) {
+		for (size_t ret = 0; ; ++ret, ++s)
+			if (*s == 0)
+				return ret;
+	}
+
 	constexpr OBFSEED obf_compile_time_prng(OBFSEED seed, int iteration) {
 		static_assert(sizeof(OBFSEED) == 8);
 		assert(iteration > 0);
@@ -251,7 +257,10 @@ namespace obf {
 		std::array<OBFCYCLES, N> ret = {};
 		size_t totalWeight = 0;
 		for (size_t i = 0; i < N; ++i) {
-			ret[i] = OBFCYCLES(obf_weak_random(obf_compile_time_prng(seed, int(i+1)), elements[i].weight)) + 1;//'+1' is to avoid "all-zeros" case
+			if (elements[i].weight > 0)
+				ret[i] = OBFCYCLES(obf_weak_random(obf_compile_time_prng(seed, int(i + 1)), elements[i].weight)) + 1;//'+1' is to avoid "all-zeros" case
+			else
+				ret[i] = 0;
 			totalWeight += ret[i];
 		}
 		size_t totalWeight2 = 0;
@@ -443,7 +452,7 @@ namespace obf {
 
 	template<class T, OBFSEED seed, OBFCYCLES cycles>
 	struct obf_randomized_non_reversible_function_version<0, T, seed, cycles> {
-		ITHARE_OBF_FORCEINLINE T operator()(T x) {
+		constexpr ITHARE_OBF_FORCEINLINE T operator()(T x) {
 			return x;
 		}
 
@@ -460,7 +469,7 @@ namespace obf {
 
 	template<class T, OBFSEED seed, OBFCYCLES cycles>
 	struct obf_randomized_non_reversible_function_version<1,T,seed,cycles> {
-		ITHARE_OBF_FORCEINLINE T operator()(T x) {
+		constexpr ITHARE_OBF_FORCEINLINE T operator()(T x) {
 			return x*x;
 		}
 
@@ -478,7 +487,7 @@ namespace obf {
 	template<class T, OBFSEED seed, OBFCYCLES cycles>
 	struct obf_randomized_non_reversible_function_version<2, T, seed, cycles> {
 		using ST = typename std::make_signed<T>::type;
-		ITHARE_OBF_FORCEINLINE T operator()(T x) {
+		constexpr ITHARE_OBF_FORCEINLINE T operator()(T x) {
 			ST sx = ST(x);
 			return T(sx < 0 ? -sx : sx);
 		}
@@ -511,7 +520,7 @@ namespace obf {
 		constexpr static size_t max_cycles_that_make_sense = obf_max_min_descr(descr);
 		constexpr static size_t which = obf_random_obf_from_list(obf_compile_time_prng(seed, 1), cycles, descr);
 		using FType = obf_randomized_non_reversible_function_version<which, T, seed, cycles>;
-		ITHARE_OBF_FORCEINLINE T operator()(T x) {
+		constexpr ITHARE_OBF_FORCEINLINE T operator()(T x) {
 			return FType()(x);
 		}
 
@@ -664,18 +673,18 @@ namespace obf {
 		ITHARE_OBF_FORCEINLINE constexpr static return_type injection(T x) {
 			halfT lo = x >> halfTBits;
 			typename LoInjection::return_type lo1 = LoInjection::injection(lo);
-			lo = *reinterpret_cast<halfT*>(&lo1);//relies on static_assert(sizeof(return_type)==sizeof(halfT)) above
+			lo = lo1;// *reinterpret_cast<halfT*>(&lo1);//relies on static_assert(sizeof(return_type)==sizeof(halfT)) above
 			halfT hi = (halfT)x;
 			typename HiInjection::return_type hi1 = HiInjection::injection(hi);
-			hi = *reinterpret_cast<halfT*>(&hi1);//relies on static_assert(sizeof(return_type)==sizeof(halfT)) above
+			hi = hi1;// *reinterpret_cast<halfT*>(&hi1);//relies on static_assert(sizeof(return_type)==sizeof(halfT)) above
 			return RecursiveInjection::injection((T(hi) << halfTBits) + T(lo));
 		}
 		ITHARE_OBF_FORCEINLINE constexpr static T surjection(return_type y_) {
 			auto y = RecursiveInjection::surjection(y_);
 			halfT hi0 = y >> halfTBits;
 			halfT lo0 = (halfT)y;
-			halfT hi = HiInjection::surjection(*reinterpret_cast<typename HiInjection::return_type*>(&hi0));//relies on static_assert(sizeof(return_type)==sizeof(halfT)) above
-			halfT lo = LoInjection::surjection(*reinterpret_cast<typename LoInjection::return_type*>(&lo0));//relies on static_assert(sizeof(return_type)==sizeof(halfT)) above
+			halfT hi = HiInjection::surjection(/* *reinterpret_cast<typename HiInjection::return_type*>(&hi0)*/hi0);//relies on static_assert(sizeof(return_type)==sizeof(halfT)) above
+			halfT lo = LoInjection::surjection(/**reinterpret_cast<typename LoInjection::return_type*>(&lo0)*/ lo0);//relies on static_assert(sizeof(return_type)==sizeof(halfT)) above
 			return T(hi) + (T(lo) << halfTBits);
 		}
 
@@ -997,11 +1006,12 @@ namespace obf {
 			obf_injection_version2_descr<T,Context>::descr,
 			obf_injection_version3_descr<T,Context>::descr,
 			obf_injection_version4_descr<Context>::descr,
-			obf_injection_version5_descr<T,Context>::descr,
+			ObfDescriptor(false,0,0),//obf_injection_version5_descr<T,Context>::descr,//TODO!: re-enable
 			obf_injection_version6_descr<T,Context>::descr,
 			//obf_injection_version7_descr<Context>::descr,
 		};
 		constexpr static size_t which = obf_random_obf_from_list(obf_compile_time_prng(seed, 1), cycles, descr,InjectionContext::exclude_version);
+		static_assert(which >= 0 && which < descr.size());
 		using WhichType = obf_injection_version<which, T, Context, seed, cycles>;
 
 	public:
@@ -1338,7 +1348,7 @@ namespace obf {
 	public:
 		ITHARE_OBF_FORCEINLINE constexpr obf_literal_ctx() : val(Injection::injection(C)) {
 		}
-		ITHARE_OBF_FORCEINLINE T value() const {
+		ITHARE_OBF_FORCEINLINE constexpr T value() const {
 			return Injection::surjection(val);
 		}
 
@@ -1388,7 +1398,7 @@ namespace obf {
 			return inj + surj;//for variables, BOTH injection and surjection are executed in runtime
 		}
 
-		constexpr static OBFCYCLES literal_cycles = 50;//TODO: justify (or define?)
+		constexpr static OBFCYCLES literal_cycles = std::min(cycles/2,50);//TODO: justify (or define?)
 		using LiteralContext = ObfLiteralContext<T, seed, literal_cycles>;
 		template<class T, T C, OBFSEED seed>
 		struct literal {
@@ -1573,6 +1583,154 @@ namespace obf {
 	}
 #endif
 
+	template<OBFSEED seed, OBFCYCLES cycles, char... C>
+	struct obf_str_literal {
+		//TODO: consider using different contexts beyond current (effectively global var)
+		static_assert(sizeof(char) == 1);
+		static constexpr size_t origSz = sizeof...(C);
+		static_assert(origSz <= 32);
+		static constexpr char const str[sizeof...(C)] = { C... };
+		static constexpr size_t sz = obf_strlen(str);
+		static_assert(sz > 0);
+		static constexpr size_t sz4 = (sz+3)/ 4;
+		static_assert(sz4 > 0);
+		static_assert(sz4 <= 8);//corresponds to max literal = 32, TODO: more later
+		static constexpr uint32_t FILLER = uint32_t(obf_compile_time_prng(seed,1));
+
+		constexpr static std::array<ObfDescriptor, 8> split{
+			ObfDescriptor(true,0,100),//Injection0
+			ObfDescriptor(true,0,sz4>1?100:0),//Injection1
+			ObfDescriptor(true,0,sz4>2 ? 100 : 0),//Injection2
+			ObfDescriptor(true,0,sz4>3 ? 100 : 0),//Injection3
+			ObfDescriptor(true,0,sz4>4 ? 100 : 0),//Injection4
+			ObfDescriptor(true,0,sz4>5 ? 100 : 0),//Injection5
+			ObfDescriptor(true,0,sz4>6 ? 100 : 0),//Injection6
+			ObfDescriptor(true,0,sz4>7 ? 100 : 0),//Injection7
+		};
+		static constexpr auto splitCycles = obf_random_split(obf_compile_time_prng(seed, 2), cycles, split);
+		static constexpr OBFCYCLES split0 = splitCycles[0];
+		static constexpr OBFCYCLES split1 = splitCycles[1];
+		static constexpr OBFCYCLES split2 = splitCycles[2];
+		static constexpr OBFCYCLES split3 = splitCycles[3];
+		static constexpr OBFCYCLES split4 = splitCycles[4];
+		static constexpr OBFCYCLES split5 = splitCycles[5];
+		static constexpr OBFCYCLES split6 = splitCycles[6];
+		static constexpr OBFCYCLES split7 = splitCycles[7];
+
+		using Injection0 = obf_injection<uint32_t, ObfZeroLiteralContext<uint32_t>, obf_compile_time_prng(seed, 3), std::max(split0,2), ObfDefaultInjectionContext>;
+		static_assert(sizeof(Injection0::return_type) == sizeof(uint32_t));//MUST be bijection, TODO: enforce
+		using Injection1 = obf_injection<uint32_t, ObfZeroLiteralContext<uint32_t>, obf_compile_time_prng(seed, 4), std::max(split1,2), ObfDefaultInjectionContext>;
+		static_assert(sizeof(Injection1::return_type) == sizeof(uint32_t));//MUST be bijection, TODO: enforce
+		using Injection2 = obf_injection<uint32_t, ObfZeroLiteralContext<uint32_t>, obf_compile_time_prng(seed, 5), std::max(split2,2), ObfDefaultInjectionContext>;
+		static_assert(sizeof(Injection2::return_type) == sizeof(uint32_t));//MUST be bijection, TODO: enforce
+		using Injection3 = obf_injection<uint32_t, ObfZeroLiteralContext<uint32_t>, obf_compile_time_prng(seed, 6), std::max(split3,2), ObfDefaultInjectionContext>;
+		static_assert(sizeof(Injection3::return_type) == sizeof(uint32_t));//MUST be bijection, TODO: enforce
+		using Injection4 = obf_injection<uint32_t, ObfZeroLiteralContext<uint32_t>, obf_compile_time_prng(seed, 7), std::max(split4,2), ObfDefaultInjectionContext>;
+		static_assert(sizeof(Injection4::return_type) == sizeof(uint32_t));//MUST be bijection, TODO: enforce
+		using Injection5 = obf_injection<uint32_t, ObfZeroLiteralContext<uint32_t>, obf_compile_time_prng(seed, 8), std::max(split5,2), ObfDefaultInjectionContext>;
+		static_assert(sizeof(Injection5::return_type) == sizeof(uint32_t));//MUST be bijection, TODO: enforce
+		using Injection6 = obf_injection<uint32_t, ObfZeroLiteralContext<uint32_t>, obf_compile_time_prng(seed, 9), std::max(split6,2), ObfDefaultInjectionContext>;
+		static_assert(sizeof(Injection6::return_type) == sizeof(uint32_t));//MUST be bijection, TODO: enforce
+		using Injection7 = obf_injection<uint32_t, ObfZeroLiteralContext<uint32_t>, obf_compile_time_prng(seed, 10), std::max(split7,2), ObfDefaultInjectionContext>;
+		static_assert(sizeof(Injection7::return_type) == sizeof(uint32_t));//MUST be bijection, TODO: enforce
+
+		ITHARE_OBF_FORCEINLINE static constexpr uint32_t little_endian4(const char* str, size_t offset) {//TODO: BIG-ENDIAN
+			//replacement for non-constexpr return *(uint32_t*)(str + offset);
+			return str[offset] | (uint32_t(str[offset + 1]) << 8) | (uint32_t(str[offset + 2]) << 16) | (uint32_t(str[offset + 3]) << 24);
+		}
+		ITHARE_OBF_FORCEINLINE static constexpr uint32_t last4(char const str[origSz], size_t offset, uint32_t filler) {
+			assert(origSz > offset);
+			size_t delta = origSz - offset;
+			assert(delta <= 3);
+			char buf[4];
+			size_t i = 0;
+			for (; i < delta; ++i) {
+				buf[i] = str[origSz + i];
+			}
+			for (; i < 4; ++i) {
+				buf[i] = char(filler);
+				filler >>= 8;
+			}
+			return little_endian4(buf,0);
+		}
+		ITHARE_OBF_FORCEINLINE static constexpr uint32_t get4(char const str[origSz], size_t offset) {
+			assert(offset < origSz);
+			if (offset + 4 < origSz)
+				return little_endian4(str, offset);
+			else
+				return last4(str, offset,FILLER);
+		}
+		ITHARE_OBF_FORCEINLINE static constexpr std::array<uint32_t, sz4> str_obf() {
+			std::array<uint32_t, sz4> ret = {};
+			ret[0] = Injection0::injection(get4(str,0));
+			if constexpr(sz4 > 1)
+				ret[1] = Injection1::injection(get4(str, 4));
+			if constexpr(sz4 > 2)
+				ret[2] = Injection2::injection(get4(str, 8));
+			if constexpr(sz4 > 3)
+				ret[3] = Injection3::injection(get4(str, 12));
+			if constexpr(sz4 > 4)
+				ret[4] = Injection4::injection(get4(str, 16));
+			if constexpr(sz4 > 5)
+				ret[5] = Injection5::injection(get4(str, 20));
+			if constexpr(sz4 > 6)
+				ret[6] = Injection6::injection(get4(str, 24));
+			if constexpr(sz4 > 7)
+				ret[7] = Injection7::injection(get4(str, 28));
+			return ret;
+		}
+
+		static constexpr std::array<uint32_t, sz4> strC = str_obf();
+
+		static std::array<uint32_t, sz4> c;//TODO: volatile
+		ITHARE_OBF_FORCEINLINE std::string value() const {
+			char buf[sz4 * 4];
+			*(uint32_t*)(buf + 0) = Injection0::surjection(c[0]);
+			if constexpr(sz4 > 1)
+				*(uint32_t*)(buf + 4) = Injection1::surjection(c[1]);
+			if constexpr(sz4 > 2)
+				*(uint32_t*)(buf + 8) = Injection2::surjection(c[2]);
+			if constexpr(sz4 > 3)
+				*(uint32_t*)(buf + 12) = Injection3::surjection(c[3]);
+			if constexpr(sz4 > 4)
+				*(uint32_t*)(buf + 16) = Injection4::surjection(c[4]);
+			if constexpr(sz4 > 5)
+				*(uint32_t*)(buf + 20) = Injection5::surjection(c[5]);
+			if constexpr(sz4 > 6)
+				*(uint32_t*)(buf + 24) = Injection6::surjection(c[6]);
+			if constexpr(sz4 > 7)
+				*(uint32_t*)(buf + 28) = Injection7::surjection(c[7]);
+			return std::string(buf,sz);
+		}
+		ITHARE_OBF_FORCEINLINE operator std::string() const {
+			return value();
+		}
+
+#ifdef ITHARE_OBF_ENABLE_DBGPRINT
+		static void dbgPrint(size_t offset = 0, const char* prefix = "") {
+			std::cout << std::string(offset, ' ') << prefix << "obf_str_literal<'" << str << "'," << seed << "," << cycles << ">" << std::endl;
+			Injection0::dbgPrint(offset + 1, "Injection0:");
+			if constexpr(sz4 > 1)
+				Injection1::dbgPrint(offset+1,"Injection1:");
+			if constexpr(sz4 > 2)
+				Injection2::dbgPrint(offset + 1, "Injection2:");
+			if constexpr(sz4 > 3)
+				Injection3::dbgPrint(offset + 1, "Injection3:");
+			if constexpr(sz4 > 4)
+				Injection4::dbgPrint(offset + 1, "Injection4:");
+			if constexpr(sz4 > 5)
+				Injection5::dbgPrint(offset + 1, "Injection5:");
+			if constexpr(sz4 > 6)
+				Injection6::dbgPrint(offset + 1, "Injection6:");
+			if constexpr(sz4 > 7)
+				Injection7::dbgPrint(offset + 1, "Injection7:");
+		}
+#endif
+	};
+
+	template<OBFSEED seed, OBFCYCLES cycles, char... C>
+	std::array<uint32_t, obf_str_literal<seed,cycles,C...>::sz4> obf_str_literal<seed,cycles,C...>::c = strC;
+
 	//USER-LEVEL:
 	/*think about it further //  obfN<> templates
 	template<class T,OBFSEED seed>
@@ -1609,13 +1767,31 @@ namespace obf {
 #define ITHARE_OBF5(type) ithare::obf::obf_var<type,ithare::obf::obf_seed_from_file_line_counter(ITHARE_OBF_LOCATION,0,__COUNTER__),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+5)>
 #define ITHARE_OBF6(type) ithare::obf::obf_var<type,ithare::obf::obf_seed_from_file_line_counter(ITHARE_OBF_LOCATION,0,__COUNTER__),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+6)>
 
-#define ITHARE_OBF0L(c) obf_literal<decltype(c),c,ithare::obf::obf_seed_from_file_line_counter(ITHARE_OBF_LOCATION,0,__COUNTER__),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+0)>()
-#define ITHARE_OBF1L(c) obf_literal<decltype(c),c,ithare::obf::obf_seed_from_file_line_counter(ITHARE_OBF_LOCATION,0,__COUNTER__),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+1)>()
-#define ITHARE_OBF2L(c) obf_literal<decltype(c),c,ithare::obf::obf_seed_from_file_line_counter(ITHARE_OBF_LOCATION,0,__COUNTER__),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+2)>()
-#define ITHARE_OBF3L(c) obf_literal<decltype(c),c,ithare::obf::obf_seed_from_file_line_counter(ITHARE_OBF_LOCATION,0,__COUNTER__),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+3)>()
-#define ITHARE_OBF4L(c) obf_literal<decltype(c),c,ithare::obf::obf_seed_from_file_line_counter(ITHARE_OBF_LOCATION,0,__COUNTER__),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+4)>()
-#define ITHARE_OBF5L(c) obf_literal<decltype(c),c,ithare::obf::obf_seed_from_file_line_counter(ITHARE_OBF_LOCATION,0,__COUNTER__),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+5)>()
-#define ITHARE_OBF6L(c) obf_literal<decltype(c),c,ithare::obf::obf_seed_from_file_line_counter(ITHARE_OBF_LOCATION,0,__COUNTER__),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+6)>()
+#define ITHARE_OBF0I(c) obf_literal<decltype(c),c,ithare::obf::obf_seed_from_file_line_counter(ITHARE_OBF_LOCATION,0,__COUNTER__),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+0)>()
+#define ITHARE_OBF1I(c) obf_literal<decltype(c),c,ithare::obf::obf_seed_from_file_line_counter(ITHARE_OBF_LOCATION,0,__COUNTER__),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+1)>()
+#define ITHARE_OBF2I(c) obf_literal<decltype(c),c,ithare::obf::obf_seed_from_file_line_counter(ITHARE_OBF_LOCATION,0,__COUNTER__),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+2)>()
+#define ITHARE_OBF3I(c) obf_literal<decltype(c),c,ithare::obf::obf_seed_from_file_line_counter(ITHARE_OBF_LOCATION,0,__COUNTER__),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+3)>()
+#define ITHARE_OBF4I(c) obf_literal<decltype(c),c,ithare::obf::obf_seed_from_file_line_counter(ITHARE_OBF_LOCATION,0,__COUNTER__),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+4)>()
+#define ITHARE_OBF5I(c) obf_literal<decltype(c),c,ithare::obf::obf_seed_from_file_line_counter(ITHARE_OBF_LOCATION,0,__COUNTER__),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+5)>()
+#define ITHARE_OBF6I(c) obf_literal<decltype(c),c,ithare::obf::obf_seed_from_file_line_counter(ITHARE_OBF_LOCATION,0,__COUNTER__),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+6)>()
+
+#define ITHARE_OBFS_HELPER(seed,cycles,s) obf_str_literal<seed,cycles,(sizeof(s)>0?s[0]:'\0'),(sizeof(s)>1?s[1]:'\0'),(sizeof(s)>2?s[2]:'\0'),(sizeof(s)>3?s[3]:'\0'),\
+							(sizeof(s)>4?s[4]:'\0'),(sizeof(s)>5?s[5]:'\0'),(sizeof(s)>6?s[6]:'\0'),(sizeof(s)>7?s[7]:'\0'),\
+							(sizeof(s)>8?s[8]:'\0'),(sizeof(s)>9?s[9]:'\0'),(sizeof(s)>10?s[10]:'\0'),(sizeof(s)>11?s[11]:'\0'),\
+							(sizeof(s)>12?s[12]:'\0'),(sizeof(s)>13?s[13]:'\0'),(sizeof(s)>14?s[14]:'\0'),(sizeof(s)>15?s[15]:'\0'),\
+							(sizeof(s)>16?s[16]:'\0'),(sizeof(s)>17?s[17]:'\0'),(sizeof(s)>18?s[18]:'\0'),(sizeof(s)>19?s[19]:'\0'),\
+							(sizeof(s)>20?s[20]:'\0'),(sizeof(s)>21?s[21]:'\0'),(sizeof(s)>22?s[22]:'\0'),(sizeof(s)>23?s[23]:'\0'),\
+							(sizeof(s)>24?s[24]:'\0'),(sizeof(s)>25?s[25]:'\0'),(sizeof(s)>26?s[26]:'\0'),(sizeof(s)>27?s[27]:'\0'),\
+							(sizeof(s)>28?s[28]:'\0'),(sizeof(s)>29?s[29]:'\0'),(sizeof(s)>30?s[30]:'\0'),(sizeof(s)>31?s[31]:'\0')\
+							>
+
+#define ITHARE_OBF0S(s) ITHARE_OBFS_HELPER(ithare::obf::obf_seed_from_file_line_counter(ITHARE_OBF_LOCATION,0,__COUNTER__),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+0),s)()
+#define ITHARE_OBF1S(s) ITHARE_OBFS_HELPER(ithare::obf::obf_seed_from_file_line_counter(ITHARE_OBF_LOCATION,0,__COUNTER__),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+1),s)()
+#define ITHARE_OBF2S(s) ITHARE_OBFS_HELPER(ithare::obf::obf_seed_from_file_line_counter(ITHARE_OBF_LOCATION,0,__COUNTER__),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+2),s)()
+#define ITHARE_OBF3S(s) ITHARE_OBFS_HELPER(ithare::obf::obf_seed_from_file_line_counter(ITHARE_OBF_LOCATION,0,__COUNTER__),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+3),s)()
+#define ITHARE_OBF4S(s) ITHARE_OBFS_HELPER(ithare::obf::obf_seed_from_file_line_counter(ITHARE_OBF_LOCATION,0,__COUNTER__),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+4),s)()
+#define ITHARE_OBF5S(s) ITHARE_OBFS_HELPER(ithare::obf::obf_seed_from_file_line_counter(ITHARE_OBF_LOCATION,0,__COUNTER__),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+5),s)()
+#define ITHARE_OBF6S(s) ITHARE_OBFS_HELPER(ithare::obf::obf_seed_from_file_line_counter(ITHARE_OBF_LOCATION,0,__COUNTER__),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+6),s)()
 
 #else//_MSC_VER
 #define ITHARE_OBF0(type) ithare::obf::obf_var<type,ithare::obf::obf_seed_from_file_line_counter(__FILE__,__LINE__,__COUNTER__),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+0)>
@@ -1626,13 +1802,21 @@ namespace obf {
 #define ITHARE_OBF5(type) ithare::obf::obf_var<type,ithare::obf::obf_seed_from_file_line_counter(__FILE__,__LINE__,__COUNTER__),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+5)>
 #define ITHARE_OBF6(type) ithare::obf::obf_var<type,ithare::obf::obf_seed_from_file_line_counter(__FILE__,__LINE__,__COUNTER__),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+6)>
 
-#define ITHARE_OBF0L(c) obf_literal<decltype(c),c,ithare::obf::obf_seed_from_file_line_counter(__FILE__,__LINE__,__COUNTER__),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+0)>()
-#define ITHARE_OBF1L(c) obf_literal<decltype(c),c,ithare::obf::obf_seed_from_file_line_counter(__FILE__,__LINE__,__COUNTER__),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+1)>()
-#define ITHARE_OBF2L(c) obf_literal<decltype(c),c,ithare::obf::obf_seed_from_file_line_counter(__FILE__,__LINE__,__COUNTER__),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+2)>()
-#define ITHARE_OBF3L(c) obf_literal<decltype(c),c,ithare::obf::obf_seed_from_file_line_counter(__FILE__,__LINE__,__COUNTER__),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+3)>()
-#define ITHARE_OBF4L(c) obf_literal<decltype(c),c,ithare::obf::obf_seed_from_file_line_counter(__FILE__,__LINE__,__COUNTER__),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+4)>()
-#define ITHARE_OBF5L(c) obf_literal<decltype(c),c,ithare::obf::obf_seed_from_file_line_counter(__FILE__,__LINE__,__COUNTER__),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+5)>()
-#define ITHARE_OBF6L(c) obf_literal<decltype(c),c,ithare::obf::obf_seed_from_file_line_counter(__FILE__,__LINE__,__COUNTER__),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+6)>()
+#define ITHARE_OBF0I(c) obf_literal<decltype(c),c,ithare::obf::obf_seed_from_file_line_counter(__FILE__,__LINE__,__COUNTER__),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+0)>()
+#define ITHARE_OBF1I(c) obf_literal<decltype(c),c,ithare::obf::obf_seed_from_file_line_counter(__FILE__,__LINE__,__COUNTER__),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+1)>()
+#define ITHARE_OBF2I(c) obf_literal<decltype(c),c,ithare::obf::obf_seed_from_file_line_counter(__FILE__,__LINE__,__COUNTER__),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+2)>()
+#define ITHARE_OBF3I(c) obf_literal<decltype(c),c,ithare::obf::obf_seed_from_file_line_counter(__FILE__,__LINE__,__COUNTER__),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+3)>()
+#define ITHARE_OBF4I(c) obf_literal<decltype(c),c,ithare::obf::obf_seed_from_file_line_counter(__FILE__,__LINE__,__COUNTER__),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+4)>()
+#define ITHARE_OBF5I(c) obf_literal<decltype(c),c,ithare::obf::obf_seed_from_file_line_counter(__FILE__,__LINE__,__COUNTER__),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+5)>()
+#define ITHARE_OBF6I(c) obf_literal<decltype(c),c,ithare::obf::obf_seed_from_file_line_counter(__FILE__,__LINE__,__COUNTER__),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+6)>()
+
+#define ITHARE_OBF0S(s) ITHARE_OBFS_HELPER(ithare::obf::obf_seed_from_file_line_counter(__FILE__,__LINE__,__COUNTER__),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+0),s)().value()
+#define ITHARE_OBF1S(s) ITHARE_OBFS_HELPER(ithare::obf::obf_seed_from_file_line_counter(__FILE__,__LINE__,__COUNTER__),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+1),s)().value()
+#define ITHARE_OBF2S(s) ITHARE_OBFS_HELPER(ithare::obf::obf_seed_from_file_line_counter(__FILE__,__LINE__,__COUNTER__),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+2),s)().value()
+#define ITHARE_OBF3S(s) ITHARE_OBFS_HELPER(ithare::obf::obf_seed_from_file_line_counter(__FILE__,__LINE__,__COUNTER__),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+3),s)().value()
+#define ITHARE_OBF4S(s) ITHARE_OBFS_HELPER(ithare::obf::obf_seed_from_file_line_counter(__FILE__,__LINE__,__COUNTER__),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+4),s)().value()
+#define ITHARE_OBF5S(s) ITHARE_OBFS_HELPER(ithare::obf::obf_seed_from_file_line_counter(__FILE__,__LINE__,__COUNTER__),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+5),s)().value()
+#define ITHARE_OBF6S(s) ITHARE_OBFS_HELPER(ithare::obf::obf_seed_from_file_line_counter(__FILE__,__LINE__,__COUNTER__),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+6),s)().value()
 
 #endif
 
@@ -1798,6 +1982,9 @@ namespace ithare {
 #define ITHARE_OBF5(type) ithare::obf::obf_var_dbg<type>
 #define ITHARE_OBF6(type) ithare::obf::obf_var_dbg<type>
 
+//TODO!: check consistency of obf_var_dbg with obf_var
+//TODO!: add obf_literal_dbg, obf_str_literal_dbg, ITHARE_OBF?I(), ITHARE_OBF?S()
+
 #endif //ITHARE_OBF_SEED
 
 #ifndef ITHARE_OBF_NO_SHORT_DEFINES//#define to avoid polluting global namespace w/o prefix
@@ -1809,13 +1996,21 @@ namespace ithare {
 #define OBF5 ITHARE_OBF5
 #define OBF6 ITHARE_OBF6
 
-#define OBF0L ITHARE_OBF0L
-#define OBF1L ITHARE_OBF1L
-#define OBF2L ITHARE_OBF2L
-#define OBF3L ITHARE_OBF3L
-#define OBF4L ITHARE_OBF4L
-#define OBF5L ITHARE_OBF5L
-#define OBF6L ITHARE_OBF6L
+#define OBF0I ITHARE_OBF0I
+#define OBF1I ITHARE_OBF1I
+#define OBF2I ITHARE_OBF2I
+#define OBF3I ITHARE_OBF3I
+#define OBF4I ITHARE_OBF4I
+#define OBF5I ITHARE_OBF5I
+#define OBF6I ITHARE_OBF6I
+
+#define OBF0S ITHARE_OBF0S
+#define OBF1S ITHARE_OBF1S
+#define OBF2S ITHARE_OBF2S
+#define OBF3S ITHARE_OBF3S
+#define OBF4S ITHARE_OBF4S
+#define OBF5S ITHARE_OBF5S
+#define OBF6S ITHARE_OBF6S
 #endif
 
 #endif//ithare_obf_obfuscate_h_included
