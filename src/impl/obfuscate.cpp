@@ -1,5 +1,4 @@
-#include "stdafx.h"
-#include "obfuscate.h"
+#include "../obf.h"
 
 #ifdef _MSC_VER
 #include <intrin.h>

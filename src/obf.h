@@ -103,6 +103,7 @@ namespace obf {
 			refWeight -= weights[i];
 		}
 		assert(false);
+		return size_t(-1);
 	}
 
 	//OBF_CONST_X: constants to be used throughout this particular build

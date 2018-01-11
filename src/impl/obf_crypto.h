@@ -60,5 +60,3 @@ namespace ithare {
 #endif//ITHARE_OBF_SEED
 
 #endif//#ifndef ithare_obf_crypto_h_included
-
-

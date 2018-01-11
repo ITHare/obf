@@ -252,5 +252,4 @@ namespace ithare {
 #endif//ITHARE_OBF_SEED
 
 #endif//#ifndef ithare_obf_prng_h_included
-#pragma once
 
