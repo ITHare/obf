@@ -231,33 +231,33 @@ namespace obf {
 		using type = typename obf_select_type<which,T,T2>::type;
 	};
 	
-	//obf_traits<>
+	//ObfTraits<>
 	template<class T>
-	struct obf_traits;
+	struct ObfTraits;
 
 	template<>
-	struct obf_traits<uint64_t> {
+	struct ObfTraits<uint64_t> {
 		static constexpr bool has_half_type = true; 
 		using HalfT = uint32_t;
 		using UintT = typename obf_larger_type<uint64_t,unsigned>::type;//UintT is a type to cast to, to avoid idiocies like uint16_t*uint16_t being promoted to signed(!) int, and then overflowing to cause UB
 	};
 
 	template<>
-	struct obf_traits<uint32_t> {
+	struct ObfTraits<uint32_t> {
 		static constexpr bool has_half_type = true; 
 		using HalfT = uint16_t;
 		using UintT = typename obf_larger_type<uint32_t,unsigned>::type;
 	};
 
 	template<>
-	struct obf_traits<uint16_t> {
+	struct ObfTraits<uint16_t> {
 		static constexpr bool has_half_type = true; 
 		using HalfT = uint8_t;
 		using UintT = typename obf_larger_type<uint16_t,unsigned>::type;
 	};
 
 	template<>
-	struct obf_traits<uint8_t> {
+	struct ObfTraits<uint8_t> {
 		static constexpr bool has_half_type = false; 
 		using UintT = obf_larger_type<uint8_t,unsigned>::type;
 	};
@@ -331,6 +331,8 @@ namespace obf {
 			return Context::final_surjection(y);
 		}
 
+		static constexpr bool has_add_mod_max_value_ex = false;
+
 #ifdef ITHARE_OBF_ENABLE_DBGPRINT
 		static void dbgPrint(size_t offset = 0,const char* prefix="") {
 			std::cout << std::string(offset, ' ') << prefix << "obf_injection_version<0/*identity*/," << obf_dbgPrintT<T>() << "," << obf_dbgPrintSeed<seed>() << "," << cycles << ">: availCycles=" << availCycles << std::endl;
@@ -364,7 +366,7 @@ namespace obf {
 		using return_type = typename RecursiveInjection::return_type;
 		static constexpr std::array<T, 5> consts = { 0,1,OBF_CONST_A,OBF_CONST_B,OBF_CONST_C };
 		constexpr static T C = obf_random_const<ITHARE_OBF_NEW_PRNG(seed, 2)>(consts);
-		static constexpr bool neg = C == 0 ? true : ITHARE_OBF_RANDOM(seed,3,2) == 0;
+		static constexpr bool neg = C == 0 ? true : ITHARE_OBF_RANDOM(seed, 3, 2) == 0;
 		using ST = typename std::make_signed<T>::type;
 		ITHARE_OBF_FORCEINLINE constexpr static return_type injection(T x) {
 			if constexpr(neg) {
@@ -382,6 +384,33 @@ namespace obf {
 			}
 			else
 				return yy;
+		}
+
+		static constexpr bool has_add_mod_max_value_ex = true;
+		ITHARE_OBF_FORCEINLINE constexpr static T injected_add_mod_max_value_ex(T base,T x) {
+			if constexpr(RecursiveInjection::has_add_mod_max_value_ex) {
+				if constexpr(neg) {
+					//return injection(surjection(base) + x);
+					//return RecursiveInjection::injection(RecursiveInjection::surjection(base) - x);
+					return RecursiveInjection::injected_add_mod_max_value_ex(base, -ST(x));
+				}
+				else {
+					//auto noShortcut = RecursiveInjection::injection(RecursiveInjection::surjection(base) + x);
+					auto ret = RecursiveInjection::injected_add_mod_max_value_ex(base, x);
+					//assert(ret == noShortcut);
+					return ret;
+				}
+			}
+			else {
+				if constexpr(neg) {
+					//return injection(surjection(base) + x);
+					return RecursiveInjection::injection(RecursiveInjection::surjection(base) - x);
+				}
+				else {
+					return RecursiveInjection::injection(RecursiveInjection::surjection(base) + x);
+				}
+			}
+			//return base + x;//sic! - no C involved
 		}
 
 #ifdef ITHARE_OBF_ENABLE_DBGPRINT
@@ -421,7 +450,7 @@ namespace obf {
 
 	template<class T, ITHARE_OBF_SEEDTPARAM seed, OBFCYCLES cycles>
 	struct obf_randomized_non_reversible_function_version<1,T,seed,cycles> {
-		using UintT = typename obf_traits<T>::UintT;
+		using UintT = typename ObfTraits<T>::UintT;
 		constexpr ITHARE_OBF_FORCEINLINE T operator()(T x) {
 			return UintT(x)*UintT(x);
 		}
@@ -523,7 +552,7 @@ namespace obf {
 		using RecursiveInjection = obf_injection<T, Context, ITHARE_OBF_NEW_PRNG(seed, 2), cycles_rInj+ Context::context_cycles,ObfDefaultInjectionContext>;
 		using return_type = typename RecursiveInjection::return_type;
 
-		using halfT = typename obf_traits<T>::HalfT;
+		using halfT = typename ObfTraits<T>::HalfT;
 		using FType = obf_randomized_non_reversible_function<halfT, ITHARE_OBF_NEW_PRNG(seed, 3), cycles_f>;
 
 		constexpr static int halfTBits = sizeof(halfT) * 8;
@@ -542,6 +571,8 @@ namespace obf {
 			halfT z = (hi - f((halfT)lo));
 			return z + (lo << halfTBits);
 		}
+
+		static constexpr bool has_add_mod_max_value_ex = false;
 
 #ifdef ITHARE_OBF_ENABLE_DBGPRINT
 		static void dbgPrint(size_t offset = 0, const char* prefix = "") {
@@ -582,7 +613,7 @@ namespace obf {
 		static constexpr OBFCYCLES availCycles = cycles - obf_injection_version3_descr<T, Context>::own_min_cycles;
 		static_assert(availCycles >= 0);
 
-		using halfT = typename obf_traits<T>::HalfT;
+		using halfT = typename ObfTraits<T>::HalfT;
 		constexpr static int halfTBits = sizeof(halfT) * 8;
 
 		constexpr static std::array<ObfDescriptor, 3> split{
@@ -640,6 +671,8 @@ namespace obf {
 			halfT lo = LoInjection::surjection(/**reinterpret_cast<typename LoInjection::return_type*>(&lo0)*/ typename LoInjection::return_type(lo0));//relies on static_assert(sizeof(return_type)==sizeof(halfT)) above
 			return T(hi) + (T(lo) << halfTBits);
 		}
+
+		static constexpr bool has_add_mod_max_value_ex = false;
 
 #ifdef ITHARE_OBF_ENABLE_DBGPRINT
 		static void dbgPrint(size_t offset = 0, const char* prefix = "") {
@@ -737,6 +770,8 @@ namespace obf {
 			return RecursiveInjection::surjection(y) * C;
 		}
 
+		static constexpr bool has_add_mod_max_value_ex = false;
+
 #ifdef ITHARE_OBF_ENABLE_DBGPRINT
 		static void dbgPrint(size_t offset = 0, const char* prefix = "") {
 			std::cout << std::string(offset, ' ') << prefix << "obf_injection_version<4/*mul odd mod 2^N*/,"<<obf_dbgPrintT<T>()<<"," << obf_dbgPrintSeed<seed>() << "," << cycles << ">: C=" << obf_dbgPrintC(C) << " CINV=" << obf_dbgPrintC(CINV) << std::endl;
@@ -765,7 +800,7 @@ namespace obf {
 		static_assert(std::is_integral<T>::value);
 		static_assert(std::is_unsigned<T>::value);
 	public:
-		using halfT = typename obf_traits<T>::HalfT;
+		using halfT = typename ObfTraits<T>::HalfT;
 		constexpr static int halfTBits = sizeof(halfT) * 8;
 
 		static constexpr OBFCYCLES availCycles = cycles - obf_injection_version5_descr<T,Context>::own_min_cycles;
@@ -828,6 +863,8 @@ namespace obf {
 			return (T)lo + ((T)hi << halfTBits);
 		}
 
+		static constexpr bool has_add_mod_max_value_ex = false;
+
 #ifdef ITHARE_OBF_ENABLE_DBGPRINT
 		static void dbgPrint(size_t offset = 0, const char* prefix = "") {
 			std::cout << std::string(offset, ' ') << prefix << "obf_injection_version<5/*split*/,"<<obf_dbgPrintT<T>()<<"," << obf_dbgPrintSeed<seed>() << "," << cycles << ">" << std::endl;
@@ -864,7 +901,7 @@ namespace obf {
 		struct RecursiveInjectionContext {
 			static constexpr size_t exclude_version = 6;
 		};
-		using halfT = typename obf_traits<T>::HalfT;
+		using halfT = typename ObfTraits<T>::HalfT;
 
 		constexpr static std::array<ObfDescriptor, 2> split{
 			ObfDescriptor(true,0,200),//RecursiveInjection
@@ -904,6 +941,8 @@ namespace obf {
 			halfT lo = LoInjection::surjection(/* *reinterpret_cast<typename LoInjection::return_type*>(&lo0)*/ typename LoInjection::return_type(lo0));//relies on static_assert(sizeof(return_type)==sizeof(halfT)) above
 			return y - T(lo0) + lo;
 		}
+
+		static constexpr bool has_add_mod_max_value_ex = false;
 
 #ifdef ITHARE_OBF_ENABLE_DBGPRINT
 		static void dbgPrint(size_t offset = 0, const char* prefix = "") {
@@ -987,6 +1026,12 @@ namespace obf {
 		}
 		ITHARE_OBF_FORCEINLINE constexpr static T surjection(return_type y) {
 			return WhichType::surjection(y);
+		}
+
+	public:
+		static constexpr bool has_add_mod_max_value_ex = WhichType::has_add_mod_max_value_ex;
+		ITHARE_OBF_FORCEINLINE constexpr static T injected_add_mod_max_value_ex(T base, T x) {
+			return WhichType::injected_add_mod_max_value_ex(base,x);
 		}
 
 #ifdef ITHARE_OBF_ENABLE_DBGPRINT
@@ -1397,6 +1442,7 @@ namespace obf {
 	class obf_var {
 		static_assert(std::is_integral<T_>::value);
 		using T = typename std::make_unsigned<T_>::type;//from this point on, unsigned only
+		//using TTraits = ObfTraits<T>;
 
 		using Context = ObfVarContext<T, ITHARE_OBF_NEW_PRNG(seed, 1), cycles>;
 		using Injection = obf_injection<T, Context, ITHARE_OBF_NEW_PRNG(seed, 2), cycles, ObfDefaultInjectionContext>;
@@ -1429,7 +1475,17 @@ namespace obf {
 		}
 
 		ITHARE_OBF_FORCEINLINE operator T_() const { return value(); }
-		ITHARE_OBF_FORCEINLINE obf_var& operator ++() { *this = value() + 1; return *this; }
+		ITHARE_OBF_FORCEINLINE obf_var& operator ++() { 
+			if constexpr(Injection::has_add_mod_max_value_ex) {
+				//auto noShortcut = Injection::injection(T(value()+1));
+				val = Injection::injected_add_mod_max_value_ex(val,1);
+				//assert(val == noShortcut);
+			}
+			else {
+				*this = value() + 1; 
+			}
+			return *this;
+		}
 		ITHARE_OBF_FORCEINLINE obf_var& operator --() { *this = value() - 1; return *this; }
 		ITHARE_OBF_FORCEINLINE obf_var operator++(int) { obf_var ret = obf_var(value());  *this = value() + 1; return ret; }
 		ITHARE_OBF_FORCEINLINE obf_var operator--(int) { obf_var ret = obf_var(value());  *this = value() + 1; return ret; }

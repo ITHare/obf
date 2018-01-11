@@ -84,9 +84,9 @@ ITHARE_OBF_NOINLINE OBF6(int64_t) factorial(OBF6(int64_t) x) {
 		throw MyException(OBF5S("Negative argument to factorial!"));
 	OBF3(int64_t) ret = 1;
 	for (OBF3(int64_t) i = 1; i <= x; ++i) {
+		DBGPRINT(i);
 		ret *= i;
 	}
-	DBGPRINT(ret);
 	return ret;
 }
 
