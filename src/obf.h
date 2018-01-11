@@ -216,39 +216,50 @@ namespace obf {
 	}
 
 	//type helpers
-	//obf_half_size_int<>
-	//TODO: obf_traits<>, including obf_traits<>::half_size_int
+	template<bool which, class T, class T2> struct obf_select_type;	
+	template<class T, class T2>
+	struct obf_select_type<true,T,T2>  {
+		using type = T;
+	};
+	template<class T, class T2>
+	struct obf_select_type<false,T,T2>  {
+		using type = T2;
+	};
+
+	template<class T, class T2> struct obf_larger_type {
+		constexpr static bool which = sizeof(T) > sizeof(T2);
+		using type = typename obf_select_type<which,T,T2>::type;
+	};
+	
+	//obf_traits<>
 	template<class T>
-	struct obf_half_size_int;
+	struct obf_traits;
 
 	template<>
-	struct obf_half_size_int<uint16_t> {
-		using value_type = uint8_t;
+	struct obf_traits<uint64_t> {
+		static constexpr bool has_half_type = true; 
+		using HalfT = uint32_t;
+		using UintT = typename obf_larger_type<uint64_t,unsigned>::type;//UintT is a type to cast to, to avoid idiocies like uint16_t*uint16_t being promoted to signed(!) int, and then overflowing to cause UB
 	};
 
 	template<>
-	struct obf_half_size_int<int16_t> {
-		using value_type = int8_t;
+	struct obf_traits<uint32_t> {
+		static constexpr bool has_half_type = true; 
+		using HalfT = uint16_t;
+		using UintT = typename obf_larger_type<uint32_t,unsigned>::type;
 	};
 
 	template<>
-	struct obf_half_size_int<uint32_t> {
-		using value_type = uint16_t;
+	struct obf_traits<uint16_t> {
+		static constexpr bool has_half_type = true; 
+		using HalfT = uint8_t;
+		using UintT = typename obf_larger_type<uint16_t,unsigned>::type;
 	};
 
 	template<>
-	struct obf_half_size_int<int32_t> {
-		using value_type = int16_t;
-	};
-
-	template<>
-	struct obf_half_size_int<uint64_t> {
-		using value_type = uint32_t;
-	};
-
-	template<>
-	struct obf_half_size_int<int64_t> {
-		using value_type = int32_t;
+	struct obf_traits<uint8_t> {
+		static constexpr bool has_half_type = false; 
+		using UintT = obf_larger_type<uint8_t,unsigned>::type;
 	};
 
 	//forward declarations
@@ -280,7 +291,7 @@ namespace obf {
 
 	template<class T>
 	typename ObfPrintC<T>::type obf_dbgPrintC(T c) {
-		return ObfPrintC<T>::type(c);
+		return typename ObfPrintC<T>::type(c);
 	}
 #endif
 
@@ -410,8 +421,9 @@ namespace obf {
 
 	template<class T, ITHARE_OBF_SEEDTPARAM seed, OBFCYCLES cycles>
 	struct obf_randomized_non_reversible_function_version<1,T,seed,cycles> {
+		using UintT = typename obf_traits<T>::UintT;
 		constexpr ITHARE_OBF_FORCEINLINE T operator()(T x) {
-			return x*x;
+			return UintT(x)*UintT(x);
 		}
 
 #ifdef ITHARE_OBF_ENABLE_DBGPRINT
@@ -511,7 +523,7 @@ namespace obf {
 		using RecursiveInjection = obf_injection<T, Context, ITHARE_OBF_NEW_PRNG(seed, 2), cycles_rInj+ Context::context_cycles,ObfDefaultInjectionContext>;
 		using return_type = typename RecursiveInjection::return_type;
 
-		using halfT = typename obf_half_size_int<T>::value_type;
+		using halfT = typename obf_traits<T>::HalfT;
 		using FType = obf_randomized_non_reversible_function<halfT, ITHARE_OBF_NEW_PRNG(seed, 3), cycles_f>;
 
 		constexpr static int halfTBits = sizeof(halfT) * 8;
@@ -570,7 +582,7 @@ namespace obf {
 		static constexpr OBFCYCLES availCycles = cycles - obf_injection_version3_descr<T, Context>::own_min_cycles;
 		static_assert(availCycles >= 0);
 
-		using halfT = typename obf_half_size_int<T>::value_type;
+		using halfT = typename obf_traits<T>::HalfT;
 		constexpr static int halfTBits = sizeof(halfT) * 8;
 
 		constexpr static std::array<ObfDescriptor, 3> split{
@@ -753,7 +765,7 @@ namespace obf {
 		static_assert(std::is_integral<T>::value);
 		static_assert(std::is_unsigned<T>::value);
 	public:
-		using halfT = typename obf_half_size_int<T>::value_type;
+		using halfT = typename obf_traits<T>::HalfT;
 		constexpr static int halfTBits = sizeof(halfT) * 8;
 
 		static constexpr OBFCYCLES availCycles = cycles - obf_injection_version5_descr<T,Context>::own_min_cycles;
@@ -852,7 +864,7 @@ namespace obf {
 		struct RecursiveInjectionContext {
 			static constexpr size_t exclude_version = 6;
 		};
-		using halfT = typename obf_half_size_int<T>::value_type;
+		using halfT = typename obf_traits<T>::HalfT;
 
 		constexpr static std::array<ObfDescriptor, 2> split{
 			ObfDescriptor(true,0,200),//RecursiveInjection
@@ -1141,26 +1153,26 @@ namespace obf {
 		constexpr static OBFCYCLES context_cycles = obf_literal_context_version4_descr::descr.min_cycles;
 
 		static constexpr std::array<T, 3> consts = { OBF_CONST_A,OBF_CONST_B,OBF_CONST_C };
-		static constexpr T PREMODRNDCONST = obf_random_const<T>(ITHARE_OBF_NEW_PRNG(seed, 2), consts);//TODO: check which constants we want
+		static constexpr T PREMODRNDCONST = obf_random_const<ITHARE_OBF_NEW_PRNG(seed, 2)>(consts);//TODO: check which constants we want
 		static constexpr T PREMODMASK = (T(1) << (sizeof(T) * 4)) - 1;
 		static constexpr T PREMOD = PREMODRNDCONST & PREMODMASK;
 		static constexpr T MOD = PREMOD == 0 ? 100 : PREMOD;//remapping 'bad value' 0 to 'something'
-		static constexpr T CC = obf_weak_random(ITHARE_OBF_NEW_PRNG(seed, 2),MOD);
+		static constexpr T CC = ITHARE_OBF_RANDOM(seed, 2,MOD);
 
 		static constexpr T MAXMUL1 = T(-1)/MOD;
 		static constexpr auto MAXMUL1_ADJUSTED0 = obf_sqrt_very_rough_approximation(MAXMUL1);
 		static_assert(MAXMUL1_ADJUSTED0 < T(-1));
 		static constexpr T MAXMUL1_ADJUSTED = (T)MAXMUL1_ADJUSTED0;
-		static constexpr T MUL1 = MAXMUL1 > 2 ? 1+obf_weak_random(ITHARE_OBF_NEW_PRNG(seed, 2), MAXMUL1_ADJUSTED) : 1;
+		static constexpr T MUL1 = MAXMUL1 > 2 ? 1+ITHARE_OBF_RANDOM(seed, 2, MAXMUL1_ADJUSTED) : 1;
 		static constexpr T DELTA = MUL1 * MOD;
 		static_assert(DELTA / MUL1 == MOD);//overflow check
 
 		static constexpr T MAXMUL2 = T(-1) / DELTA;
-		static constexpr T MUL2 = MAXMUL2 > 2 ? 1+obf_weak_random(ITHARE_OBF_NEW_PRNG(seed, 3), MAXMUL2) : 1;
+		static constexpr T MUL2 = MAXMUL2 > 2 ? 1+ITHARE_OBF_RANDOM(seed, 3, MAXMUL2) : 1;
 		static constexpr T DELTAMOD = MUL2 * MOD;
 		static_assert(DELTAMOD / MUL2 == MOD);//overflow check
 
-		static constexpr T PREMUL3 = obf_weak_random(ITHARE_OBF_NEW_PRNG(seed, 3), MUL2);
+		static constexpr T PREMUL3 = ITHARE_OBF_RANDOM(seed, 4, MUL2);
 		static constexpr T MUL3 = PREMUL3 > 0 ? PREMUL3 : 1;
 		static constexpr T CC0 = ( CC + MUL3 * MOD ) % DELTAMOD;
 
