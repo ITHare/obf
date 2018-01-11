@@ -12,7 +12,6 @@
 //  1b. To obfuscate literals, use OBF?I() (for integral literals) and OBF?S() (for string literals)
 //  2. compile your code without -DITHARE_OBF_SEED for debugging and during development
 //  3. compile with -DITHARE_OBF_SEED=0x<really-random-64-bit-seed> for deployments
-//  3a. GCC/Clang are not supported (yet)
 
 #ifdef ITHARE_OBF_INTERNAL_DBG
 //enable assert() in Release
@@ -74,6 +73,8 @@ namespace obf {
 				return uint64_t(y0 + double(x - x0)*double(y1 - y0) / double(x1 - x0));
 			}
 		}
+		assert(false);
+		return T(0);
 	}
 
 	constexpr uint64_t obf_sqrt_very_rough_approximation(uint64_t x0) {
@@ -162,7 +163,7 @@ namespace obf {
 		size_t sum_r = 0;
 		size_t sum_nr = 0;
 		for (size_t i = 0; i < sz; ++i) {
-			if (i != exclude_version && cycles >= descr[i].min_cycles)
+			if (i != exclude_version && cycles >= descr[i].min_cycles) {
 				if (descr[i].is_recursive) {
 					r_weights[i] = descr[i].weight;
 					sum_r += r_weights[i];
@@ -171,6 +172,7 @@ namespace obf {
 					nr_weights[i] = descr[i].weight;
 					sum_nr += nr_weights[i];
 				}
+			}
 		}
 		if (sum_r)
 			return obf_random_from_list<seed>(r_weights);
@@ -595,7 +597,7 @@ namespace obf {
 		static_assert(cycles_loCtx + cycles_loInj <= cycles_lo);
 		using LoContext = typename ObfRecursiveContext < halfT, Context, ITHARE_OBF_NEW_PRNG(seed, 3), cycles_loCtx>::intermediate_context_type;
 		using LoInjection = obf_injection<halfT, LoContext, ITHARE_OBF_NEW_PRNG(seed, 4), cycles_loInj+LoContext::context_cycles, ObfDefaultInjectionContext>;
-		static_assert(sizeof(LoInjection::return_type) == sizeof(halfT));//bijections ONLY; TODO: enforce
+		static_assert(sizeof(typename LoInjection::return_type) == sizeof(halfT));//bijections ONLY; TODO: enforce
 
 		constexpr static std::array<ObfDescriptor, 2> splitHi{
 			ObfDescriptor(true,0,100),//Context
@@ -607,7 +609,7 @@ namespace obf {
 		static_assert(cycles_hiCtx + cycles_hiInj <= cycles_hi);
 		using HiContext = typename ObfRecursiveContext<halfT, Context, ITHARE_OBF_NEW_PRNG(seed, 6), cycles_hiCtx>::intermediate_context_type;
 		using HiInjection = obf_injection<halfT, HiContext, ITHARE_OBF_NEW_PRNG(seed, 7), cycles_hiInj+HiContext::context_cycles, ObfDefaultInjectionContext>;
-		static_assert(sizeof(HiInjection::return_type) == sizeof(halfT));//bijections ONLY; TODO: enforce
+		static_assert(sizeof(typename HiInjection::return_type) == sizeof(halfT));//bijections ONLY; TODO: enforce
 
 		ITHARE_OBF_FORCEINLINE constexpr static return_type injection(T x) {
 			halfT lo = x >> halfTBits;
@@ -875,7 +877,7 @@ namespace obf {
 		static_assert(cycles_loCtx + cycles_loInj <= cycles_lo);
 		using LoContext = typename ObfRecursiveContext < halfT, Context, ITHARE_OBF_NEW_PRNG(seed, 4), cycles_loCtx>::intermediate_context_type;
 		using LoInjection = obf_injection<halfT, LoContext, ITHARE_OBF_NEW_PRNG(seed, 5), cycles_loInj + LoContext::context_cycles, ObfDefaultInjectionContext>;
-		static_assert(sizeof(LoInjection::return_type) == sizeof(halfT));//bijections ONLY; TODO: enforce
+		static_assert(sizeof(typename LoInjection::return_type) == sizeof(halfT));//bijections ONLY; TODO: enforce
 
 		ITHARE_OBF_FORCEINLINE constexpr static return_type injection(T x) {
 			halfT lo0 = halfT(x);
@@ -1215,9 +1217,9 @@ namespace obf {
 			return surj;//for literals, ONLY surjection costs apply in runtime (as injection applies in compile-time)
 		}
 		constexpr static OBFCYCLES literal_cycles = 0;
-		template<class T,T C, ITHARE_OBF_SEEDTPARAM seed>
+		template<class T2,T2 C, ITHARE_OBF_SEEDTPARAM seed>
 		struct literal {
-			using type = obf_literal_ctx<T, C, ObfZeroLiteralContext<T>, seed, literal_cycles>;
+			using type = obf_literal_ctx<T2, C, ObfZeroLiteralContext<T2>, seed, literal_cycles>;
 		};
 
 		ITHARE_OBF_FORCEINLINE static constexpr T final_injection(T x) {
@@ -1261,9 +1263,9 @@ namespace obf {
 		}
 
 		constexpr static OBFCYCLES literal_cycles = 0;
-		template<class T, T C, ITHARE_OBF_SEEDTPARAM seed>
+		template<class T2, T2 C, ITHARE_OBF_SEEDTPARAM seed2>
 		struct literal {
-			using type = obf_literal_ctx<T, C, ObfZeroLiteralContext<T>, seed, literal_cycles>;
+			using type = obf_literal_ctx<T2, C, ObfZeroLiteralContext<T2>, seed2, literal_cycles>;
 		};
 
 		ITHARE_OBF_FORCEINLINE static constexpr T final_injection(T x) {
@@ -1287,7 +1289,7 @@ namespace obf {
 	template<class T, class T0, ITHARE_OBF_SEEDTPARAM seed, ITHARE_OBF_SEEDTPARAM seed0, OBFCYCLES cycles0,OBFCYCLES cycles>
 	struct ObfRecursiveContext<T, ObfLiteralContext<T0, seed0,cycles0>, seed, cycles> {
 		using recursive_context_type = ObfLiteralContext<T, ITHARE_OBF_NEW_PRNG(seed, 1),cycles>;//@@
-		using intermediate_context_type = typename ObfLiteralContext<T, ITHARE_OBF_NEW_PRNG(seed, 2), cycles>;//whenever cycles is low (which is very often), will fallback to version0
+		using intermediate_context_type = typename ithare::obf::ObfLiteralContext<T, ITHARE_OBF_NEW_PRNG(seed, 2), cycles>;//whenever cycles is low (which is very often), will fallback to version0
 	};
 
 	//obf_literal
@@ -1353,9 +1355,9 @@ namespace obf {
 
 		constexpr static OBFCYCLES literal_cycles = std::min(cycles/2,50);//TODO: justify (or define?)
 		using LiteralContext = ObfLiteralContext<T, seed, literal_cycles>;
-		template<class T, T C, ITHARE_OBF_SEEDTPARAM seed>
+		template<class T2, T2 C, ITHARE_OBF_SEEDTPARAM seed2>
 		struct literal {
-			using type = obf_literal_ctx<T, C, LiteralContext, seed, literal_cycles>;
+			using type = obf_literal_ctx<T2, C, LiteralContext, seed2, literal_cycles>;
 		};
 
 		ITHARE_OBF_FORCEINLINE static constexpr T final_injection(T x) {
@@ -1618,21 +1620,21 @@ namespace obf {
 		static constexpr OBFCYCLES split7 = splitCycles[7];
 
 		using Injection0 = obf_injection<uint32_t, ObfZeroLiteralContext<uint32_t>, ITHARE_OBF_NEW_PRNG(seed, 3), std::max(split0,2), ObfDefaultInjectionContext>;
-		static_assert(sizeof(Injection0::return_type) == sizeof(uint32_t));//MUST be bijection, TODO: enforce
+		static_assert(sizeof(typename Injection0::return_type) == sizeof(uint32_t));//MUST be bijection, TODO: enforce
 		using Injection1 = obf_injection<uint32_t, ObfZeroLiteralContext<uint32_t>, ITHARE_OBF_NEW_PRNG(seed, 4), std::max(split1,2), ObfDefaultInjectionContext>;
-		static_assert(sizeof(Injection1::return_type) == sizeof(uint32_t));//MUST be bijection, TODO: enforce
+		static_assert(sizeof(typename Injection1::return_type) == sizeof(uint32_t));//MUST be bijection, TODO: enforce
 		using Injection2 = obf_injection<uint32_t, ObfZeroLiteralContext<uint32_t>, ITHARE_OBF_NEW_PRNG(seed, 5), std::max(split2,2), ObfDefaultInjectionContext>;
-		static_assert(sizeof(Injection2::return_type) == sizeof(uint32_t));//MUST be bijection, TODO: enforce
+		static_assert(sizeof(typename Injection2::return_type) == sizeof(uint32_t));//MUST be bijection, TODO: enforce
 		using Injection3 = obf_injection<uint32_t, ObfZeroLiteralContext<uint32_t>, ITHARE_OBF_NEW_PRNG(seed, 6), std::max(split3,2), ObfDefaultInjectionContext>;
-		static_assert(sizeof(Injection3::return_type) == sizeof(uint32_t));//MUST be bijection, TODO: enforce
+		static_assert(sizeof(typename Injection3::return_type) == sizeof(uint32_t));//MUST be bijection, TODO: enforce
 		using Injection4 = obf_injection<uint32_t, ObfZeroLiteralContext<uint32_t>, ITHARE_OBF_NEW_PRNG(seed, 7), std::max(split4,2), ObfDefaultInjectionContext>;
-		static_assert(sizeof(Injection4::return_type) == sizeof(uint32_t));//MUST be bijection, TODO: enforce
+		static_assert(sizeof(typename Injection4::return_type) == sizeof(uint32_t));//MUST be bijection, TODO: enforce
 		using Injection5 = obf_injection<uint32_t, ObfZeroLiteralContext<uint32_t>, ITHARE_OBF_NEW_PRNG(seed, 8), std::max(split5,2), ObfDefaultInjectionContext>;
-		static_assert(sizeof(Injection5::return_type) == sizeof(uint32_t));//MUST be bijection, TODO: enforce
+		static_assert(sizeof(typename Injection5::return_type) == sizeof(uint32_t));//MUST be bijection, TODO: enforce
 		using Injection6 = obf_injection<uint32_t, ObfZeroLiteralContext<uint32_t>, ITHARE_OBF_NEW_PRNG(seed, 9), std::max(split6,2), ObfDefaultInjectionContext>;
-		static_assert(sizeof(Injection6::return_type) == sizeof(uint32_t));//MUST be bijection, TODO: enforce
+		static_assert(sizeof(typename Injection6::return_type) == sizeof(uint32_t));//MUST be bijection, TODO: enforce
 		using Injection7 = obf_injection<uint32_t, ObfZeroLiteralContext<uint32_t>, ITHARE_OBF_NEW_PRNG(seed, 10), std::max(split7,2), ObfDefaultInjectionContext>;
-		static_assert(sizeof(Injection7::return_type) == sizeof(uint32_t));//MUST be bijection, TODO: enforce
+		static_assert(sizeof(typename Injection7::return_type) == sizeof(uint32_t));//MUST be bijection, TODO: enforce
 
 		ITHARE_OBF_FORCEINLINE static constexpr uint32_t little_endian4(const char* str, size_t offset) {//TODO: BIG-ENDIAN
 			//replacement for non-constexpr return *(uint32_t*)(str + offset);
@@ -1748,10 +1750,7 @@ namespace obf {
 	};*/
 
 	//external functions
-	extern int obf_preMain();
-	inline void obf_init() {
-		obf_preMain();
-	}
+	void obf_init();
 #ifdef ITHARE_OBF_ENABLE_DBGPRINT
 	inline void obf_dbgPrint() {
 		std::cout << "OBF_CONST_A=" << int(OBF_CONST_A) << " OBF_CONST_B=" << int(OBF_CONST_B) << " OBF_CONST_C=" << int(OBF_CONST_C) << std::endl;
