@@ -56,7 +56,7 @@
 #define ITHARE_OBF_NOINLINE __attribute__((noinline))
 
 #else
-#error Other compilers than MSVC and Clang are not supported
-#endif//_MSC_VER
+#error Other compilers than MSVC and Clang are not supported (feel free to try adding GCC though)
+#endif//_MSC_VER || __clang__
 
 #endif//ithare_obf_common_h_included
