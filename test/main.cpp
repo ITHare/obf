@@ -9,6 +9,7 @@
 
 using namespace ithare::obf;
 
+#if 0
 template<class T, size_t N>
 class ObfBitUint {
 private:
@@ -25,6 +26,7 @@ public:
 	ObfBitUint operator %(ObfBitUint x) { return ObfBitUint(val%x.val);/*TODO: double-check*/ }
 	ObfBitUint operator /(ObfBitUint x) { return ObfBitUint(val / x.val); /*TODO: double-check*/ }
 };
+#endif
 
 /*class MyClassName {
 public:
@@ -80,9 +82,11 @@ private:
 };
 
 ITHARE_OBF_NOINLINE OBF6(int64_t) factorial(OBF6(int64_t) x) {
+	DBGPRINT(x)
 	if (x < 0)
 		throw MyException(OBF5S("Negative argument to factorial!"));
 	OBF3(int64_t) ret = 1;
+	DBGPRINT(ret)
 	for (OBF3(int64_t) i = 1; i <= x; ++i) {
 		DBGPRINT(i);
 		ret *= i;
@@ -189,7 +193,9 @@ int main(int argc, char** argv) {
 	try {
 		Benchmark bm;
 		for (int i = 0; i < 1000; ++i) {
-			f = factorial(x);
+			auto ff = factorial(x);
+			DBGPRINT(ff)
+			f = ff;
 			//DBGPRINT(f)
 			total += f;
 		}
