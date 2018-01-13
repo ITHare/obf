@@ -237,7 +237,7 @@ namespace ithare {
 		template<>
 		struct ObfTraits<uint64_t> {
 			static constexpr bool is_built_in = true;
-			static constexpr std::string type_name() { return "uint64_t"; }
+			static std::string type_name() { return "uint64_t"; }
 			using signed_type = int64_t;
 			using literal_type = uint64_t;
 
@@ -250,7 +250,7 @@ namespace ithare {
 		template<>
 		struct ObfTraits<uint32_t> {
 			static constexpr bool is_built_in = true;
-			static constexpr std::string type_name() { return "uint32_t"; }
+			static std::string type_name() { return "uint32_t"; }
 			using signed_type = int32_t;
 			using literal_type = uint32_t;
 
@@ -263,7 +263,7 @@ namespace ithare {
 		template<>
 		struct ObfTraits<uint16_t> {
 			static constexpr bool is_built_in = true;
-			static constexpr std::string type_name() { return "uint16_t"; }
+			static std::string type_name() { return "uint16_t"; }
 			using signed_type = int16_t;
 			using literal_type = uint16_t;
 
@@ -276,7 +276,7 @@ namespace ithare {
 		template<>
 		struct ObfTraits<uint8_t> {
 			static constexpr bool is_built_in = true;
-			static constexpr std::string type_name() { return "uint8_t"; }
+			static std::string type_name() { return "uint8_t"; }
 			using signed_type = int8_t;
 			using literal_type = uint8_t;
 
@@ -344,6 +344,12 @@ namespace ithare {
 
 			//constexpr ObfBitUint operator -(ObfBitUint x) const volatile { return ObfBitUint(val - x.val); }//TODO: others
 
+#ifdef ITHARE_OBF_ENABLE_DBGPRINT
+		static void dbgPrint(size_t offset = 0,const char* prefix="") {
+			std::cout << std::string(offset, ' ') << prefix << "ObfUint<" << N << ">: mask =" << mask << std::endl;
+		}
+#endif
+
 		private:
 			T val;
 		};
@@ -377,7 +383,7 @@ namespace ithare {
 			using TT = ObfBitUint<N>;
 		public:
 			static constexpr bool is_built_in = false;
-			static constexpr std::string type_name() {
+			static std::string type_name() {
 				return std::string("ObfUint<") + std::to_string(N) + ">";
 			}
 			using signed_type = ObfBitSint<N>;
@@ -911,10 +917,10 @@ namespace ithare {
 		static_assert((T)(C*CINV0) == (T)1);
 		constexpr static typename Traits::literal_type CINV = CINV0;
 
-		using literal = typename Context::template literal<Traits::literal_type, CINV, ITHARE_OBF_NEW_PRNG(seed, 3)>::type;
+		using literal = typename Context::template literal<typename Traits::literal_type, CINV, ITHARE_OBF_NEW_PRNG(seed, 3)>::type;
 
 		ITHARE_OBF_FORCEINLINE constexpr static return_type injection(T x) {
-			return RecursiveInjection::injection(x * T(literal().value()));//using CINV in injection to hide literals a bit better...
+			return RecursiveInjection::injection(typename Traits::UintT(x) * typename Traits::UintT(T(literal().value())));//using CINV in injection to hide literals a bit better...
 		}
 		ITHARE_OBF_FORCEINLINE constexpr static T surjection(return_type y) {
 			return RecursiveInjection::surjection(y) * C;
@@ -1124,7 +1130,8 @@ namespace ithare {
 		static constexpr ObfDescriptor descr =
 			!InjectionRequirements::only_bijections && !InjectionRequirements::no_physical_size_increase && ObfTraits<T>::nbits >= 2 ?
 			ObfDescriptor(true, own_min_cycles, 100)
-			: ObfDescriptor(false, 0, 0);
+			: 
+			ObfDescriptor(false, 0, 0);
 	};
 
 	template <class T, class Context, class InjectionRequirements, ITHARE_OBF_SEEDTPARAM seed, OBFCYCLES cycles>
@@ -1210,9 +1217,9 @@ namespace ithare {
 #ifdef ITHARE_OBF_ENABLE_DBGPRINT
 		static void dbgPrint(size_t offset = 0, const char* prefix = "") {
 			std::cout << std::string(offset, ' ') << prefix << "obf_injection_version<7/*split into ObfBitUint<>*/," << obf_dbgPrintT<T>() << "," << obf_dbgPrintSeed<seed>() << "," << cycles << ">" << std::endl;
-			//std::cout << std::string(offset, ' ') << " Lo:" << std::endl;
+			TypeLo::dbgPrint(offset + 1, "TypeLo:");
 			RecursiveInjectionLo::dbgPrint(offset + 1, "Lo:");
-			//std::cout << std::string(offset, ' ') << " Hi:" << std::endl;
+			TypeHi::dbgPrint(offset + 1, "TypeHi:");
 			RecursiveInjectionHi::dbgPrint(offset + 1, "Hi:");
 		}
 #endif
