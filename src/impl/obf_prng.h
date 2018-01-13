@@ -114,8 +114,20 @@ namespace ithare {
 											*/
 		}
 		constexpr uint64_t obf_init_prng(const char* file, int line, int counter) {
-			uint64_t u = obf_seed ^ line ^ counter;
-			for (const char* p = file; *p; ++p)//effectively djb2 by Dan Bernstein, albeit with different initializer
+			uint64_t u = obf_seed ^ line;
+#ifdef ITHARE_OBF_CONSISTENT_DEBUG_RELEASE
+#ifdef _MSC_VER
+			//normalizing __FILE__ to the bare file name (without path, which does change between debug/release)
+			const char* filename = file;
+			for (const char *p = file; *p; ++p)
+				if (*p == '\\')
+					filename = p + 1;
+#endif
+#else//!CONSISTENT
+			u ^= counter;
+			const char* filename = p;
+#endif
+			for (const char* p = filename; *p; ++p)//effectively djb2 by Dan Bernstein, albeit with different initializer
 				u = ((u << 5) + u) + *p;
 			return obf_murmurhash2(u, obf_seed2);
 		}
@@ -208,9 +220,21 @@ namespace ithare {
 			return uint32_t(rlo);
 		}
 		constexpr std::pair<uint64_t, uint64_t> obf_init_prng(const char* file, int line, int counter) {
-			uint64_t v0 = line ^ counter;
+			uint64_t v0 = line;
+#ifdef ITHARE_OBF_CONSISTENT_DEBUG_RELEASE
+#ifdef _MSC_VER
+			//normalizing __FILE__ to the bare file name (without path, which does change between debug/release)
+			const char* filename = file;
+			for (const char *p = file; *p; ++p)
+				if (*p == '\\')
+					filename = p + 1;
+#endif
+#else//!CONSISTENT
+			v0 ^= counter;
+			const char* filename = p;
+#endif
 			uint64_t u = 5381;
-			for (const char* p = file; *p; ++p)//djb2 by Dan Bernstein
+			for (const char* p = filename; *p; ++p)//djb2 by Dan Bernstein
 				u = ((u << 5) + u) + *p;
 			std::pair<uint64_t, uint64_t> ctr_block = { u ^ obf_seed,v0 ^obf_seed2 };
 			std::array<uint32_t, 4> v = obf_xxtea_encipher(ctr_block, obf_prng_xxtea_key_for_init);

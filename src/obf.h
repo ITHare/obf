@@ -39,6 +39,62 @@ namespace ithare {
 
 		using OBFCYCLES = int32_t;//signed!
 
+#ifdef ITHARE_OBF_DBG_MAP
+#ifdef ITHARE_OBF_DBG_MAP_LOG
+#define ITHARE_OBF_DBG_MAP_ADD(where,dbg_map, from,to) 	do {\
+		if constexpr(!InjectionRequirements::is_constexpr)\
+			std::cout << "MAP_ADD @" << where << "(seed=" << obf_dbgPrintSeed<seed>() << "): " << from << "=>" << to << std::endl; \
+		} while(false)
+#define ITHARE_OBF_DBG_MAP_CHECK(where,dbg_map,from,to,whoToPrint) do {\
+			if constexpr(!InjectionRequirements::is_constexpr) {\
+				std::cout << "MAP_CHECK @" << where << "(seed=" << obf_dbgPrintSeed<seed>() << "): " << from << "=>" << to << std::endl; \
+			}\
+		} while(false)
+#define ITHARE_OBF_DBG_CHECK_LITERAL(where, val, c,whoToPrint) do {\
+			if constexpr(!InjectionRequirements::is_constexpr) {\
+				if (val != c) {\
+					std::cout << "DBG_CHECK_LITERAL ERROR @" << where << ": " << val << "!=" << c << std::endl; \
+					whoToPrint dbgPrint(); \
+					abort(); \
+				}\
+			}\
+		}while (false)
+#else
+#define ITHARE_OBF_DEFINE_DBG_MAP
+#define ITHARE_OBF_DBG_MAP_ADD(where,dbg_map, from,to) 	do {\
+		if constexpr(!InjectionRequirements::is_constexpr)\
+			dbg_map.insert(std::make_pair(from,to));\
+		} while(false)
+#define ITHARE_OBF_DBG_MAP_CHECK(where,dbg_map,from,to,whoToPrint) do {\
+			if constexpr(!InjectionRequirements::is_constexpr) {\
+				auto found = dbg_map.find(from); \
+				if (found == dbg_map.end() ) {\
+					std::cout << "DBG_MAP ERROR @" << where << ": " << from << " NOT FOUND" << std::endl;\
+					whoToPrint dbgPrint();\
+					abort();\
+				}\
+				auto dbgVal = (*found).second;\
+				if (dbgVal != to) {\
+					std::cout << "DBG_MAP ERROR @" << where << ": " << to << "!=" << dbgVal << std::endl; \
+				}\
+			}\
+		} while(false)
+#define ITHARE_OBF_DBG_CHECK_LITERAL(where, val, c,whoToPrint) do {\
+			if constexpr(!InjectionRequirements::is_constexpr) {\
+				if (val != c) {\
+					std::cout << "DBG_CHECK_LITERAL ERROR @" << where << ": " << val << "!=" << c << std::endl; \
+					whoToPrint dbgPrint(); \
+					abort(); \
+				}\
+			}\
+		}while (false)
+#endif//!_LOG
+#else
+		#define ITHARE_OBF_DBG_MAP_ADD(where,dbg_map, from,to)
+		#define ITHARE_OBF_DBG_MAP_CHECK(where,dbg_map,from,to,whoToPrint)
+		#define ITHARE_OBF_DBG_CHECK_LITERAL(where, val, c,whoToPrint)
+#endif
+
 		//POTENTIALLY user-modifiable constexpr function:
 		constexpr OBFCYCLES obf_exp_cycles(int exp) {
 			if (exp < 0)
@@ -346,7 +402,7 @@ namespace ithare {
 
 #ifdef ITHARE_OBF_ENABLE_DBGPRINT
 		static void dbgPrint(size_t offset = 0,const char* prefix="") {
-			std::cout << std::string(offset, ' ') << prefix << "ObfUint<" << N << ">: mask =" << mask << std::endl;
+			std::cout << std::string(offset, ' ') << prefix << "ObfUint<" << N << ">: mask =" << obf_dbgPrintC<T>(mask) << std::endl;
 		}
 #endif
 
@@ -363,8 +419,8 @@ namespace ithare {
 			static_assert(N <= sizeof(T) * 8);
 
 		private:
-			static constexpr UT high = UT(1) << N;
-			static constexpr UT mask = (UT(1) << N) - T(1);
+			static constexpr UT high = UT(UT(1) << N);
+			static constexpr UT mask = obf_mask<T>(N);
 
 		public:
 			constexpr ObfBitSint() : val(0) {}
@@ -495,6 +551,7 @@ namespace ithare {
 
 		struct RecursiveInjectionRequirements {
 			static constexpr size_t exclude_version = 1;
+			static constexpr bool is_constexpr = InjectionRequirements::is_constexpr;
 			static constexpr bool only_bijections = InjectionRequirements::only_bijections;
 			static constexpr bool no_physical_size_increase = InjectionRequirements::no_physical_size_increase;
 		};
@@ -505,26 +562,47 @@ namespace ithare {
 		constexpr static T C = obf_random_const<ITHARE_OBF_NEW_PRNG(seed, 2)>(consts);
 		static constexpr bool neg = C == 0 ? true : ITHARE_OBF_RANDOM(seed, 3, 2) == 0;
 		using ST = typename Traits::signed_type;
+
+#ifdef ITHARE_OBF_DEFINE_DBG_MAP
+		static std::map<T,T> dbg_map;
+		static std::map<T,return_type> dbg_map_r;
+#endif
+
 		ITHARE_OBF_FORCEINLINE constexpr static return_type injection(T x) {
 			if constexpr(neg) {
 				ST sx = ST(x);
-				return RecursiveInjection::injection(T(-sx) + C);
+				auto y = T(-sx) + C;
+				ITHARE_OBF_DBG_MAP_ADD("<1>/ret",dbg_map, x,y);
+				return_type ret = RecursiveInjection::injection(y);
+				ITHARE_OBF_DBG_MAP_ADD("<1>/r",dbg_map_r, y, ret);
+				return ret;
 			}
-			else
-				return RecursiveInjection::injection(x + C);
+			else {
+				T y = x + C;
+				ITHARE_OBF_DBG_MAP_ADD("<1>/ret",dbg_map, x,y);
+				return_type ret = RecursiveInjection::injection(y);
+				ITHARE_OBF_DBG_MAP_ADD("<1>/r",dbg_map_r, y, ret);
+				return ret;
+			}
 		}
 		ITHARE_OBF_FORCEINLINE constexpr static T surjection(return_type y) {
-			T yy = RecursiveInjection::surjection(y) - C;
+			T yy0 = RecursiveInjection::surjection(y);
+			ITHARE_OBF_DBG_MAP_CHECK("<1>/r", dbg_map_r, yy0,y,RecursiveInjection::);
+			T yy = yy0-C;
 			if constexpr(neg) {
 				ST syy = ST(yy);
-				return T(-syy);
+				T ret = T(-syy);
+				ITHARE_OBF_DBG_MAP_CHECK("<1>/ret(a)", dbg_map, ret,yy0,);
+				return ret;
 			}
-			else
+			else {
+				ITHARE_OBF_DBG_MAP_CHECK("<1>/ret(b)", dbg_map, yy,yy0,);
 				return yy;
+			}
 		}
 
-		static constexpr bool has_add_mod_max_value_ex = true;
-		ITHARE_OBF_FORCEINLINE constexpr static T injected_add_mod_max_value_ex(T base,T x) {
+		static constexpr bool has_add_mod_max_value_ex = false;
+		/*@@! ITHARE_OBF_FORCEINLINE constexpr static T injected_add_mod_max_value_ex(T base,T x) {
 			if constexpr(RecursiveInjection::has_add_mod_max_value_ex) {
 				if constexpr(neg) {
 					//return injection(surjection(base) + x);
@@ -548,7 +626,7 @@ namespace ithare {
 				}
 			}
 			//return base + x;//sic! - no C involved
-		}
+		}*/
 
 #ifdef ITHARE_OBF_ENABLE_DBGPRINT
 		static void dbgPrint(size_t offset = 0, const char* prefix = "") {
@@ -557,6 +635,13 @@ namespace ithare {
 		}
 #endif
 	};
+
+#ifdef ITHARE_OBF_DEFINE_DBG_MAP
+	template <class T, class Context, class InjectionRequirements, ITHARE_OBF_SEEDTPARAM seed, OBFCYCLES cycles>
+	std::map<T, T> obf_injection_version<1, T, Context, InjectionRequirements, seed, cycles>::dbg_map = {};
+	template <class T, class Context, class InjectionRequirements, ITHARE_OBF_SEEDTPARAM seed, OBFCYCLES cycles>
+	std::map<T, typename obf_injection_version<1, T, Context, InjectionRequirements, seed, cycles>::return_type> obf_injection_version<1, T, Context, InjectionRequirements, seed, cycles>::dbg_map_r = {};
+#endif
 
 	//helper for Feistel-like: randomized_non_reversible_function 
 	template<size_t which, class T, ITHARE_OBF_SEEDTPARAM seed, OBFCYCLES cycles>
@@ -688,6 +773,7 @@ namespace ithare {
 
 		struct RecursiveInjectionRequirements {
 			static constexpr size_t exclude_version = size_t(-1);
+			static constexpr bool is_constexpr = InjectionRequirements::is_constexpr;
 			static constexpr bool only_bijections = InjectionRequirements::only_bijections;
 			static constexpr bool no_physical_size_increase = InjectionRequirements::no_physical_size_increase;
 		};
@@ -772,6 +858,7 @@ namespace ithare {
 
 		struct RecursiveInjectionRequirements {
 			static constexpr size_t exclude_version = size_t(-1);
+			static constexpr bool is_constexpr = InjectionRequirements::is_constexpr;
 			static constexpr bool only_bijections = InjectionRequirements::only_bijections;
 			static constexpr bool no_physical_size_increase = InjectionRequirements::no_physical_size_increase;
 		};
@@ -780,6 +867,7 @@ namespace ithare {
 
 		struct LoHiInjectionRequirements {
 			static constexpr size_t exclude_version = size_t(-1);
+			static constexpr bool is_constexpr = InjectionRequirements::is_constexpr;
 			static constexpr bool only_bijections = true;
 			static constexpr bool no_physical_size_increase = InjectionRequirements::no_physical_size_increase;
 		};
@@ -902,6 +990,7 @@ namespace ithare {
 
 		struct RecursiveInjectionRequirements {
 			static constexpr size_t exclude_version = 4;
+			static constexpr bool is_constexpr = InjectionRequirements::is_constexpr;
 			static constexpr bool only_bijections = InjectionRequirements::only_bijections;
 			static constexpr bool no_physical_size_increase = InjectionRequirements::no_physical_size_increase;
 		};
@@ -918,12 +1007,28 @@ namespace ithare {
 		constexpr static typename Traits::literal_type CINV = CINV0;
 
 		using literal = typename Context::template literal<typename Traits::literal_type, CINV, ITHARE_OBF_NEW_PRNG(seed, 3)>::type;
+			//using CINV in injection to hide literals a bit better...
+
+#ifdef ITHARE_OBF_DEFINE_DBG_MAP
+		static std::map<T,T> dbg_map;
+		static std::map<T,return_type> dbg_map_r;
+#endif
 
 		ITHARE_OBF_FORCEINLINE constexpr static return_type injection(T x) {
-			return RecursiveInjection::injection(typename Traits::UintT(x) * typename Traits::UintT(T(literal().value())));//using CINV in injection to hide literals a bit better...
+			T lit = CINV0;//@@! literal().value();
+			ITHARE_OBF_DBG_CHECK_LITERAL("<4>",lit, CINV0,);
+			auto y = typename Traits::UintT(x) * typename Traits::UintT(lit);
+			ITHARE_OBF_DBG_MAP_ADD("<4>/ret",dbg_map, x,y);
+			return_type ret = RecursiveInjection::injection(y);
+			ITHARE_OBF_DBG_MAP_ADD("<4>/r",dbg_map_r, y, ret);
+			return ret;
 		}
 		ITHARE_OBF_FORCEINLINE constexpr static T surjection(return_type y) {
-			return RecursiveInjection::surjection(y) * C;
+			T x = RecursiveInjection::surjection(y);
+			ITHARE_OBF_DBG_MAP_CHECK("<4>/r", dbg_map_r, x, y,RecursiveInjection::);
+			T ret = x * C;
+			ITHARE_OBF_DBG_MAP_CHECK("<4>/ret", dbg_map, ret,x, );
+			return ret;
 		}
 
 		static constexpr bool has_add_mod_max_value_ex = false;
@@ -938,6 +1043,13 @@ namespace ithare {
 		}
 #endif
 	};
+
+#ifdef ITHARE_OBF_DEFINE_DBG_MAP
+	template <class T, class Context, class InjectionRequirements, ITHARE_OBF_SEEDTPARAM seed, OBFCYCLES cycles>
+	std::map<T, T> obf_injection_version<4, T, Context, InjectionRequirements, seed, cycles>::dbg_map = {};
+	template <class T, class Context, class InjectionRequirements, ITHARE_OBF_SEEDTPARAM seed, OBFCYCLES cycles>
+	std::map<T, typename obf_injection_version<4, T, Context, InjectionRequirements, seed, cycles>::return_type> obf_injection_version<4, T, Context, InjectionRequirements, seed, cycles>::dbg_map_r = {};
+#endif
 
 	//version 5: split (w/o join)
 	template<class T, class Context>
@@ -961,6 +1073,7 @@ namespace ithare {
 
 		struct RecursiveInjectionRequirements {
 			static constexpr size_t exclude_version = size_t(-1);
+			static constexpr bool is_constexpr = InjectionRequirements::is_constexpr;
 			static constexpr bool only_bijections = InjectionRequirements::only_bijections;
 			static constexpr bool no_physical_size_increase = InjectionRequirements::no_physical_size_increase;
 		};
@@ -1060,6 +1173,7 @@ namespace ithare {
 
 		struct RecursiveInjectionRequirements {
 			static constexpr size_t exclude_version = 6;
+			static constexpr bool is_constexpr = InjectionRequirements::is_constexpr;
 			static constexpr bool only_bijections = InjectionRequirements::only_bijections;
 			static constexpr bool no_physical_size_increase = InjectionRequirements::no_physical_size_increase;
 		};
@@ -1080,6 +1194,7 @@ namespace ithare {
 	public:
 		struct LoInjectionRequirements {
 			static constexpr size_t exclude_version = size_t(-1);
+			static constexpr bool is_constexpr = InjectionRequirements::is_constexpr;
 			static constexpr bool only_bijections = true;
 			static constexpr bool no_physical_size_increase = InjectionRequirements::no_physical_size_increase;
 		};
@@ -1147,6 +1262,7 @@ namespace ithare {
 
 		struct RecursiveInjectionRequirements {
 			static constexpr size_t exclude_version = T(-1);
+			static constexpr bool is_constexpr = InjectionRequirements::is_constexpr;
 			static constexpr bool only_bijections = InjectionRequirements::only_bijections;
 			static constexpr bool no_physical_size_increase = true;
 		};
@@ -1201,22 +1317,43 @@ namespace ithare {
 				return (T(hi1) << loBits) + T(lo1);
 			}
 		};
+
+#ifdef ITHARE_OBF_DEFINE_DBG_MAP
+		inline static std::map<T, TypeLo> dbg_map_lo = {};
+		inline static std::map<T, TypeHi> dbg_map_hi = {};
+		inline static std::map<TypeLo,typename RecursiveInjectionLo::return_type> dbg_map_rlo = {};
+		inline static std::map<TypeHi, typename RecursiveInjectionHi::return_type> dbg_map_rhi = {};
+#endif
+
 		ITHARE_OBF_FORCEINLINE constexpr static return_type injection(T x) {
-			return_type ret{ RecursiveInjectionLo::injection(TypeLo(typename TypeLo::T(x))), 
-				RecursiveInjectionHi::injection(TypeHi(typename TypeHi::T(x >> loBits))) };
+			TypeLo lo = TypeLo(typename TypeLo::T(x));
+			TypeHi hi = TypeHi(typename TypeHi::T(x >> loBits));
+			ITHARE_OBF_DBG_MAP_ADD("<7>/lo",dbg_map_lo, x, lo);
+			ITHARE_OBF_DBG_MAP_ADD("<7>/hi",dbg_map_hi, x, hi);
+			return_type ret{ RecursiveInjectionLo::injection(lo),
+				RecursiveInjectionHi::injection(hi) };
+			ITHARE_OBF_DBG_MAP_ADD("<7>/rlo",dbg_map_rlo, lo, ret.lo);
+			ITHARE_OBF_DBG_MAP_ADD("<7>/rhi",dbg_map_rhi, hi, ret.hi);
 			return ret;
 		}
 		ITHARE_OBF_FORCEINLINE constexpr static T surjection(return_type y_) {
 			TypeHi hi = RecursiveInjectionHi::surjection(y_.hi);
+			ITHARE_OBF_DBG_MAP_CHECK("<7>/rhi",dbg_map_rhi, hi, y_.hi, RecursiveInjectionHi::);
 			TypeLo lo = RecursiveInjectionLo::surjection(y_.lo);
-			return T(lo) + T(T(hi) << loBits);
+			ITHARE_OBF_DBG_MAP_CHECK("<7>/rlo", dbg_map_rlo, lo , y_.lo, RecursiveInjectionLo::);
+
+			T ret = T(lo) + T(T(hi) << loBits);
+			ITHARE_OBF_DBG_MAP_CHECK("<7>/hi", dbg_map_hi, ret, T(hi), );
+			ITHARE_OBF_DBG_MAP_CHECK("<7>/lo", dbg_map_lo, ret, T(lo), );
+			return ret;
 		}
 
 		static constexpr bool has_add_mod_max_value_ex = false;
 
 #ifdef ITHARE_OBF_ENABLE_DBGPRINT
 		static void dbgPrint(size_t offset = 0, const char* prefix = "") {
-			std::cout << std::string(offset, ' ') << prefix << "obf_injection_version<7/*split into ObfBitUint<>*/," << obf_dbgPrintT<T>() << "," << obf_dbgPrintSeed<seed>() << "," << cycles << ">" << std::endl;
+			std::cout << std::string(offset, ' ') << prefix << "obf_injection_version<7/*split into ObfBitUint<>*/," << obf_dbgPrintT<T>() << ", Context, InjectionRequirements, " << obf_dbgPrintSeed<seed>() << "," << cycles << ">" << std::endl;
+			Context::dbgPrint(offset + 1, "Context:");
 			TypeLo::dbgPrint(offset + 1, "TypeLo:");
 			RecursiveInjectionLo::dbgPrint(offset + 1, "Lo:");
 			TypeHi::dbgPrint(offset + 1, "TypeHi:");
@@ -1224,6 +1361,8 @@ namespace ithare {
 		}
 #endif
 	};
+
+
 
 	#if 0 //COMMENTED OUT - TOO OBVIOUS IN DECOMPILE :-(; if using - rename into "version 8"
 	//version 7: 1-bit rotation 
@@ -1627,6 +1766,7 @@ namespace ithare {
 
 		struct InjectionRequirements {
 			static constexpr size_t exclude_version = size_t(-1);
+			static constexpr bool is_constexpr = true;
 			static constexpr bool only_bijections = false;
 			static constexpr bool no_physical_size_increase = false;
 		};
@@ -1658,6 +1798,7 @@ namespace ithare {
 		using Context = ObfLiteralContext<T, ITHARE_OBF_NEW_PRNG(seed, 1),cycles>;
 		struct InjectionRequirements {
 			static constexpr size_t exclude_version = size_t(-1);
+			static constexpr bool is_constexpr = true;
 			static constexpr bool only_bijections = false;
 			static constexpr bool no_physical_size_increase = false;
 		};
@@ -1727,6 +1868,7 @@ namespace ithare {
 		using Context = ObfVarContext<T, ITHARE_OBF_NEW_PRNG(seed, 1), cycles>;
 		struct InjectionRequirements {
 			static constexpr size_t exclude_version = size_t(-1);
+			static constexpr bool is_constexpr = false;
 			static constexpr bool only_bijections = false;
 			static constexpr bool no_physical_size_increase = false;
 		};
@@ -1974,6 +2116,7 @@ namespace ithare {
 
 		struct InjectionRequirements {
 			static constexpr size_t exclude_version = size_t(-1);
+			static constexpr bool is_constexpr = true;
 			static constexpr bool only_bijections = true;
 			static constexpr bool no_physical_size_increase = false;
 		};

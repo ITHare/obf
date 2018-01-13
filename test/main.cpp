@@ -144,9 +144,10 @@ public:
 };
 
 int main(int argc, char** argv) {
-#ifndef NDEBUG
+//#ifndef NDEBUG
 	freopen("ConsoleApplication1.log", "w", stdout);
-#endif
+//#endif
+	printf("%s %d\n", __FILE__, __LINE__);
 	//auto xxx = OBFS_("Hello!")::str_obf();
 	//auto hello = OBF5S("Hello, cruel MOG world! :-(");
 	//DBGPRINT(hello)
@@ -157,6 +158,7 @@ int main(int argc, char** argv) {
 	//std::cout << obf_string_literal("Hello, obfuscation!") << std::endl;
 
 	obf_init();
+	//obf_injection_version<7/*split into ObfBitUint<>*/, uint32_t, 4675287498475271348, 189> inj;
 	/*ObfBitUint<size_t, 31> x = 12832197;
 	auto y = obf_mul_inverse_mod2n(x);
 	assert(y*x == 1);
