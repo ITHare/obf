@@ -35,16 +35,12 @@ public:
 	}
 };*/
 
-#ifndef NDEBUG
-#define ITHARE_OBF_DBG_ENABLE_DBGPRINT
-#endif
-
 /*template<class T, T C, OBFSEED seed, OBFCYCLES cycles>
 constexpr obf_literal<T, C, seed, cycles> obfl(T C, OBFSEED seed, OBFCYCLES cycles) {
 	return obf_literal<T, C, seed, cycles>();
 }*/
 
-#ifdef ITHARE_OBF_DBG_ENABLE_DBGPRINT
+#if !defined(NDEBUG) && defined(ITHARE_OBF_DBG_ENABLE_DBGPRINT)
 #define DBGPRINT(x) static bool x##Printed = false;\
 if(!x##Printed) { \
   std::cout << #x << std::endl;\

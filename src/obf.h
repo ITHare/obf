@@ -366,6 +366,36 @@ namespace ithare {
 			static constexpr size_t nbits = 8;
 		};
 
+#ifdef ITHARE_OBF_DBG_ENABLE_DBGPRINT
+	//dbgPrint helpers
+	template<class T>
+	std::string obf_dbgPrintT() {
+		return ObfTraits<T>::type_name();
+	}
+
+	//fwd decl
+	template<size_t N>
+	class ObfBitUint;
+
+	template<class T>
+	struct ObfPrintC {
+		using type = T;
+	};
+	template<>
+	struct ObfPrintC<uint8_t> {
+		using type = int;
+	};
+	template<size_t N>
+	struct ObfPrintC<ObfBitUint<N>> {
+		using type = typename ObfPrintC<typename ObfBitUint<N>::T>::type;
+	};
+
+	template<class T>
+	typename ObfPrintC<T>::type obf_dbgPrintC(T c) {
+		return typename ObfPrintC<T>::type(c);
+	}
+#endif
+
 		constexpr size_t obf_smallest_uint_size(size_t n) {
 			assert(n <= 64);
 			if (n <= 8)
@@ -444,7 +474,7 @@ namespace ithare {
 
 		private:
 			static constexpr UT high = UT(UT(1) << N);
-			static constexpr UT mask = obf_mask<T>(N);
+			static constexpr UT mask = obf_mask<UT>(N);
 
 		public:
 			constexpr ObfBitSint() : val(0) {}
@@ -481,36 +511,6 @@ namespace ithare {
 	class obf_literal_ctx;
 	template<class T_, T_ C_, ITHARE_OBF_SEEDTPARAM seed, OBFCYCLES cycles>
 	class obf_literal;
-
-#ifdef ITHARE_OBF_DBG_ENABLE_DBGPRINT
-	//dbgPrint helpers
-	template<class T>
-	std::string obf_dbgPrintT() {
-		return ObfTraits<T>::type_name();
-	}
-
-	//fwd decl
-	template<size_t N>
-	class ObfBitUint;
-
-	template<class T>
-	struct ObfPrintC {
-		using type = T;
-	};
-	template<>
-	struct ObfPrintC<uint8_t> {
-		using type = int;
-	};
-	template<size_t N>
-	struct ObfPrintC<ObfBitUint<N>> {
-		using type = typename ObfPrintC<typename ObfBitUint<N>::T>::type;
-	};
-
-	template<class T>
-	typename ObfPrintC<T>::type obf_dbgPrintC(T c) {
-		return typename ObfPrintC<T>::type(c);
-	}
-#endif
 
 	//ObfRecursiveContext
 	template<class T, class Context, ITHARE_OBF_SEEDTPARAM seed, OBFCYCLES cycles>

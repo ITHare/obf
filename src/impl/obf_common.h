@@ -25,7 +25,9 @@
 #define ITHARE_OBF_CONSISTENT_XPLATFORM_IMPLICIT_SEEDS
 //---#define ITHARE_OBF_DBG_MAP --- obsolete?
 //---#define ITHARE_OBF_DBG_MAP_LOG -- obsolete?
+#ifndef NDEBUG
 #define ITHARE_OBF_DBG_RUNTIME_CHECKS
+#endif
 
 #define ITHARE_OBF_INIT 
 //enables rather nasty obfuscations (including PEB-based debugger detection),
