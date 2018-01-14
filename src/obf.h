@@ -2320,8 +2320,8 @@ namespace ithare {
 							(sizeof(s)>28?s[28]:'\0'),(sizeof(s)>29?s[29]:'\0'),(sizeof(s)>30?s[30]:'\0'),(sizeof(s)>31?s[31]:'\0'),\
 							(sizeof(s)>32?s[32]:'\0')/*one extra to generate an error if we're over*/>
 
-#ifdef _MSC_VER
 //direct use of __LINE__ doesn't count as constexpr in MSVC - don't ask why...
+//  AND we DO want to align other compilers with MSVC at least for ITHARE_OBF_CONSISTENT_XPLATFORM_IMPLICIT_SEEDS
 
 //along the lines of https://stackoverflow.com/questions/19343205/c-concatenating-file-and-line-macros:
 #define ITHARE_OBF_S1(x) #x
@@ -2352,7 +2352,7 @@ namespace ithare {
 #define ITHARE_OBF5S(s) ITHARE_OBFS_HELPER(ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+5),s)()
 #define ITHARE_OBF6S(s) ITHARE_OBFS_HELPER(ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+6),s)()
 
-#else//_MSC_VER
+/*#else//_MSC_VER
 #define ITHARE_OBF0(type) ithare::obf::obf_var<type,ITHARE_OBF_INIT_PRNG(__FILE__,__LINE__,__COUNTER__),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+0)>
 #define ITHARE_OBF1(type) ithare::obf::obf_var<type,ITHARE_OBF_INIT_PRNG(__FILE__,__LINE__,__COUNTER__),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+1)>
 #define ITHARE_OBF2(type) ithare::obf::obf_var<type,ITHARE_OBF_INIT_PRNG(__FILE__,__LINE__,__COUNTER__),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+2)>
@@ -2376,8 +2376,7 @@ namespace ithare {
 #define ITHARE_OBF4S(s) ITHARE_OBFS_HELPER(ITHARE_OBF_INIT_PRNG(__FILE__,__LINE__,__COUNTER__),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+4),s)().value()
 #define ITHARE_OBF5S(s) ITHARE_OBFS_HELPER(ITHARE_OBF_INIT_PRNG(__FILE__,__LINE__,__COUNTER__),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+5),s)().value()
 #define ITHARE_OBF6S(s) ITHARE_OBFS_HELPER(ITHARE_OBF_INIT_PRNG(__FILE__,__LINE__,__COUNTER__),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+6),s)().value()
-
-#endif
+#endif*/
 
 #else//ITHARE_OBF_SEED
 namespace ithare {

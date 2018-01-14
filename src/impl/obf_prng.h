@@ -30,6 +30,15 @@ namespace ithare {
 			UINT64_C(0xed42'd3d0'44cf'a1cc), UINT64_C(0xb333'dc8d'6f58'1f30), UINT64_C(0x2700'b0b7'ad09'32eb), UINT64_C(0xa431'c3be'c084'4f3c)
 		};/*from random.org*/
 
+		constexpr const char* obf_normalize_fname(const char* file) {
+			//normalizing __FILE__ to the bare file name (without path, which does change between debug/release)
+			const char* ret = file;
+			for (const char *p = file; *p; ++p)
+				if (*p == '/' || *p == '\\')
+					ret = p + 1;
+			return ret;
+		}
+
 #ifndef ITHARE_OBF_CRYPTO_PRNG//CRYPTO PRNG slows down compile but uses 128-bit crypto-grade PRNGs 
 		constexpr uint64_t obf_murmurhash2(uint64_t u, uint64_t seed) {
 			//adapted to 64-bit-only input from https://sites.google.com/site/murmurhash/MurmurHash2_64.cpp
@@ -115,17 +124,11 @@ namespace ithare {
 		}
 		constexpr uint64_t obf_init_prng(const char* file, int line, int counter) {
 			uint64_t u = obf_seed ^ line;
-#ifdef ITHARE_OBF_CONSISTENT_DEBUG_RELEASE
-#ifdef _MSC_VER
-			//normalizing __FILE__ to the bare file name (without path, which does change between debug/release)
-			const char* filename = file;
-			for (const char *p = file; *p; ++p)
-				if (*p == '\\')
-					filename = p + 1;
-#endif
+#ifdef ITHARE_OBF_CONSISTENT_XPLATFORM_IMPLICIT_SEEDS
+			const char* filename = obf_normalize_fname(file);
 #else//!CONSISTENT
 			u ^= counter;
-			const char* filename = p;
+			const char* filename = file;
 #endif
 			for (const char* p = filename; *p; ++p)//effectively djb2 by Dan Bernstein, albeit with different initializer
 				u = ((u << 5) + u) + *p;
@@ -221,17 +224,11 @@ namespace ithare {
 		}
 		constexpr std::pair<uint64_t, uint64_t> obf_init_prng(const char* file, int line, int counter) {
 			uint64_t v0 = line;
-#ifdef ITHARE_OBF_CONSISTENT_DEBUG_RELEASE
-#ifdef _MSC_VER
-			//normalizing __FILE__ to the bare file name (without path, which does change between debug/release)
-			const char* filename = file;
-			for (const char *p = file; *p; ++p)
-				if (*p == '\\')
-					filename = p + 1;
-#endif
+#ifdef ITHARE_OBF_CONSISTENT_XPLATFORM_IMPLICIT_SEEDS
+			const char* filename = obf_normalize_fname(file);
 #else//!CONSISTENT
 			v0 ^= counter;
-			const char* filename = p;
+			const char* filename = file;
 #endif
 			uint64_t u = 5381;
 			for (const char* p = filename; *p; ++p)//djb2 by Dan Bernstein

@@ -22,9 +22,9 @@
 #define ITHARE_OBF_SEED 0x0c7dfa61a871b133
 #define ITHARE_OBF_SEED2 0xdacb5ca59a237d13 
 
-#define ITHARE_OBF_CONSISTENT_DEBUG_RELEASE
-//#define ITHARE_OBF_DBG_MAP --- obsolete?
-//#define ITHARE_OBF_DBG_MAP_LOG -- obsolete?
+#define ITHARE_OBF_CONSISTENT_XPLATFORM_IMPLICIT_SEEDS
+//---#define ITHARE_OBF_DBG_MAP --- obsolete?
+//---#define ITHARE_OBF_DBG_MAP_LOG -- obsolete?
 #define ITHARE_OBF_DBG_RUNTIME_CHECKS
 
 #define ITHARE_OBF_INIT 
