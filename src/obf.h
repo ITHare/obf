@@ -90,10 +90,28 @@ namespace ithare {
 		}while (false)
 #endif//!_LOG
 #else
-		#define ITHARE_OBF_DBG_MAP_ADD(where,dbg_map, from,to)
-		#define ITHARE_OBF_DBG_MAP_CHECK(where,dbg_map,from,to,whoToPrint)
-		#define ITHARE_OBF_DBG_CHECK_LITERAL(where, val, c,whoToPrint)
+#define ITHARE_OBF_DBG_MAP_ADD(where,dbg_map, from,to)
+#define ITHARE_OBF_DBG_MAP_CHECK(where,dbg_map,from,to,whoToPrint)
+//#define ITHARE_OBF_DBG_CHECK_LITERAL(where, val, c,whoToPrint)
 #endif
+
+#define ITHARE_OBF_DBG_CHECK_LITERAL(where, val, c,whoToPrint) do {\
+			if constexpr(!InjectionRequirements::is_constexpr) {\
+				if (val != c) {\
+					std::cout << "DBG_CHECK_LITERAL ERROR @" << where << ": " << val << "!=" << c << std::endl; \
+					whoToPrint dbgPrint(); \
+					abort(); \
+				}\
+			}\
+		}while (false)
+
+#define ITHARE_OBF_DBG_ASSERT_SURJECTION(where,x,y) do {\
+			if (surjection(y) != x) {\
+				std::cout << "DBG_ASSERT_SURJECTION FAILED @" << where << ": injection(" << x << ")=" << y << " but surjection(" << y << ") = " << surjection(y) << " != " << x << std::endl; \
+				dbgPrint(); \
+				abort(); \
+			}\
+		} while(false)
 
 		//POTENTIALLY user-modifiable constexpr function:
 		constexpr OBFCYCLES obf_exp_cycles(int exp) {
@@ -402,7 +420,7 @@ namespace ithare {
 
 #ifdef ITHARE_OBF_ENABLE_DBGPRINT
 		static void dbgPrint(size_t offset = 0,const char* prefix="") {
-			std::cout << std::string(offset, ' ') << prefix << "ObfUint<" << N << ">: mask =" << obf_dbgPrintC<T>(mask) << std::endl;
+			std::cout << std::string(offset, ' ') << prefix << "ObfBitUint<" << N << ">: mask =" << obf_dbgPrintC<T>(mask) << std::endl;
 		}
 #endif
 
@@ -440,7 +458,7 @@ namespace ithare {
 		public:
 			static constexpr bool is_built_in = false;
 			static std::string type_name() {
-				return std::string("ObfUint<") + std::to_string(N) + ">";
+				return std::string("ObfBitUint<") + std::to_string(N) + ">";
 			}
 			using signed_type = ObfBitSint<N>;
 			using literal_type = typename TT::T;
@@ -575,6 +593,7 @@ namespace ithare {
 				ITHARE_OBF_DBG_MAP_ADD("<1>/ret",dbg_map, x,y);
 				return_type ret = RecursiveInjection::injection(y);
 				ITHARE_OBF_DBG_MAP_ADD("<1>/r",dbg_map_r, y, ret);
+				ITHARE_OBF_DBG_ASSERT_SURJECTION("<1>/a",x,ret);
 				return ret;
 			}
 			else {
@@ -582,6 +601,7 @@ namespace ithare {
 				ITHARE_OBF_DBG_MAP_ADD("<1>/ret",dbg_map, x,y);
 				return_type ret = RecursiveInjection::injection(y);
 				ITHARE_OBF_DBG_MAP_ADD("<1>/r",dbg_map_r, y, ret);
+				ITHARE_OBF_DBG_ASSERT_SURJECTION("<1>/b", x, ret);
 				return ret;
 			}
 		}
@@ -1015,7 +1035,7 @@ namespace ithare {
 #endif
 
 		ITHARE_OBF_FORCEINLINE constexpr static return_type injection(T x) {
-			T lit = CINV0;//@@! literal().value();
+			T lit = literal().value();
 			ITHARE_OBF_DBG_CHECK_LITERAL("<4>",lit, CINV0,);
 			auto y = typename Traits::UintT(x) * typename Traits::UintT(lit);
 			ITHARE_OBF_DBG_MAP_ADD("<4>/ret",dbg_map, x,y);
@@ -1414,6 +1434,7 @@ namespace ithare {
 	//obf_injection: combining obf_injection_version
 	template<class T, class Context, ITHARE_OBF_SEEDTPARAM seed, OBFCYCLES cycles,class InjectionRequirements>
 	class obf_injection {
+		static_assert(std::is_same<T, typename Context::Type>::value);
 		using Traits = ObfTraits<T>;
 		constexpr static std::array<ObfDescriptor, 8> descr{
 			obf_injection_version0_descr<Context>::descr,
@@ -1679,6 +1700,7 @@ namespace ithare {
 	template<class T>
 	struct ObfZeroLiteralContext {
 		//same as ObfLiteralContext_version<0,...> but with additional stuff to make it suitable for use as Context parameter to injections
+		using Type = T;
 		constexpr static OBFCYCLES context_cycles = 0;
 		constexpr static OBFCYCLES calc_cycles(OBFCYCLES inj, OBFCYCLES surj) {
 			return surj;//for literals, ONLY surjection costs apply in runtime (as injection applies in compile-time)
@@ -1723,6 +1745,7 @@ namespace ithare {
 		using WhichType = ObfLiteralContext_version<which, T, seed>;
 
 	public:
+		using Type = T;
 		constexpr static OBFCYCLES context_cycles = WhichType::context_cycles;
 		constexpr static OBFCYCLES calc_cycles(OBFCYCLES inj, OBFCYCLES surj) {
 			return surj;//for literals, ONLY surjection costs apply in runtime (as injection applies in compile-time)
@@ -1826,15 +1849,16 @@ namespace ithare {
 	//ObfVarContext
 	template<class T, ITHARE_OBF_SEEDTPARAM seed,OBFCYCLES cycles>
 	struct ObfVarContext {
+		using Type = T;
 		constexpr static OBFCYCLES context_cycles = 0;
 		constexpr static OBFCYCLES calc_cycles(OBFCYCLES inj, OBFCYCLES surj) {
 			return inj + surj;//for variables, BOTH injection and surjection are executed in runtime
 		}
 
 		constexpr static OBFCYCLES literal_cycles = std::min(cycles/2,50);//TODO: justify (or define?)
-		using LiteralContext = ObfLiteralContext<T, seed, literal_cycles>;
 		template<class T2, T2 C, ITHARE_OBF_SEEDTPARAM seed2>
 		struct literal {
+			using LiteralContext = ObfLiteralContext<T2, seed, literal_cycles>;
 			using type = obf_literal_ctx<T2, C, LiteralContext, seed2, literal_cycles>;
 		};
 
