@@ -140,9 +140,9 @@ public:
 };
 
 int main(int argc, char** argv) {
-//#ifndef NDEBUG
+#ifndef NDEBUG
 	freopen("ConsoleApplication1.log", "w", stdout);
-//#endif
+#endif
 	printf("%s %d\n", __FILE__, __LINE__);
 	//auto xxx = OBFS_("Hello!")::str_obf();
 	//auto hello = OBF5S("Hello, cruel MOG world! :-(");
