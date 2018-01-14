@@ -39,6 +39,7 @@ namespace ithare {
 
 		using OBFCYCLES = int32_t;//signed!
 
+/* - obsolete?
 #ifdef ITHARE_OBF_DBG_MAP
 #ifdef ITHARE_OBF_DBG_MAP_LOG
 #define ITHARE_OBF_DBG_MAP_ADD(where,dbg_map, from,to) 	do {\
@@ -94,17 +95,10 @@ namespace ithare {
 #define ITHARE_OBF_DBG_MAP_CHECK(where,dbg_map,from,to,whoToPrint)
 //#define ITHARE_OBF_DBG_CHECK_LITERAL(where, val, c,whoToPrint)
 #endif
+*/
 
-#define ITHARE_OBF_DBG_CHECK_LITERAL(where, val, c,whoToPrint) do {\
-			if constexpr(!InjectionRequirements::is_constexpr) {\
-				if (val != c) {\
-					std::cout << "DBG_CHECK_LITERAL ERROR @" << where << ": " << val << "!=" << c << std::endl; \
-					whoToPrint dbgPrint(); \
-					abort(); \
-				}\
-			}\
-		}while (false)
-
+#ifdef ITHARE_OBF_DBG_RUNTIME_CHECKS
+#define ITHARE_OBF_DBG_ENABLE_DBGPRINT//necessary for checks to work
 #define ITHARE_OBF_DBG_ASSERT_SURJECTION(where,x,y) do {\
 			if (surjection(y) != x) {\
 				std::cout << "DBG_ASSERT_SURJECTION FAILED @" << where << ": injection(" << x << ")=" << y << " but surjection(" << y << ") = " << surjection(y) << " != " << x << std::endl; \
@@ -112,6 +106,19 @@ namespace ithare {
 				abort(); \
 			}\
 		} while(false)
+#define ITHARE_OBF_DBG_CHECK_LITERAL(where, val, c) do {\
+			if (val.value() != c) {\
+				std::cout << "DBG_CHECK_LITERAL ERROR @" << where << ": " << val.value() << "!=" << c << std::endl; \
+				val.dbgCheck();\
+				dbgPrint(); \
+				abort(); \
+			}\
+		}while (false)
+
+#else
+#define ITHARE_OBF_DBG_ASSERT_SURJECTION(where,x,y)
+#define ITHARE_OBF_DBG_CHECK_LITERAL(where, val, c)
+#endif//ITHARE_OBF_DBG_RUNTIME_CHECKS
 
 		//POTENTIALLY user-modifiable constexpr function:
 		constexpr OBFCYCLES obf_exp_cycles(int exp) {
@@ -404,21 +411,19 @@ namespace ithare {
 			static constexpr T mask = obf_mask<T>(N);
 
 		public:
-			constexpr ObfBitUint() : val(0) {}
-			constexpr ObfBitUint(T x) : val(x & mask) {}
+			constexpr ITHARE_OBF_FORCEINLINE ObfBitUint() : val(0) {}
+			constexpr ITHARE_OBF_FORCEINLINE ObfBitUint(T x) : val(x & mask) {}
 			//constexpr ObfBitUint(const ObfBitUint& other) : val(other.val) {}
 			//constexpr ObfBitUint(const volatile ObfBitUint& other) : val(other.val) {}
-			constexpr operator T() const { assert((val&mask) == val); return val & mask; }
+			constexpr ITHARE_OBF_FORCEINLINE operator T() const { assert((val&mask) == val); return val & mask; }
 
-			constexpr ObfBitUint operator *(ObfBitUint x) const { return ObfBitUint(val * x.val); }
-			constexpr ObfBitUint operator +(ObfBitUint x) const { return ObfBitUint(val + x.val); }
-			constexpr ObfBitUint operator -(ObfBitUint x) const { return ObfBitUint(val - x.val); }
-			constexpr ObfBitUint operator %(ObfBitUint x) const { return ObfBitUint(val%x.val); }
-			constexpr ObfBitUint operator /(ObfBitUint x) const { return ObfBitUint(val / x.val); }
+			constexpr ITHARE_OBF_FORCEINLINE ObfBitUint operator *(ObfBitUint x) const { return ObfBitUint(val * x.val); }
+			constexpr ITHARE_OBF_FORCEINLINE ObfBitUint operator +(ObfBitUint x) const { return ObfBitUint(val + x.val); }
+			constexpr ITHARE_OBF_FORCEINLINE ObfBitUint operator -(ObfBitUint x) const { return ObfBitUint(val - x.val); }
+			constexpr ITHARE_OBF_FORCEINLINE ObfBitUint operator %(ObfBitUint x) const { return ObfBitUint(val%x.val); }
+			constexpr ITHARE_OBF_FORCEINLINE ObfBitUint operator /(ObfBitUint x) const { return ObfBitUint(val / x.val); }
 
-			//constexpr ObfBitUint operator -(ObfBitUint x) const volatile { return ObfBitUint(val - x.val); }//TODO: others
-
-#ifdef ITHARE_OBF_ENABLE_DBGPRINT
+#ifdef ITHARE_OBF_DBG_ENABLE_DBGPRINT
 		static void dbgPrint(size_t offset = 0,const char* prefix="") {
 			std::cout << std::string(offset, ' ') << prefix << "ObfBitUint<" << N << ">: mask =" << obf_dbgPrintC<T>(mask) << std::endl;
 		}
@@ -435,6 +440,7 @@ namespace ithare {
 			using UT = typename obf_uint_by_size<obf_smallest_uint_size(N)>::type;
 			using T = typename std::make_signed<UT>::type;
 			static_assert(N <= sizeof(T) * 8);
+			static_assert(sizeof(T) == sizeof(typename ObfBitUint<N_>::T));
 
 		private:
 			static constexpr UT high = UT(UT(1) << N);
@@ -476,7 +482,7 @@ namespace ithare {
 	template<class T_, T_ C_, ITHARE_OBF_SEEDTPARAM seed, OBFCYCLES cycles>
 	class obf_literal;
 
-#ifdef ITHARE_OBF_ENABLE_DBGPRINT
+#ifdef ITHARE_OBF_DBG_ENABLE_DBGPRINT
 	//dbgPrint helpers
 	template<class T>
 	std::string obf_dbgPrintT() {
@@ -535,7 +541,9 @@ namespace ithare {
 	public:
 		using return_type = T;
 		ITHARE_OBF_FORCEINLINE constexpr static return_type injection(T x) {
-			return Context::final_injection(x);
+			return_type ret = Context::final_injection(x);
+			ITHARE_OBF_DBG_ASSERT_SURJECTION("<0>", x, ret);
+			return ret;
 		}
 		ITHARE_OBF_FORCEINLINE constexpr static T surjection(return_type y) {
 			return Context::final_surjection(y);
@@ -543,7 +551,7 @@ namespace ithare {
 
 		static constexpr bool has_add_mod_max_value_ex = false;
 
-#ifdef ITHARE_OBF_ENABLE_DBGPRINT
+#ifdef ITHARE_OBF_DBG_ENABLE_DBGPRINT
 		static void dbgPrint(size_t offset = 0,const char* prefix="") {
 			std::cout << std::string(offset, ' ') << prefix << "obf_injection_version<0/*identity*/," << obf_dbgPrintT<T>() << "," << obf_dbgPrintSeed<seed>() << "," << cycles << ">: availCycles=" << availCycles << std::endl;
 			Context::dbgPrint(offset + 1);
@@ -590,33 +598,33 @@ namespace ithare {
 			if constexpr(neg) {
 				ST sx = ST(x);
 				auto y = T(-sx) + C;
-				ITHARE_OBF_DBG_MAP_ADD("<1>/ret",dbg_map, x,y);
+				//ITHARE_OBF_DBG_MAP_ADD("<1>/ret",dbg_map, x,y);
 				return_type ret = RecursiveInjection::injection(y);
-				ITHARE_OBF_DBG_MAP_ADD("<1>/r",dbg_map_r, y, ret);
+				//ITHARE_OBF_DBG_MAP_ADD("<1>/r",dbg_map_r, y, ret);
 				ITHARE_OBF_DBG_ASSERT_SURJECTION("<1>/a",x,ret);
 				return ret;
 			}
 			else {
 				T y = x + C;
-				ITHARE_OBF_DBG_MAP_ADD("<1>/ret",dbg_map, x,y);
+				//ITHARE_OBF_DBG_MAP_ADD("<1>/ret",dbg_map, x,y);
 				return_type ret = RecursiveInjection::injection(y);
-				ITHARE_OBF_DBG_MAP_ADD("<1>/r",dbg_map_r, y, ret);
+				//ITHARE_OBF_DBG_MAP_ADD("<1>/r",dbg_map_r, y, ret);
 				ITHARE_OBF_DBG_ASSERT_SURJECTION("<1>/b", x, ret);
 				return ret;
 			}
 		}
 		ITHARE_OBF_FORCEINLINE constexpr static T surjection(return_type y) {
 			T yy0 = RecursiveInjection::surjection(y);
-			ITHARE_OBF_DBG_MAP_CHECK("<1>/r", dbg_map_r, yy0,y,RecursiveInjection::);
+			//ITHARE_OBF_DBG_MAP_CHECK("<1>/r", dbg_map_r, yy0,y,RecursiveInjection::);
 			T yy = yy0-C;
 			if constexpr(neg) {
 				ST syy = ST(yy);
 				T ret = T(-syy);
-				ITHARE_OBF_DBG_MAP_CHECK("<1>/ret(a)", dbg_map, ret,yy0,);
+				//ITHARE_OBF_DBG_MAP_CHECK("<1>/ret(a)", dbg_map, ret,yy0,);
 				return ret;
 			}
 			else {
-				ITHARE_OBF_DBG_MAP_CHECK("<1>/ret(b)", dbg_map, yy,yy0,);
+				//ITHARE_OBF_DBG_MAP_CHECK("<1>/ret(b)", dbg_map, yy,yy0,);
 				return yy;
 			}
 		}
@@ -648,7 +656,7 @@ namespace ithare {
 			//return base + x;//sic! - no C involved
 		}*/
 
-#ifdef ITHARE_OBF_ENABLE_DBGPRINT
+#ifdef ITHARE_OBF_DBG_ENABLE_DBGPRINT
 		static void dbgPrint(size_t offset = 0, const char* prefix = "") {
 			std::cout << std::string(offset, ' ') << prefix << "obf_injection_version<1/*add mod 2^N*/," << obf_dbgPrintT<T>() << "," << obf_dbgPrintSeed<seed>() << "," << cycles << ">: C=" << obf_dbgPrintC<T>(C) << " neg=" << neg << std::endl;
 			RecursiveInjection::dbgPrint(offset + 1);
@@ -679,7 +687,7 @@ namespace ithare {
 			return x;
 		}
 
-#ifdef ITHARE_OBF_ENABLE_DBGPRINT
+#ifdef ITHARE_OBF_DBG_ENABLE_DBGPRINT
 		static void dbgPrint(size_t offset = 0, const char* prefix = "") {
 			std::cout << std::string(offset, ' ') << prefix << "obf_randomized_non_reversible_function<0/*identity*/," << obf_dbgPrintT<T>() << "," << obf_dbgPrintSeed<seed>() << "," << cycles << ">" << std::endl;
 		}
@@ -697,7 +705,7 @@ namespace ithare {
 			return UintT(x)*UintT(x);
 		}
 
-#ifdef ITHARE_OBF_ENABLE_DBGPRINT
+#ifdef ITHARE_OBF_DBG_ENABLE_DBGPRINT
 		static void dbgPrint(size_t offset = 0, const char* prefix = "") {
 			std::cout << std::string(offset, ' ') << prefix << "obf_randomized_non_reversible_function<1/*x^2*/," << obf_dbgPrintT<T>() << "," << obf_dbgPrintSeed<seed>() << "," << cycles << ">" << std::endl;
 		}
@@ -716,7 +724,7 @@ namespace ithare {
 			return T(sx < 0 ? -sx : sx);
 		}
 
-#ifdef ITHARE_OBF_ENABLE_DBGPRINT
+#ifdef ITHARE_OBF_DBG_ENABLE_DBGPRINT
 		static void dbgPrint(size_t offset = 0, const char* prefix = "") {
 			std::cout << std::string(offset, ' ') << prefix << "obf_randomized_non_reversible_function<2/*abs*/," << obf_dbgPrintT<T>() << "," << obf_dbgPrintSeed<seed>() << "," << cycles << ">" << std::endl;
 		}
@@ -748,7 +756,7 @@ namespace ithare {
 			return FType()(x);
 		}
 
-#ifdef ITHARE_OBF_ENABLE_DBGPRINT
+#ifdef ITHARE_OBF_DBG_ENABLE_DBGPRINT
 		static void dbgPrint(size_t offset = 0, const char* prefix = "") {
 			std::cout << std::string(offset, ' ') << prefix << "obf_randomized_non_reversible_function<" << obf_dbgPrintT<T>() << "," << obf_dbgPrintSeed<seed>() << "," << cycles << ">: which=" << which << std::endl;
 			FType::dbgPrint(offset + 1);
@@ -810,7 +818,9 @@ namespace ithare {
 			T lo = x >> halfTBits;
 			//T hi = (x & mask) + f((halfT)lo);
 			T hi = x + f((halfT)lo);
-			return RecursiveInjection::injection((hi << halfTBits) + lo);
+			return_type ret = RecursiveInjection::injection((hi << halfTBits) + lo);
+			ITHARE_OBF_DBG_ASSERT_SURJECTION("<2>", x, ret);
+			return ret;
 		}
 		ITHARE_OBF_FORCEINLINE constexpr static T surjection(return_type y_) {
 			T y = RecursiveInjection::surjection(y_);
@@ -823,7 +833,7 @@ namespace ithare {
 
 		static constexpr bool has_add_mod_max_value_ex = false;
 
-#ifdef ITHARE_OBF_ENABLE_DBGPRINT
+#ifdef ITHARE_OBF_DBG_ENABLE_DBGPRINT
 		static void dbgPrint(size_t offset = 0, const char* prefix = "") {
 			std::cout << std::string(offset, ' ') << prefix << "obf_injection_version<2/*kinda-Feistel*/,"<<obf_dbgPrintT<T>()<<"," << obf_dbgPrintSeed<seed>() << "," << cycles << ">:" 
 				" availCycles=" << availCycles << " cycles_f=" << cycles_f << " cycles_rInj=" << cycles_rInj << std::endl;
@@ -923,7 +933,9 @@ namespace ithare {
 			halfT hi = (halfT)x;
 			typename HiInjection::return_type hi1 = HiInjection::injection(hi);
 			hi = halfT(hi1);// *reinterpret_cast<halfT*>(&hi1);//relies on static_assert(sizeof(return_type)==sizeof(halfT)) above
-			return RecursiveInjection::injection((T(hi) << halfTBits) + T(lo));
+			return_type ret = RecursiveInjection::injection((T(hi) << halfTBits) + T(lo));
+			ITHARE_OBF_DBG_ASSERT_SURJECTION("<3>", x, ret);
+			return ret;
 		}
 		ITHARE_OBF_FORCEINLINE constexpr static T surjection(return_type y_) {
 			auto y = RecursiveInjection::surjection(y_);
@@ -936,7 +948,7 @@ namespace ithare {
 
 		static constexpr bool has_add_mod_max_value_ex = false;
 
-#ifdef ITHARE_OBF_ENABLE_DBGPRINT
+#ifdef ITHARE_OBF_DBG_ENABLE_DBGPRINT
 		static void dbgPrint(size_t offset = 0, const char* prefix = "") {
 			std::cout << std::string(offset, ' ') << prefix << "obf_injection_version<3/*split-join*/,"<<obf_dbgPrintT<T>()<<"," << obf_dbgPrintSeed<seed>() << "," << cycles << ">" << std::endl;
 			//std::cout << std::string(offset, ' ') << " Lo:" << std::endl;
@@ -1035,25 +1047,26 @@ namespace ithare {
 #endif
 
 		ITHARE_OBF_FORCEINLINE constexpr static return_type injection(T x) {
-			T lit = literal().value();
-			ITHARE_OBF_DBG_CHECK_LITERAL("<4>",lit, CINV0,);
-			auto y = typename Traits::UintT(x) * typename Traits::UintT(lit);
-			ITHARE_OBF_DBG_MAP_ADD("<4>/ret",dbg_map, x,y);
+			auto lit = literal();
+			ITHARE_OBF_DBG_CHECK_LITERAL("<4>",lit, CINV0);
+			auto y = typename Traits::UintT(x) * typename Traits::UintT(lit.value());
+			//ITHARE_OBF_DBG_MAP_ADD("<4>/ret",dbg_map, x,y);
 			return_type ret = RecursiveInjection::injection(y);
-			ITHARE_OBF_DBG_MAP_ADD("<4>/r",dbg_map_r, y, ret);
+			//ITHARE_OBF_DBG_MAP_ADD("<4>/r",dbg_map_r, y, ret);
+			ITHARE_OBF_DBG_ASSERT_SURJECTION("<4>", x, ret);
 			return ret;
 		}
 		ITHARE_OBF_FORCEINLINE constexpr static T surjection(return_type y) {
 			T x = RecursiveInjection::surjection(y);
-			ITHARE_OBF_DBG_MAP_CHECK("<4>/r", dbg_map_r, x, y,RecursiveInjection::);
+			//ITHARE_OBF_DBG_MAP_CHECK("<4>/r", dbg_map_r, x, y,RecursiveInjection::);
 			T ret = x * C;
-			ITHARE_OBF_DBG_MAP_CHECK("<4>/ret", dbg_map, ret,x, );
+			//ITHARE_OBF_DBG_MAP_CHECK("<4>/ret", dbg_map, ret,x, );
 			return ret;
 		}
 
 		static constexpr bool has_add_mod_max_value_ex = false;
 
-#ifdef ITHARE_OBF_ENABLE_DBGPRINT
+#ifdef ITHARE_OBF_DBG_ENABLE_DBGPRINT
 		static void dbgPrint(size_t offset = 0, const char* prefix = "") {
 			std::cout << std::string(offset, ' ') << prefix << "obf_injection_version<4/*mul odd mod 2^N*/,"<<obf_dbgPrintT<T>()<<"," << obf_dbgPrintSeed<seed>() << "," << cycles << ">: C=" << obf_dbgPrintC<T>(C) << " CINV=" << obf_dbgPrintC<T>(CINV) << std::endl;
 			//std::cout << std::string(offset, ' ') << " literal:" << std::endl;
@@ -1150,6 +1163,7 @@ namespace ithare {
 		};
 		ITHARE_OBF_FORCEINLINE constexpr static return_type injection(T x) {
 			return_type ret{ RecursiveInjectionLo::injection((halfT)x), RecursiveInjectionHi::injection(x >> halfTBits) };
+			ITHARE_OBF_DBG_ASSERT_SURJECTION("<5>", x, ret);
 			return ret;
 		}
 		ITHARE_OBF_FORCEINLINE constexpr static T surjection(return_type y_) {
@@ -1160,7 +1174,7 @@ namespace ithare {
 
 		static constexpr bool has_add_mod_max_value_ex = false;
 
-#ifdef ITHARE_OBF_ENABLE_DBGPRINT
+#ifdef ITHARE_OBF_DBG_ENABLE_DBGPRINT
 		static void dbgPrint(size_t offset = 0, const char* prefix = "") {
 			std::cout << std::string(offset, ' ') << prefix << "obf_injection_version<5/*split*/,"<<obf_dbgPrintT<T>()<<"," << obf_dbgPrintSeed<seed>() << "," << cycles << ">" << std::endl;
 			//std::cout << std::string(offset, ' ') << " Lo:" << std::endl;
@@ -1236,7 +1250,9 @@ namespace ithare {
 			typename LoInjection::return_type lo1 = LoInjection::injection(lo0);
 			//halfT lo = *reinterpret_cast<halfT*>(&lo1);//relies on static_assert(sizeof(return_type)==sizeof(halfT)) above
 			halfT lo = halfT(lo1);
-			return RecursiveInjection::injection(x - T(lo0) + lo);
+			return_type ret = RecursiveInjection::injection(x - T(lo0) + lo);
+			ITHARE_OBF_DBG_ASSERT_SURJECTION("<6>", x, ret);
+			return ret;
 		}
 		ITHARE_OBF_FORCEINLINE constexpr static T surjection(return_type yy) {
 			T y = RecursiveInjection::surjection(yy);
@@ -1247,7 +1263,7 @@ namespace ithare {
 
 		static constexpr bool has_add_mod_max_value_ex = false;
 
-#ifdef ITHARE_OBF_ENABLE_DBGPRINT
+#ifdef ITHARE_OBF_DBG_ENABLE_DBGPRINT
 		static void dbgPrint(size_t offset = 0, const char* prefix = "") {
 			std::cout << std::string(offset, ' ') << prefix << "obf_injection_version<6/*injection(halfT)*/," << obf_dbgPrintT<T>() << "," << obf_dbgPrintSeed<seed>() << "," << cycles << ">" << std::endl;
 			LoInjection::dbgPrint(offset + 1, "Lo:");
@@ -1348,29 +1364,30 @@ namespace ithare {
 		ITHARE_OBF_FORCEINLINE constexpr static return_type injection(T x) {
 			TypeLo lo = TypeLo(typename TypeLo::T(x));
 			TypeHi hi = TypeHi(typename TypeHi::T(x >> loBits));
-			ITHARE_OBF_DBG_MAP_ADD("<7>/lo",dbg_map_lo, x, lo);
-			ITHARE_OBF_DBG_MAP_ADD("<7>/hi",dbg_map_hi, x, hi);
+			//ITHARE_OBF_DBG_MAP_ADD("<7>/lo",dbg_map_lo, x, lo);
+			//ITHARE_OBF_DBG_MAP_ADD("<7>/hi",dbg_map_hi, x, hi);
 			return_type ret{ RecursiveInjectionLo::injection(lo),
 				RecursiveInjectionHi::injection(hi) };
-			ITHARE_OBF_DBG_MAP_ADD("<7>/rlo",dbg_map_rlo, lo, ret.lo);
-			ITHARE_OBF_DBG_MAP_ADD("<7>/rhi",dbg_map_rhi, hi, ret.hi);
+			//ITHARE_OBF_DBG_MAP_ADD("<7>/rlo",dbg_map_rlo, lo, ret.lo);
+			//ITHARE_OBF_DBG_MAP_ADD("<7>/rhi",dbg_map_rhi, hi, ret.hi);
+			ITHARE_OBF_DBG_ASSERT_SURJECTION("<7>", x, ret);
 			return ret;
 		}
 		ITHARE_OBF_FORCEINLINE constexpr static T surjection(return_type y_) {
 			TypeHi hi = RecursiveInjectionHi::surjection(y_.hi);
-			ITHARE_OBF_DBG_MAP_CHECK("<7>/rhi",dbg_map_rhi, hi, y_.hi, RecursiveInjectionHi::);
+			//ITHARE_OBF_DBG_MAP_CHECK("<7>/rhi",dbg_map_rhi, hi, y_.hi, RecursiveInjectionHi::);
 			TypeLo lo = RecursiveInjectionLo::surjection(y_.lo);
-			ITHARE_OBF_DBG_MAP_CHECK("<7>/rlo", dbg_map_rlo, lo , y_.lo, RecursiveInjectionLo::);
+			//ITHARE_OBF_DBG_MAP_CHECK("<7>/rlo", dbg_map_rlo, lo , y_.lo, RecursiveInjectionLo::);
 
 			T ret = T(lo) + T(T(hi) << loBits);
-			ITHARE_OBF_DBG_MAP_CHECK("<7>/hi", dbg_map_hi, ret, T(hi), );
-			ITHARE_OBF_DBG_MAP_CHECK("<7>/lo", dbg_map_lo, ret, T(lo), );
+			//ITHARE_OBF_DBG_MAP_CHECK("<7>/hi", dbg_map_hi, ret, T(hi), );
+			//ITHARE_OBF_DBG_MAP_CHECK("<7>/lo", dbg_map_lo, ret, T(lo), );
 			return ret;
 		}
 
 		static constexpr bool has_add_mod_max_value_ex = false;
 
-#ifdef ITHARE_OBF_ENABLE_DBGPRINT
+#ifdef ITHARE_OBF_DBG_ENABLE_DBGPRINT
 		static void dbgPrint(size_t offset = 0, const char* prefix = "") {
 			std::cout << std::string(offset, ' ') << prefix << "obf_injection_version<7/*split into ObfBitUint<>*/," << obf_dbgPrintT<T>() << ", Context, InjectionRequirements, " << obf_dbgPrintSeed<seed>() << "," << cycles << ">" << std::endl;
 			Context::dbgPrint(offset + 1, "Context:");
@@ -1422,7 +1439,7 @@ namespace ithare {
 				return yy+yy;
 		}
 
-#ifdef ITHARE_OBF_ENABLE_DBGPRINT
+#ifdef ITHARE_OBF_DBG_ENABLE_DBGPRINT
 		static void dbgPrint(size_t offset = 0, const char* prefix = "") {
 			std::cout << std::string(offset, ' ') << prefix << "obf_injection_version<7/*1-bit rotation*/," << obf_dbgPrintT<T>() << "," << obf_dbgPrintSeed<seed>() << "," << cycles << ">" << std::endl;
 			RecursiveInjection::dbgPrint(offset + 1);
@@ -1465,7 +1482,7 @@ namespace ithare {
 			return WhichType::injected_add_mod_max_value_ex(base,x);
 		}
 
-#ifdef ITHARE_OBF_ENABLE_DBGPRINT
+#ifdef ITHARE_OBF_DBG_ENABLE_DBGPRINT
 		static void dbgPrint(size_t offset = 0, const char* prefix = "") {
 			size_t dbgWhich = obf_random_obf_from_list<ITHARE_OBF_NEW_PRNG(seed, 1)>(cycles, descr);
 			std::cout << std::string(offset, ' ') << prefix << "obf_injection<"<<obf_dbgPrintT<T>()<<"," << obf_dbgPrintSeed<seed>() << "," << cycles << ">: which=" << which << " dbgWhich=" << dbgWhich << std::endl;
@@ -1501,7 +1518,7 @@ namespace ithare {
 			return y;
 		}
 
-#ifdef ITHARE_OBF_ENABLE_DBGPRINT
+#ifdef ITHARE_OBF_DBG_ENABLE_DBGPRINT
 		static void dbgPrint(size_t offset = 0, const char* prefix = "") {
 			std::cout << std::string(offset, ' ') << prefix << "ObfLiteralContext_version<0/*identity*/," << obf_dbgPrintT<T>() << ">" << std::endl;
 		}
@@ -1528,7 +1545,7 @@ namespace ithare {
 			return y - T(c);
 		}
 
-#ifdef ITHARE_OBF_ENABLE_DBGPRINT
+#ifdef ITHARE_OBF_DBG_ENABLE_DBGPRINT
 		static void dbgPrint(size_t offset = 0, const char* prefix = "") {
 			std::cout << std::string(offset, ' ') << prefix << "ObfLiteralContext_version<1/*global volatile*/," << obf_dbgPrintT<T>() << "," << obf_dbgPrintSeed<seed>() << ">: CC=" << obf_dbgPrintC<T>(CC) << std::endl;
 		}
@@ -1565,7 +1582,7 @@ namespace ithare {
 			T z = obf_aliased_zero(&x, &yy);
 			return y - z;
 		}
-#ifdef ITHARE_OBF_ENABLE_DBGPRINT
+#ifdef ITHARE_OBF_DBG_ENABLE_DBGPRINT
 		static void dbgPrint(size_t offset = 0, const char* prefix = "") {
 			std::cout << std::string(offset, ' ') << prefix << "ObfLiteralContext_version<2/*func with aliased pointers*/," << obf_dbgPrintT<T>() << "," << obf_dbgPrintSeed<seed>() << ">:" << std::endl;
 		}
@@ -1603,7 +1620,7 @@ namespace ithare {
 #endif
 		}
 
-#ifdef ITHARE_OBF_ENABLE_DBGPRINT
+#ifdef ITHARE_OBF_DBG_ENABLE_DBGPRINT
 		static void dbgPrint(size_t offset = 0, const char* prefix = "") {
 			std::cout << std::string(offset, ' ') << prefix << "ObfLiteralContext_version<3/*PEB*/," << obf_dbgPrintT<T>() << "," << obf_dbgPrintSeed<seed>() << ">: CC=" << obf_dbgPrintC<T>(CC) << std::endl;
 		}
@@ -1675,7 +1692,7 @@ namespace ithare {
 			return y - (c%MOD);
 		}
 
-#ifdef ITHARE_OBF_ENABLE_DBGPRINT
+#ifdef ITHARE_OBF_DBG_ENABLE_DBGPRINT
 		static void dbgPrint(size_t offset = 0, const char* prefix = "") {
 			std::cout << std::string(offset, ' ') << prefix << "ObfLiteralContext_version<4/*global volatile var-with-invariant*/," << obf_dbgPrintT<T>() << "," << obf_dbgPrintSeed<seed>() << ">: CC=" << obf_dbgPrintC<T>(CC) << std::endl;
 		}
@@ -1718,7 +1735,7 @@ namespace ithare {
 			return y;
 		}
 
-#ifdef ITHARE_OBF_ENABLE_DBGPRINT
+#ifdef ITHARE_OBF_DBG_ENABLE_DBGPRINT
 		static void dbgPrint(size_t offset = 0, const char* prefix = "") {
 			std::cout << std::string(offset, ' ') << prefix << "ObfZeroContext<" << obf_dbgPrintT<T>() << ">" << std::endl;
 		}
@@ -1766,7 +1783,7 @@ namespace ithare {
 
 
 	public:
-#ifdef ITHARE_OBF_ENABLE_DBGPRINT
+#ifdef ITHARE_OBF_DBG_ENABLE_DBGPRINT
 		static void dbgPrint(size_t offset = 0, const char* prefix = "") {
 			size_t dbgWhich = obf_random_obf_from_list<ITHARE_OBF_NEW_PRNG(seed, 1)>(cycles, descr);
 			std::cout << std::string(offset, ' ') << prefix << "ObfLiteralContext<" << obf_dbgPrintT<T>() << "," << obf_dbgPrintSeed<seed>() << "," << cycles << ">: which=" << which << " dbgWhich=" << dbgWhich << std::endl;
@@ -1801,10 +1818,15 @@ namespace ithare {
 			return Injection::surjection(val);
 		}
 
-#ifdef ITHARE_OBF_ENABLE_DBGPRINT
+#ifdef ITHARE_OBF_DBG_ENABLE_DBGPRINT
 		static void dbgPrint(size_t offset = 0, const char* prefix = "") {
 			std::cout << std::string(offset, ' ') << prefix << "obf_literal_ctx<" << obf_dbgPrintT<T>() << "," << obf_dbgPrintC<T>(C) << "," << obf_dbgPrintSeed<seed>() << "," << cycles << ">" << std::endl;
 			Injection::dbgPrint(offset + 1);
+		}
+		static void dbgCheck() {
+			typename Injection::return_type c = Injection::injection(C);
+			T cc = Injection::surjection(c);
+			assert(cc == C);
 		}
 #endif
 	private:
@@ -1836,7 +1858,7 @@ namespace ithare {
 			return value();
 		}
 
-#ifdef ITHARE_OBF_ENABLE_DBGPRINT
+#ifdef ITHARE_OBF_DBG_ENABLE_DBGPRINT
 		static void dbgPrint(size_t offset = 0, const char* prefix = "") {
 			std::cout << std::string(offset, ' ') << prefix << "obf_literal<"<<obf_dbgPrintT<T>()<<"," << C << "," << obf_dbgPrintSeed<seed>() << "," << cycles << ">" << std::endl;
 			Injection::dbgPrint(offset + 1);
@@ -1869,7 +1891,7 @@ namespace ithare {
 			return y;
 		}
 
-#ifdef ITHARE_OBF_ENABLE_DBGPRINT
+#ifdef ITHARE_OBF_DBG_ENABLE_DBGPRINT
 		static void dbgPrint(size_t offset = 0, const char* prefix = "") {
 			std::cout << std::string(offset, ' ') << prefix << "ObfVarContext<" << obf_dbgPrintT<T>() << ">" << std::endl;
 		}
@@ -2092,7 +2114,7 @@ namespace ithare {
 
 		//TODO: bitwise
 
-#ifdef ITHARE_OBF_ENABLE_DBGPRINT
+#ifdef ITHARE_OBF_DBG_ENABLE_DBGPRINT
 		static void dbgPrint(size_t offset = 0, const char* prefix = "") {
 			std::cout << std::string(offset, ' ') << prefix << "obf_var<" << obf_dbgPrintT<T>() << "," << obf_dbgPrintSeed<seed>() <<","<<cycles<<">" << std::endl;
 			Injection::dbgPrint(offset+1);
@@ -2234,7 +2256,7 @@ namespace ithare {
 			return value();
 		}
 
-#ifdef ITHARE_OBF_ENABLE_DBGPRINT
+#ifdef ITHARE_OBF_DBG_ENABLE_DBGPRINT
 		static void dbgPrint(size_t offset = 0, const char* prefix = "") {
 			std::cout << std::string(offset, ' ') << prefix << "obf_str_literal<'" << str << "'," << obf_dbgPrintSeed<seed>() << "," << cycles << ">" << std::endl;
 			Injection0::dbgPrint(offset + 1, "Injection0:");
@@ -2277,7 +2299,7 @@ namespace ithare {
 
 	//external functions
 	void obf_init();
-#ifdef ITHARE_OBF_ENABLE_DBGPRINT
+#ifdef ITHARE_OBF_DBG_ENABLE_DBGPRINT
 	inline void obf_dbgPrint() {
 		std::cout << "OBF_CONST_A=" << int(OBF_CONST_A) << " OBF_CONST_B=" << int(OBF_CONST_B) << " OBF_CONST_C=" << int(OBF_CONST_C) << std::endl;
 		//auto c = obf_const_x(obf_compile_time_prng(ITHARE_OBF_SEED^UINT64_C(0xfb2de18f982a2d55), 1), obf_const_C_excluded);
@@ -2360,7 +2382,7 @@ namespace ithare {
 #else//ITHARE_OBF_SEED
 namespace ithare {
 	namespace obf {
-#ifdef ITHARE_OBF_ENABLE_DBGPRINT
+#ifdef ITHARE_OBF_DBG_ENABLE_DBGPRINT
 		constexpr size_t obf_strlen(const char* s) {
 			for (size_t ret = 0; ; ++ret, ++s)
 				if (*s == 0)
@@ -2393,7 +2415,7 @@ namespace ithare {
 				return value();
 			}
 
-#ifdef ITHARE_OBF_ENABLE_DBGPRINT
+#ifdef ITHARE_OBF_DBG_ENABLE_DBGPRINT
 			static void dbgPrint(size_t offset = 0, const char* prefix = "") {
 				std::cout << std::string(offset, ' ') << prefix << "obf_literal<" << obf_dbgPrintT<T>() << "," << C << std::endl;
 			}
@@ -2593,7 +2615,7 @@ namespace ithare {
 
 			//TODO: bitwise
 
-#ifdef ITHARE_OBF_ENABLE_DBGPRINT
+#ifdef ITHARE_OBF_DBG_ENABLE_DBGPRINT
 			static void dbgPrint(size_t offset = 0,const char* prefix="") {
 				std::cout << std::string(offset, ' ') << prefix << "obf_var_dbg<" << obf_dbgPrintT<T>() << ">" << std::endl;
 			}
@@ -2622,7 +2644,7 @@ namespace ithare {
 				return value();
 			}
 
-#ifdef ITHARE_OBF_ENABLE_DBGPRINT
+#ifdef ITHARE_OBF_DBG_ENABLE_DBGPRINT
 			static void dbgPrint(size_t offset = 0, const char* prefix = "") {
 				std::cout << std::string(offset, ' ') << prefix << "obf_str_literal_dbg<'" << str << "'>" << std::endl;
 			}

@@ -11,10 +11,10 @@
 #include <type_traits>
 #include <string>//for dbgPrint() only
 #include <iostream>//for dbgPrint() only
-#include <map>//for dbg_map only
+//---#include <map>//for dbg_map only
 
 #ifdef ITHARE_OBF_INTERNAL_DBG // set of settings currently used for internal testing. DON'T rely on it!
-//#define ITHARE_OBF_ENABLE_DBGPRINT
+//#define ITHARE_OBF_DBG_ENABLE_DBGPRINT
 //#if 0
 
 //#define ITHARE_OBF_CRYPTO_PRNG
@@ -23,8 +23,9 @@
 #define ITHARE_OBF_SEED2 0xdacb5ca59a237d13 
 
 #define ITHARE_OBF_CONSISTENT_DEBUG_RELEASE
-//#define ITHARE_OBF_DBG_MAP
-//#define ITHARE_OBF_DBG_MAP_LOG
+//#define ITHARE_OBF_DBG_MAP --- obsolete?
+//#define ITHARE_OBF_DBG_MAP_LOG -- obsolete?
+#define ITHARE_OBF_DBG_RUNTIME_CHECKS
 
 #define ITHARE_OBF_INIT 
 //enables rather nasty obfuscations (including PEB-based debugger detection),
@@ -37,7 +38,7 @@
 //makes built-in anti-debugger kinda-protections to return 'not being debugged' (NOT clean, use ONLY for debugging purposes)
 
 //THE FOLLOWING MUST BE NOT USED FOR PRODUCTION BUILDS:
-#define ITHARE_OBF_ENABLE_DBGPRINT
+#define ITHARE_OBF_DBG_ENABLE_DBGPRINT
 //enables dbgPrint()
 #endif//ITHARE_OBF_INTERNAL_DBG
 

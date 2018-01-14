@@ -143,7 +143,7 @@ namespace ithare {
 #define ITHARE_OBF_RANDOM(prng,modifier,maxn) obf_random(prng,modifier,maxn)
 #define ITHARE_OBF_RANDOM_UINT32(prng,modifier) obf_random_uint32(prng,modifier)
 #define ITHARE_OBF_DUMMY_PRNG 0
-#ifdef ITHARE_OBF_ENABLE_DBGPRINT
+#ifdef ITHARE_OBF_DBG_ENABLE_DBGPRINT
 		//dbgPrint helpers
 		template<ITHARE_OBF_SEEDTPARAM seed>
 		std::string obf_dbgPrintSeed() {
@@ -261,7 +261,7 @@ namespace ithare {
 #define ITHARE_OBF_RANDOM(prng,modifier,maxn) obf_random(prng::lo,prng::hi,modifier,maxn)
 #define ITHARE_OBF_RANDOM_UINT32(prng,modifier) obf_random_uint32(prng::lo,prng::hi,modifier)
 #define ITHARE_OBF_DUMMY_PRNG ObfSeed<0,0,0>
-#ifdef ITHARE_OBF_ENABLE_DBGPRINT
+#ifdef ITHARE_OBF_DBG_ENABLE_DBGPRINT
 		//dbgPrint helpers
 		template<ITHARE_OBF_SEEDTPARAM seed>
 		std::string obf_dbgPrintSeed() {
