@@ -9,10 +9,10 @@
 
 #if defined(__APPLE_CC__) || defined(__linux__)
 std::string buildRelease(std::string defines) {
-	return std::string("gcc -O3 -DNDEBUG ") + defines + " -o obftemp -std=c++1z -lstdc++ ../official.cpp ../../src/impl/obfuscate.cpp";
+	return std::string("gcc -O3 -DNDEBUG ") + defines + " -o obftemp -std=c++1z -lstdc++ ../official.cpp";
 }
 std::string buildDebug(std::string defines) {
-	return std::string("gcc ") + defines + " -o obftemp -std=c++1z -lstdc++ ../official.cpp ../../src/impl/obfuscate.cpp";
+	return std::string("gcc ") + defines + " -o obftemp -std=c++1z -lstdc++ ../official.cpp";
 }
 std::string genRandom64() {
 	static FILE* frnd = fopen("/dev/urandom","rb");
