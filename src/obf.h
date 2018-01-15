@@ -1289,7 +1289,7 @@ namespace ithare {
 		using TypeHi = ObfBitUint<hiBits>;
 
 		struct RecursiveInjectionRequirements {
-			static constexpr size_t exclude_version = T(-1);
+			static constexpr size_t exclude_version = size_t(-1);
 			static constexpr bool is_constexpr = InjectionRequirements::is_constexpr;
 			static constexpr bool only_bijections = InjectionRequirements::only_bijections;
 			static constexpr bool no_physical_size_increase = true;
