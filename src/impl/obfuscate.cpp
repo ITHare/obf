@@ -7,6 +7,7 @@ namespace ithare {
 		volatile uint8_t* obf_peb = nullptr;
 		static int obf_nInits = 0;
 
+#ifdef ITHARE_OBF_SEED //otherwise - it is completely inlined cpp-less
 		void obf_init() {
 #ifdef _WIN64
 			constexpr auto offset = 0x60;
@@ -18,6 +19,7 @@ namespace ithare {
 			++obf_nInits;
 			return;
 		}
+#endif
 	}//namespace obf
 }//namespace ithare
 
@@ -31,10 +33,12 @@ namespace ithare {
 	namespace obf {
 		static int obf_nInits = 0;
 
+#ifdef ITHARE_OBF_SEED //otherwise - it is completely inlined cpp-less
 		void obf_init() {
 			++obf_nInits;
 			return;
 		}
+#endif
 	}//namespace obf
 }//namespace ithare
 

@@ -2,10 +2,40 @@
 #define _CRT_SECURE_NO_WARNINGS
 #endif
 
-#include <chrono>//for benchmarking
-#define ITHARE_OBF_ENABLE_DBGPRINT
-//#define ITHARE_OBF_NO_SHORT_DEFINES - use to avoid name clashes with OBF(); would require using ITHARE_OBF macros instead of OBF ones
+//{ internal debugging: should go BEFORE #include obf.h
+//#define ITHARE_OBF_CRYPTO_PRNG
+
+//enable assert() in Release
+//#undef NDEBUG
+
+#define ITHARE_OBF_SEED 0x0c7dfa61a871b133
+#define ITHARE_OBF_SEED2 0xdacb5ca59a237d13 
+
+#define ITHARE_OBF_CONSISTENT_XPLATFORM_IMPLICIT_SEEDS
+//---#define ITHARE_OBF_DBG_MAP --- obsolete?
+//---#define ITHARE_OBF_DBG_MAP_LOG -- obsolete?
+#ifndef NDEBUG
+#define ITHARE_OBF_DBG_RUNTIME_CHECKS
+#endif
+
+#define ITHARE_OBF_INIT 
+//enables rather nasty obfuscations (including PEB-based debugger detection),
+//  but requires you to call obf_init() BEFORE ANY obf<> objects are used. 
+//  As a result - it can backfire for obfuscations-used-from-global-constructors :-(.
+
+//#define ITHARE_OBF_NO_ANTI_DEBUG
+//disables built-in anti-debug kinda-protections in a clean way
+#define ITHARE_OBF_DEBUG_ANTI_DEBUG_ALWAYS_FALSE
+//makes built-in anti-debugger kinda-protections to return 'not being debugged' (NOT clean, use ONLY for debugging purposes)
+
+//THE FOLLOWING MUST BE NOT USED FOR PRODUCTION BUILDS:
+#define ITHARE_OBF_DBG_ENABLE_DBGPRINT
+//enables dbgPrint()
+
+//} internal debugging: should go BEFORE #include obf.h
+
 #include "../src/obf.h"
+#include <chrono>//for benchmarking
 
 using namespace ithare::obf;
 

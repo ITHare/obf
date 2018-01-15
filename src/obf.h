@@ -13,11 +13,6 @@
 //  2. compile your code without -DITHARE_OBF_SEED for debugging and during development
 //  3. compile with -DITHARE_OBF_SEED=0x<really-random-64-bit-seed> for deployments
 
-#ifdef ITHARE_OBF_INTERNAL_DBG
-//enable assert() in Release
-//#undef NDEBUG
-#endif
-
 //#include <atomic>//for ITHARE_OBF_STRICT_MT
 
 #ifdef ITHARE_OBF_SEED
@@ -98,7 +93,6 @@ namespace ithare {
 */
 
 #ifdef ITHARE_OBF_DBG_RUNTIME_CHECKS
-#define ITHARE_OBF_DBG_ENABLE_DBGPRINT//necessary for checks to work
 #define ITHARE_OBF_DBG_ASSERT_SURJECTION(where,x,y) do {\
 			if (surjection(y) != x) {\
 				std::cout << "DBG_ASSERT_SURJECTION FAILED @" << where << ": injection(" << x << ")=" << y << " but surjection(" << y << ") = " << surjection(y) << " != " << x << std::endl; \
@@ -211,7 +205,6 @@ namespace ithare {
 			return candidates[idx2];
 		}
 
-		//XOR-ed constants are merely random numbers with no special meaning
 		constexpr std::array<uint8_t, 0> obf_const_A_excluded = {};
 		constexpr uint8_t OBF_CONST_A = obf_const_x<ITHARE_OBF_INIT_PRNG(__FILE__, __LINE__, __COUNTER__)>(obf_const_A_excluded);
 		constexpr std::array<uint8_t, 1> obf_const_B_excluded = { OBF_CONST_A };
@@ -473,7 +466,6 @@ namespace ithare {
 			static_assert(sizeof(T) == sizeof(typename ObfBitUint<N_>::T));
 
 		private:
-			static constexpr UT high = UT(UT(1) << N);
 			static constexpr UT mask = obf_mask<UT>(N);
 
 		public:
@@ -481,7 +473,7 @@ namespace ithare {
 			constexpr ObfBitSint(T x) : val(UT(x)&mask) {}
 			constexpr operator T() const { return T(val & mask); }
 
-			constexpr ObfBitSint operator -() const { return ObfBitSint(val^high); }
+			constexpr ObfBitSint operator -() const { return ObfBitSint((~val)+1); }
 
 		private:
 			UT val;
@@ -2381,13 +2373,13 @@ namespace ithare {
 #else//ITHARE_OBF_SEED
 namespace ithare {
 	namespace obf {
-#ifdef ITHARE_OBF_DBG_ENABLE_DBGPRINT
 		constexpr size_t obf_strlen(const char* s) {
 			for (size_t ret = 0; ; ++ret, ++s)
 				if (*s == 0)
 					return ret;
 		}
 
+#ifdef ITHARE_OBF_DBG_ENABLE_DBGPRINT
 		//dbgPrint helpers
 		template<class T>
 		std::string obf_dbgPrintT() {
@@ -2621,7 +2613,7 @@ namespace ithare {
 #endif
 
 		private:
-			typename T val;
+			T val;
 		};
 
 		inline void obf_init() {

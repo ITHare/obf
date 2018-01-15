@@ -13,36 +13,9 @@
 #include <iostream>//for dbgPrint() only
 //---#include <map>//for dbg_map only
 
-#ifdef ITHARE_OBF_INTERNAL_DBG // set of settings currently used for internal testing. DON'T rely on it!
-//#define ITHARE_OBF_DBG_ENABLE_DBGPRINT
-//#if 0
-
-//#define ITHARE_OBF_CRYPTO_PRNG
-
-#define ITHARE_OBF_SEED 0x0c7dfa61a871b133
-#define ITHARE_OBF_SEED2 0xdacb5ca59a237d13 
-
-#define ITHARE_OBF_CONSISTENT_XPLATFORM_IMPLICIT_SEEDS
-//---#define ITHARE_OBF_DBG_MAP --- obsolete?
-//---#define ITHARE_OBF_DBG_MAP_LOG -- obsolete?
-#ifndef NDEBUG
-#define ITHARE_OBF_DBG_RUNTIME_CHECKS
+#ifdef ITHARE_OBF_DBG_RUNTIME_CHECKS
+#define ITHARE_OBF_DBG_ENABLE_DBGPRINT//necessary for checks to work
 #endif
-
-#define ITHARE_OBF_INIT 
-//enables rather nasty obfuscations (including PEB-based debugger detection),
-//  but requires you to call obf_init() BEFORE ANY obf<> objects are used. 
-//  As a result - it can backfire for obfuscations-used-from-global-constructors :-(.
-
-//#define ITHARE_OBF_NO_ANTI_DEBUG
-//disables built-in anti-debug kinda-protections in a clean way
-#define ITHARE_OBF_DEBUG_ANTI_DEBUG_ALWAYS_FALSE
-//makes built-in anti-debugger kinda-protections to return 'not being debugged' (NOT clean, use ONLY for debugging purposes)
-
-//THE FOLLOWING MUST BE NOT USED FOR PRODUCTION BUILDS:
-#define ITHARE_OBF_DBG_ENABLE_DBGPRINT
-//enables dbgPrint()
-#endif//ITHARE_OBF_INTERNAL_DBG
 
 #ifndef ITHARE_OBF_SEED2
 #define ITHARE_OBF_SEED2 0
