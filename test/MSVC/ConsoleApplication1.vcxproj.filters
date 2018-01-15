@@ -32,10 +32,7 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\main.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\impl\obfuscate.cpp">
+    <ClCompile Include="..\internal.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

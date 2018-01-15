@@ -1591,7 +1591,27 @@ namespace ithare {
 	};
 
 #ifdef _MSC_VER
-	extern volatile uint8_t* obf_peb;
+#include <intrin.h>
+
+	//moving globals into header (along the lines of https://stackoverflow.com/a/27070265)
+	template<class Dummy>
+	struct obf_literal_context_version3_globals {
+		static volatile uint8_t* obf_peb;
+	};
+
+	template<class Dummy>
+	volatile uint8_t* obf_literal_context_version3_globals<Dummy>::obf_peb = nullptr;
+
+	inline void obf_init_literal_context_version3() {
+#ifdef _WIN64
+		constexpr auto offset = 0x60;
+		obf_literal_context_version3_globals<void>::obf_peb = (uint8_t*)__readgsqword(offset);
+#else
+		constexpr auto offset = 0x30;
+		obf_literal_context_version3_globals<void>::obf_peb = (uint8_t*)__readfsdword(offset);
+#endif
+		return;
+	}
 
 	template<class T, ITHARE_OBF_SEEDTPARAM seed>
 	struct ObfLiteralContext_version<3,T,seed> {
@@ -1608,7 +1628,7 @@ namespace ithare {
 #ifdef ITHARE_OBF_DEBUG_ANTI_DEBUG_ALWAYS_FALSE
 			return y - CC;
 #else
-			return y - CC * T(1 + obf_peb[2]);
+			return y - CC * T(1 + obf_literal_context_version3_globals<void>::obf_peb[2]);
 #endif
 		}
 
@@ -1618,7 +1638,10 @@ namespace ithare {
 		}
 #endif
 	};
-#endif
+#else
+	inline void obf_init_literal_context_version3() {
+	}
+#endif//_MSC_VER
 
 	//version 4: global var-with-invariant
 	template<class T>
@@ -2289,8 +2312,9 @@ namespace ithare {
 		Base val;
 	};*/
 
-	//external functions
-	void obf_init();
+	inline void obf_init() {
+		obf_init_literal_context_version3();
+	}
 #ifdef ITHARE_OBF_DBG_ENABLE_DBGPRINT
 	inline void obf_dbgPrint() {
 		std::cout << "OBF_CONST_A=" << int(OBF_CONST_A) << " OBF_CONST_B=" << int(OBF_CONST_B) << " OBF_CONST_C=" << int(OBF_CONST_C) << std::endl;
