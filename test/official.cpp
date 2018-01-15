@@ -45,5 +45,6 @@ const lest::test spec[] = {
 };
 
 int main(int argc, char** argv) {
+	obf_init();
 	return lest::run(spec,argc,argv);
 }

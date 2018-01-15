@@ -50,11 +50,87 @@ std::string checkObfuscation(bool obfuscated) {//very weak heuristics, but still
 	std::string ret = std::string("strings obftemp | grep Negative");//referring to string "Negative value of factorial()"
 	return ret + "\n" + exitCheck(!obfuscated);
 }
+std::string setup() {
+	return std::string("#!/bin/sh");
+}
 std::string cleanup() {
 	return std::string("rm obftemp");	
 }
-#elif defined(WIN32)
-#error //for now
+#elif defined(_WIN32)
+#include <windows.h>
+
+std::string replace_string(std::string subject, std::string search,//adapted from https://stackoverflow.com/a/14678964
+	std::string replace) {
+	size_t pos = 0;
+	while ((pos = subject.find(search, pos)) != std::string::npos) {
+		subject.replace(pos, search.length(), replace);
+		pos += replace.length();
+	}
+	return subject;
+}
+std::string buildRelease(std::string defines_) {
+	std::string defines = replace_string(defines_, " -D", " /D");
+	return std::string("cl /permissive- /GS /GL /W3 /Gy /Zc:wchar_t /Gm- /O2 /sdl /Zc:inline /fp:precise /DNDEBUG /D_CONSOLE /D_UNICODE /DUNICODE /errorReport:prompt /WX- /Zc:forScope /GR- /Gd /Oi /MT /EHsc /nologo /diagnostics:classic /std:c++latest") + defines + " ..\\official.cpp";
+		//string is copy-pasted from Rel-NoPDB config
+}
+std::string buildDebug(std::string defines_) {
+	std::string defines = replace_string(defines_, " -D", " /D");
+	return std::string("cl /permissive- /GS /W3 /Zc:wchar_t /ZI /Gm /Od /sdl /Zc:inline /fp:precise /D_DEBUG /D_CONSOLE /D_UNICODE /DUNICODE /errorReport:prompt /WX- /Zc:forScope /RTC1 /Gd /MDd /EHsc /nologo /diagnostics:classic /std:c++latest") + defines + " ..\\official.cpp";
+		//string is copy-pasted from Debug config
+}
+std::string genRandom64() {
+	static HCRYPTPROV prov = NULL;
+	if (!prov) {
+		BOOL ok = CryptAcquireContext(&prov,NULL,NULL,PROV_RSA_FULL,0);
+		if (!ok) {
+			std::cout << "CryptAcquireContext() returned error, aborting" << std::endl;
+			abort();
+		}
+	};
+	uint8_t buf[8];
+	BOOL ok = CryptGenRandom(prov, sizeof(buf), buf);
+	if (!ok) {
+		std::cout << "Problems calling CryptGenRandom(), aborting" << std::endl;
+		abort();
+	}
+
+	char buf2[sizeof(buf) * 2 + 1];
+	for (size_t i = 0; i < sizeof(buf); ++i) {
+		assert(buf[i] <= 255);
+		sprintf(&buf2[i * 2], "%02x", buf[i]);
+	}
+	return std::string(buf2);
+}
+std::string exitCheck(bool expectok = true) {
+	static int nextlabel = 1;
+	if (expectok) {
+		auto ret = std::string("IF NOT ERRORLEVEL 1 GOTO LABEL") + std::to_string(nextlabel)
+			+ "\nEXIT /B\n:LABEL" + std::to_string(nextlabel);
+		nextlabel++;
+		return ret;
+	}
+	else {
+		auto ret = std::string("IF ERRORLEVEL 1 GOTO LABEL") + std::to_string(nextlabel)
+			+ "\nEXIT /B\n:LABEL" + std::to_string(nextlabel);
+		nextlabel++;
+		return ret;
+	}
+}
+std::string echo(std::string s) {
+	return std::string("ECHO " + s);
+}
+std::string run() {
+	return std::string("official.exe");
+}
+std::string checkObfuscation(bool obfuscated) {//very weak heuristics, but still better than nothing
+	return "";//sorry, nothing for now for Windows :-(
+}
+std::string cleanup() {
+	return std::string("del official.exe");
+}
+std::string setup() {
+	return "@ECHO OFF";
+}
 #else
 #error "Unrecognized platform for randomized testing"
 #endif 
@@ -115,7 +191,7 @@ void genRandomTests(size_t n) {
 		if( i%3 == 0 )//every third, non-exclusive
 			extra += " -DITHARE_OBF_DBG_RUNTIME_CHECKS";
 		std::cout << echo( std::string("=== Random Test ") + std::to_string(i+1) + "/" + std::to_string(n) + " ===" ) << std::endl;
-		std::string defines = genSeeds()+" -DITHARE_OBF_INIT -ITHARE_OBF_CONSISTENT_XPLATFORM_IMPLICIT_SEEDS"+extra;
+		std::string defines = genSeeds()+" -DITHARE_OBF_INIT -DITHARE_OBF_CONSISTENT_XPLATFORM_IMPLICIT_SEEDS"+extra;
 		if( i%4 == 0 ) 
 			buildCheckRunCheck(buildDebug(defines));
 		else
@@ -123,8 +199,12 @@ void genRandomTests(size_t n) {
 	}
 }
 
+void genSetup() {
+	std::cout << setup() << std::endl;
+}
+
 void genCleanup() {
-	issueCommand(cleanup());
+	std::cout << cleanup() << std::endl;
 }
 
 int main(int argc, char** argv) {
@@ -148,6 +228,7 @@ int main(int argc, char** argv) {
 	if(*end!=0)
 		return usage();
 		
+	genSetup();
 	if(!nodefinetests)
 		genDefineTests();
 
