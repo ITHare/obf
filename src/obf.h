@@ -1581,9 +1581,9 @@ namespace ithare {
 #endif
 	};
 
-	//version 3: Windows/PEB
-	struct obf_literal_context_version3_descr {
-#if defined(_MSC_VER) && defined(ITHARE_OBF_INIT) && !defined(ITHARE_OBF_NO_ANTI_DEBUG)
+	//version 3: System-Dependent Anti-Debugging
+	struct obf_literal_context_version3_descr {//NB: to ensure 100%-compatible generation across platforms, probabilities MUST NOT depend on the platform, directly or indirectly
+#if defined(ITHARE_OBF_INIT) && !defined(ITHARE_OBF_NO_ANTI_DEBUG)
 		static constexpr ObfDescriptor descr = ObfDescriptor(true, 10, 100);
 #else
 		static constexpr ObfDescriptor descr = ObfDescriptor(false, 0, 0);
@@ -1602,7 +1602,7 @@ namespace ithare {
 	template<class Dummy>
 	volatile uint8_t* obf_literal_context_version3_globals<Dummy>::obf_peb = nullptr;
 
-	inline void obf_init_literal_context_version3() {
+	inline void obf_init_literal_context_version3() {//TODO/decide: ?should we obfuscate this function itself?
 #ifdef _WIN64
 		constexpr auto offset = 0x60;
 		obf_literal_context_version3_globals<void>::obf_peb = (uint8_t*)__readgsqword(offset);
@@ -1638,10 +1638,140 @@ namespace ithare {
 		}
 #endif
 	};
+//_MSC_VER
+#elif defined(__APPLE_CC__)
+#include <sys/types.h>
+#include <sys/sysctl.h>
+#include <unistd.h>
+#include <mach/task.h>
+#include <mach/mach_init.h>
+	
+	//moving globals into header (along the lines of https://stackoverflow.com/a/27070265)
+	template<class Dummy>
+	struct obf_literal_context_version3_globals {
+		static volatile uint64_t obf_kp_proc_p_flag;
+		static volatile mach_port_t obf_mach_port;
+	};
+
+	template<class Dummy>
+	volatile uint64_t obf_literal_context_version3_globals<Dummy>::obf_kp_proc_p_flag = 0;
+	template<class Dummy>
+	volatile mach_port_t obf_literal_context_version3_globals<Dummy>::obf_mach_port = MACH_PORT_NULL;
+
+	inline void obf_init_literal_context_version3() {//TODO/decide: ?should we obfuscate this function itself?
+		
+		//#1. Detecting PTRACE: adaptation from https://developer.apple.com/library/content/qa/qa1361/_index.html
+		int                 junk;
+		int                 mib[4];
+		struct kinfo_proc   info;
+		size_t              size;
+
+		// Initialize the flags so that, if sysctl fails for some bizarre 
+		// reason, we get a predictable result.
+
+		info.kp_proc.p_flag = 0;
+
+		// Initialize mib, which tells sysctl the info we want, in this case
+		// we're looking for information about a specific process ID.
+
+		mib[0] = CTL_KERN;
+		mib[1] = KERN_PROC;
+		mib[2] = KERN_PROC_PID;
+		mib[3] = getpid();
+
+		// Call sysctl.
+
+		size = sizeof(info);
+		junk = sysctl(mib, sizeof(mib) / sizeof(*mib), &info, &size, NULL, 0);
+		assert(junk == 0);
+
+		// We're being debugged if the P_TRACED flag is set.
+
+		//return ( (info.kp_proc.p_flag & P_TRACED) != 0 );		
+		obf_literal_context_version3_globals<void>::obf_kp_proc_p_flag = info.kp_proc.p_flag;//we'll check for P_TRACED a bit later
+		//std::cout << "p_flag: 0x" << std::hex << obf_literal_context_version3_globals<void>::obf_kp_proc_p_flag << std::endl;
+		
+		//#2. Detecting Mach: adaptation from https://zgcoder.net/ramblings/osx-debugger-detection.html
+
+		mach_msg_type_number_t count = 0;
+		exception_mask_t masks[EXC_TYPES_COUNT];
+		mach_port_t ports[EXC_TYPES_COUNT];
+		exception_behavior_t behaviors[EXC_TYPES_COUNT];
+		thread_state_flavor_t flavors[EXC_TYPES_COUNT];
+		exception_mask_t mask = EXC_MASK_ALL & ~(EXC_MASK_RESOURCE | EXC_MASK_GUARD);
+
+		kern_return_t result = task_get_exception_ports(mach_task_self(), mask, masks, &count, ports, behaviors, flavors);
+		if (result == KERN_SUCCESS)
+		{
+			for (mach_msg_type_number_t portIndex = 0; portIndex < count; portIndex++)
+			{
+				obf_literal_context_version3_globals<void>::obf_mach_port = ports[portIndex];
+				if (MACH_PORT_VALID(obf_literal_context_version3_globals<void>::obf_mach_port))
+					return;//leaving obf_mach_port to a value which will return MACH_PORT_VALID(obf_mach_port) as true
+			}
+		}
+	}
+
+	template<class T, ITHARE_OBF_SEEDTPARAM seed>
+	struct ObfLiteralContext_version<3,T,seed> {
+		using Traits = ObfTraits<T>;
+		constexpr static OBFCYCLES context_cycles = obf_literal_context_version3_descr::descr.min_cycles;
+
+		//static constexpr T CC = obf_gen_const<T>(ITHARE_OBF_NEW_PRNG(seed, 1));
+		static constexpr std::array<T, 3> consts = { OBF_CONST_A,OBF_CONST_B,OBF_CONST_C };
+		constexpr static T CC = obf_random_const<ITHARE_OBF_NEW_PRNG(seed, 1)>(consts);
+		ITHARE_OBF_FORCEINLINE static constexpr T final_injection(T x) {
+			return x + CC;
+		}
+		ITHARE_OBF_FORCEINLINE static T final_surjection(T y) {
+#ifdef ITHARE_OBF_DEBUG_ANTI_DEBUG_ALWAYS_FALSE
+			return y - CC;
 #else
+			///std::cout << "p_flag|P_TRACED: 0x" << std::hex << (obf_literal_context_version3_globals<void>::obf_kp_proc_p_flag&P_TRACED) << std::endl;
+			return y - CC * T(1 + (obf_literal_context_version3_globals<void>::obf_kp_proc_p_flag & P_TRACED) + MACH_PORT_VALID(obf_literal_context_version3_globals<void>::obf_mach_port));
+#endif
+		}
+
+#ifdef ITHARE_OBF_DBG_ENABLE_DBGPRINT
+		static void dbgPrint(size_t offset = 0, const char* prefix = "") {
+			std::cout << std::string(offset, ' ') << prefix << "ObfLiteralContext_version<3/*PTRACE+MACH*/," << obf_dbgPrintT<T>() << "," << obf_dbgPrintSeed<seed>() << ">: CC=" << obf_dbgPrintC<T>(CC) << std::endl;
+		}
+#endif
+	};
+//__APPLE_CC__
+#else
+#warning No support for anti-debugging for this platform (yet) - defaulting to simple read-volatile (copy of version<1> above)  
+	template<class T, ITHARE_OBF_SEEDTPARAM seed>
+	struct ObfLiteralContext_version<3,T,seed> {
+		using Traits = ObfTraits<T>;
+		constexpr static OBFCYCLES context_cycles = obf_literal_context_version1_descr::descr.min_cycles;
+
+		//static constexpr T CC = obf_gen_const<T>(ITHARE_OBF_NEW_PRNG(seed, 1));
+		static constexpr std::array<T, 3> consts = { OBF_CONST_A,OBF_CONST_B,OBF_CONST_C };
+		constexpr static T CC = obf_random_const<ITHARE_OBF_NEW_PRNG(seed, 1)>(consts);
+		ITHARE_OBF_FORCEINLINE static constexpr T final_injection(T x) {
+			return x + CC;
+		}
+		ITHARE_OBF_FORCEINLINE static T final_surjection(T y) {
+			return y - T(c);
+		}
+
+#ifdef ITHARE_OBF_DBG_ENABLE_DBGPRINT
+		static void dbgPrint(size_t offset = 0, const char* prefix = "") {
+			std::cout << std::string(offset, ' ') << prefix << "ObfLiteralContext_version<3/*system-dependent defaulting to read-volatile*/," << obf_dbgPrintT<T>() << "," << obf_dbgPrintSeed<seed>() << ">: CC=" << obf_dbgPrintC<T>(CC) << std::endl;
+		}
+#endif
+	private:
+		static /*volatile*/ T c;//TODO! - return back volatile
+	};
+
+	template<class T, ITHARE_OBF_SEEDTPARAM seed>
+	/*volatile*/ T ObfLiteralContext_version<3, T, seed>::c = CC;
+	
 	inline void obf_init_literal_context_version3() {
 	}
-#endif//_MSC_VER
+	
+#endif//_MSC_VER || __APPLE_CC__
 
 	//version 4: global var-with-invariant
 	template<class T>
