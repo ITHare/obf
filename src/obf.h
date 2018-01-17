@@ -107,11 +107,16 @@ namespace ithare {
 				dbgPrint(); \
 				abort(); \
 			}\
-		}while (false)
-
+		}while(false)
+#define ITHARE_OBF_DBG_CHECK_SHORTCUT(where,shortcut,noshortcut_expr) do {\
+			auto noshort = noshortcut_expr;/* can be long*/\
+			if(shortcut!=noshort)\
+				std::cout << "DBG_CHECK_SHORTCUT ERROR @" << where << ": " << shortcut << "!=" << noshort << std::endl; \
+        }while(false)
 #else
 #define ITHARE_OBF_DBG_ASSERT_SURJECTION(where,x,y)
 #define ITHARE_OBF_DBG_CHECK_LITERAL(where, val, c)
+#define ITHARE_OBF_DBG_CHECK_SHORTCUT(where,shortcut,noshortcut_expr)
 #endif//ITHARE_OBF_DBG_RUNTIME_CHECKS
 
 		//POTENTIALLY user-modifiable constexpr function:
@@ -622,31 +627,29 @@ namespace ithare {
 		}
 
 		static constexpr bool has_add_mod_max_value_ex = false;
-		/*@@! ITHARE_OBF_FORCEINLINE constexpr static T injected_add_mod_max_value_ex(T base,T x) {
+		ITHARE_OBF_FORCEINLINE constexpr static T injected_add_mod_max_value_ex(T base,T x) {
 			if constexpr(RecursiveInjection::has_add_mod_max_value_ex) {
+				//returns base + x; sic! - no C involved
 				if constexpr(neg) {
-					//return injection(surjection(base) + x);
-					//return RecursiveInjection::injection(RecursiveInjection::surjection(base) - x);
-					return RecursiveInjection::injected_add_mod_max_value_ex(base, -ST(x));
+					T ret = RecursiveInjection::injected_add_mod_max_value_ex(base, -ST(x));
+					ITHARE_OBF_DBG_CHECK_SHORTCUT("<1>/-",ret,RecursiveInjection::injection(RecursiveInjection::surjection(base) - x));
+					return ret;
 				}
 				else {
-					//auto noShortcut = RecursiveInjection::injection(RecursiveInjection::surjection(base) + x);
 					auto ret = RecursiveInjection::injected_add_mod_max_value_ex(base, x);
-					//assert(ret == noShortcut);
+					ITHARE_OBF_DBG_CHECK_SHORTCUT("<1>/+",ret,RecursiveInjection::injection(RecursiveInjection::surjection(base) + x));
 					return ret;
 				}
 			}
 			else {
 				if constexpr(neg) {
-					//return injection(surjection(base) + x);
 					return RecursiveInjection::injection(RecursiveInjection::surjection(base) - x);
 				}
 				else {
 					return RecursiveInjection::injection(RecursiveInjection::surjection(base) + x);
 				}
 			}
-			//return base + x;//sic! - no C involved
-		}*/
+		}
 
 #ifdef ITHARE_OBF_DBG_ENABLE_DBGPRINT
 		static void dbgPrint(size_t offset = 0, const char* prefix = "") {
@@ -2095,9 +2098,9 @@ namespace ithare {
 		ITHARE_OBF_FORCEINLINE operator T_() const { return value(); }
 		ITHARE_OBF_FORCEINLINE obf_var& operator ++() { 
 			if constexpr(Injection::has_add_mod_max_value_ex) {
-				//auto noShortcut = Injection::injection(T(value()+1));
-				val = Injection::injected_add_mod_max_value_ex(val,1);
-				//assert(val == noShortcut);
+				typename Injection::return_type ret = Injection::injected_add_mod_max_value_ex(val,1);
+				ITHARE_OBF_DBG_CHECK_SHORTCUT("++",ret,value()+1);
+				val = ret;
 			}
 			else {
 				*this = value() + 1; 
