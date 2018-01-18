@@ -598,11 +598,13 @@ namespace ithare {
 
 		template<ITHARE_OBF_SEEDTPARAM seed2>
 		ITHARE_OBF_FORCEINLINE constexpr static return_type injection(T x) {
+			ITHARE_OBF_DECLAREPRNG_INFUNC seedc = ITHARE_OBF_COMBINED_PRNG(seed,seed2);
 			if constexpr(neg) {
 				ST sx = ST(x);
 				auto y = T(-sx) + C;
 				//ITHARE_OBF_DBG_MAP_ADD("<1>/ret",dbg_map, x,y);
-				return_type ret = RecursiveInjection::template injection<seed2>(y);
+				return_type ret = RecursiveInjection::template injection<seedc>(y);
+									//mutually exclusive with another call to injection<> => no need to randomize seedc further 
 				//ITHARE_OBF_DBG_MAP_ADD("<1>/r",dbg_map_r, y, ret);
 				ITHARE_OBF_DBG_ASSERT_SURJECTION("<1>/a",x,ret);
 				return ret;
@@ -610,7 +612,7 @@ namespace ithare {
 			else {
 				T y = x + C;
 				//ITHARE_OBF_DBG_MAP_ADD("<1>/ret",dbg_map, x,y);
-				return_type ret = RecursiveInjection::template injection<seed2>(y);
+				return_type ret = RecursiveInjection::template injection<seedc>(y);
 				//ITHARE_OBF_DBG_MAP_ADD("<1>/r",dbg_map_r, y, ret);
 				ITHARE_OBF_DBG_ASSERT_SURJECTION("<1>/b", x, ret);
 				return ret;
@@ -618,7 +620,8 @@ namespace ithare {
 		}
 		template<ITHARE_OBF_SEEDTPARAM seed2>
 		ITHARE_OBF_FORCEINLINE constexpr static T surjection(return_type y) {
-			T yy0 = RecursiveInjection::template surjection<seed2>(y);
+			ITHARE_OBF_DECLAREPRNG_INFUNC seedc = ITHARE_OBF_COMBINED_PRNG(seed,seed2);
+			T yy0 = RecursiveInjection::template surjection<seedc>(y);
 			//ITHARE_OBF_DBG_MAP_CHECK("<1>/r", dbg_map_r, yy0,y,RecursiveInjection::);
 			T yy = yy0-C;
 			if constexpr(neg) {
@@ -638,29 +641,31 @@ namespace ithare {
 		template<ITHARE_OBF_SEEDTPARAM seed2>
 		ITHARE_OBF_FORCEINLINE constexpr static return_type injected_add_mod_max_value_ex(return_type base,T x) {
 			//effectively returns base + x (base - x if neg); sic! - no C involved
+			ITHARE_OBF_DECLAREPRNG_INFUNC seedc = ITHARE_OBF_COMBINED_PRNG(seed,seed2);
 			if constexpr(RecursiveInjection::has_add_mod_max_value_ex) {
 				if constexpr(neg) {
-					return_type ret = RecursiveInjection::template injected_add_mod_max_value_ex<seed2>(base, -ST(x));
-					ITHARE_OBF_DBG_CHECK_SHORTCUT("<1>/-/r",ret,RecursiveInjection::template injection<seed2>(RecursiveInjection::template surjection<seed2>(base) - x));
-					ITHARE_OBF_DBG_CHECK_SHORTCUT("<1>/-/0", ret, injection<seed2>(surjection<seed2>(base) + x));
+					return_type ret = RecursiveInjection::template injected_add_mod_max_value_ex<seedc>(base, -ST(x));
+									//mutually exclusive with all the other non-CHECK calls to injection<> => no need to randomize seedc further 
+					ITHARE_OBF_DBG_CHECK_SHORTCUT("<1>/-/r",ret,RecursiveInjection::template injection<seedc>(RecursiveInjection::template surjection<seedc>(base) - x));
+					ITHARE_OBF_DBG_CHECK_SHORTCUT("<1>/-/0", ret, injection<seedc>(surjection<seedc>(base) + x));
 					return ret;
 				}
 				else {
-					return_type ret = RecursiveInjection::template injected_add_mod_max_value_ex<seed2>(base, x);
-					ITHARE_OBF_DBG_CHECK_SHORTCUT("<1>/+/r",ret,RecursiveInjection::template injection<seed2>(RecursiveInjection::template surjection<seed2>(base) + x));
-					ITHARE_OBF_DBG_CHECK_SHORTCUT("<1>/+/0", ret, injection<seed2>(surjection<seed2>(base) + x));
+					return_type ret = RecursiveInjection::template injected_add_mod_max_value_ex<seedc>(base, x);
+					ITHARE_OBF_DBG_CHECK_SHORTCUT("<1>/+/r",ret,RecursiveInjection::template injection<seedc>(RecursiveInjection::template surjection<seedc>(base) + x));
+					ITHARE_OBF_DBG_CHECK_SHORTCUT("<1>/+/0", ret, injection<seedc>(surjection<seedc>(base) + x));
 					return ret;
 				}
 			}
 			else {
 				if constexpr(neg) {
-					return_type ret = RecursiveInjection::template injection<seed2>(RecursiveInjection::template surjection<seed2>(base) - x);
-					ITHARE_OBF_DBG_CHECK_SHORTCUT("<1>/-/1", ret, injection<seed2>(surjection<seed2>(base) + x));
+					return_type ret = RecursiveInjection::template injection<seedc>(RecursiveInjection::template surjection<seedc>(base) - x);
+					ITHARE_OBF_DBG_CHECK_SHORTCUT("<1>/-/1", ret, injection<seedc>(surjection<seedc>(base) + x));
 					return ret;
 				}
 				else {
-					return_type ret = RecursiveInjection::template injection<seed2>(RecursiveInjection::template surjection<seed2>(base) + x);
-					ITHARE_OBF_DBG_CHECK_SHORTCUT("<1>/+/1", ret, injection<seed2>(surjection<seed2>(base)+x));
+					return_type ret = RecursiveInjection::template injection<seedc>(RecursiveInjection::template surjection<seedc>(base) + x);
+					ITHARE_OBF_DBG_CHECK_SHORTCUT("<1>/+/1", ret, injection<seedc>(surjection<seedc>(base)+x));
 					return ret;
 				}
 			}
@@ -826,16 +831,18 @@ namespace ithare {
 		//constexpr static T mask = ((T)1 << halfTBits) - 1;
 		template<ITHARE_OBF_SEEDTPARAM seed2>
 		ITHARE_OBF_FORCEINLINE constexpr static return_type injection(T x) {
+			ITHARE_OBF_DECLAREPRNG_INFUNC seedc = ITHARE_OBF_COMBINED_PRNG(seed,seed2);
 			T lo = x >> halfTBits;
 			//T hi = (x & mask) + f((halfT)lo);
 			T hi = x + f((halfT)lo);
-			return_type ret = RecursiveInjection::template injection<seed2>((hi << halfTBits) + lo);
+			return_type ret = RecursiveInjection::template injection<seedc>((hi << halfTBits) + lo);
 			ITHARE_OBF_DBG_ASSERT_SURJECTION("<2>", x, ret);
 			return ret;
 		}
 		template<ITHARE_OBF_SEEDTPARAM seed2>
 		ITHARE_OBF_FORCEINLINE constexpr static T surjection(return_type y_) {
-			T y = RecursiveInjection::template surjection<seed2>(y_);
+			ITHARE_OBF_DECLAREPRNG_INFUNC seedc = ITHARE_OBF_COMBINED_PRNG(seed,seed2);
+			T y = RecursiveInjection::template surjection<seedc>(y_);
 			halfT hi = y >> halfTBits;
 			T lo = y;
 			//T z = (hi - f((halfT)lo)) & mask;
@@ -940,23 +947,25 @@ namespace ithare {
 
 		template<ITHARE_OBF_SEEDTPARAM seed2>
 		ITHARE_OBF_FORCEINLINE constexpr static return_type injection(T x) {
+			ITHARE_OBF_DECLAREPRNG_INFUNC seedc = ITHARE_OBF_COMBINED_PRNG(seed,seed2);
 			halfT lo = x >> halfTBits;
-			typename LoInjection::return_type lo1 = LoInjection::template injection<seed2>(lo);
+			typename LoInjection::return_type lo1 = LoInjection::template injection<ITHARE_OBF_NEW_PRNG(seedc,1)>(lo);
 			lo = halfT(lo1);// *reinterpret_cast<halfT*>(&lo1);//relies on static_assert(sizeof(return_type)==sizeof(halfT)) above
 			halfT hi = (halfT)x;
-			typename HiInjection::return_type hi1 = HiInjection::template injection<seed2>(hi);
+			typename HiInjection::return_type hi1 = HiInjection::template injection<ITHARE_OBF_NEW_PRNG(seedc,2)>(hi);
 			hi = halfT(hi1);// *reinterpret_cast<halfT*>(&hi1);//relies on static_assert(sizeof(return_type)==sizeof(halfT)) above
-			return_type ret = RecursiveInjection::template injection<seed2>((T(hi) << halfTBits) + T(lo));
+			return_type ret = RecursiveInjection::template injection<ITHARE_OBF_NEW_PRNG(seedc,3)>((T(hi) << halfTBits) + T(lo));
 			ITHARE_OBF_DBG_ASSERT_SURJECTION("<3>", x, ret);
 			return ret;
 		}
 		template<ITHARE_OBF_SEEDTPARAM seed2>
 		ITHARE_OBF_FORCEINLINE constexpr static T surjection(return_type y_) {
-			auto y = RecursiveInjection::template surjection<seed2>(y_);
+			ITHARE_OBF_DECLAREPRNG_INFUNC seedc = ITHARE_OBF_COMBINED_PRNG(seed,seed2);
+			auto y = RecursiveInjection::template surjection<ITHARE_OBF_NEW_PRNG(seedc,4)>(y_);
 			halfT hi0 = y >> halfTBits;
 			halfT lo0 = (halfT)y;
-			halfT hi = HiInjection::template surjection<seed2>(/* *reinterpret_cast<typename HiInjection::return_type*>(&hi0)*/typename HiInjection::return_type(hi0));//relies on static_assert(sizeof(return_type)==sizeof(halfT)) above
-			halfT lo = LoInjection::template surjection<seed2>(/**reinterpret_cast<typename LoInjection::return_type*>(&lo0)*/ typename LoInjection::return_type(lo0));//relies on static_assert(sizeof(return_type)==sizeof(halfT)) above
+			halfT hi = HiInjection::template surjection<ITHARE_OBF_NEW_PRNG(seedc,5)>(/* *reinterpret_cast<typename HiInjection::return_type*>(&hi0)*/typename HiInjection::return_type(hi0));//relies on static_assert(sizeof(return_type)==sizeof(halfT)) above
+			halfT lo = LoInjection::template surjection<ITHARE_OBF_NEW_PRNG(seedc,6)>(/**reinterpret_cast<typename LoInjection::return_type*>(&lo0)*/ typename LoInjection::return_type(lo0));//relies on static_assert(sizeof(return_type)==sizeof(halfT)) above
 			return T(hi) + (T(lo) << halfTBits);
 		}
 
@@ -1062,18 +1071,20 @@ namespace ithare {
 
 		template<ITHARE_OBF_SEEDTPARAM seed2>
 		ITHARE_OBF_FORCEINLINE constexpr static return_type injection(T x) {
+			ITHARE_OBF_DECLAREPRNG_INFUNC seedc = ITHARE_OBF_COMBINED_PRNG(seed,seed2);
 			auto lit = literal();
 			ITHARE_OBF_DBG_CHECK_LITERAL("<4>",lit, CINV0);
 			auto y = typename Traits::UintT(x) * typename Traits::UintT(lit.value());
 			//ITHARE_OBF_DBG_MAP_ADD("<4>/ret",dbg_map, x,y);
-			return_type ret = RecursiveInjection::template injection<seed2>(y);
+			return_type ret = RecursiveInjection::template injection<seedc>(y);
 			//ITHARE_OBF_DBG_MAP_ADD("<4>/r",dbg_map_r, y, ret);
 			ITHARE_OBF_DBG_ASSERT_SURJECTION("<4>", x, ret);
 			return ret;
 		}
 		template<ITHARE_OBF_SEEDTPARAM seed2>
 		ITHARE_OBF_FORCEINLINE constexpr static T surjection(return_type y) {
-			T x = RecursiveInjection::template surjection<seed2>(y);
+			ITHARE_OBF_DECLAREPRNG_INFUNC seedc = ITHARE_OBF_COMBINED_PRNG(seed,seed2);
+			T x = RecursiveInjection::template surjection<seedc>(y);
 			//ITHARE_OBF_DBG_MAP_CHECK("<4>/r", dbg_map_r, x, y,RecursiveInjection::);
 			T ret = x * C;
 			//ITHARE_OBF_DBG_MAP_CHECK("<4>/ret", dbg_map, ret,x, );
@@ -1084,19 +1095,20 @@ namespace ithare {
 		template<ITHARE_OBF_SEEDTPARAM seed2>
 		ITHARE_OBF_FORCEINLINE constexpr static return_type injected_add_mod_max_value_ex(return_type base, T x) {
 			//effectively returns base + x*CINV0
+			ITHARE_OBF_DECLAREPRNG_INFUNC seedc = ITHARE_OBF_COMBINED_PRNG(seed,seed2);
 			if constexpr(RecursiveInjection::has_add_mod_max_value_ex) {
 				auto lit = literal();
 				ITHARE_OBF_DBG_CHECK_LITERAL("<4>/0", lit, CINV0);
-				return_type ret = RecursiveInjection::template injected_add_mod_max_value_ex<seed2>(base, x*lit.value());
-				ITHARE_OBF_DBG_CHECK_SHORTCUT("<4>/r", ret, RecursiveInjection::template injection<seed2>(RecursiveInjection::template surjection<seed2>(base) + CINV0*x));
-				ITHARE_OBF_DBG_CHECK_SHORTCUT("<4>/0", ret, injection<seed2>(surjection<seed2>(base) + x));
+				return_type ret = RecursiveInjection::template injected_add_mod_max_value_ex<seedc>(base, x*lit.value());
+				ITHARE_OBF_DBG_CHECK_SHORTCUT("<4>/r", ret, RecursiveInjection::template injection<seedc>(RecursiveInjection::template surjection<seedc>(base) + CINV0*x));
+				ITHARE_OBF_DBG_CHECK_SHORTCUT("<4>/0", ret, injection<seedc>(surjection<seedc>(base) + x));
 				return ret;
 			}
 			else {
 				auto lit = literal();
 				ITHARE_OBF_DBG_CHECK_LITERAL("<4>/1", lit, CINV0);
-				return_type ret = RecursiveInjection::template injection<seed2>(RecursiveInjection::template surjection<seed2>(base) + lit.value()*x);
-				ITHARE_OBF_DBG_CHECK_SHORTCUT("<4>/1", ret, injection<seed2>(surjection<seed2>(base) + x));
+				return_type ret = RecursiveInjection::template injection<seedc>(RecursiveInjection::template surjection<seedc>(base) + lit.value()*x);
+				ITHARE_OBF_DBG_CHECK_SHORTCUT("<4>/1", ret, injection<seedc>(surjection<seedc>(base) + x));
 				return ret;
 			}
 		}
@@ -1198,14 +1210,16 @@ namespace ithare {
 		};
 		template<ITHARE_OBF_SEEDTPARAM seed2>
 		ITHARE_OBF_FORCEINLINE constexpr static return_type injection(T x) {
-			return_type ret{ RecursiveInjectionLo::template injection<seed2>((halfT)x), RecursiveInjectionHi::template injection<seed2>(x >> halfTBits) };
+			ITHARE_OBF_DECLAREPRNG_INFUNC seedc = ITHARE_OBF_COMBINED_PRNG(seed,seed2);
+			return_type ret{ RecursiveInjectionLo::template injection<ITHARE_OBF_NEW_PRNG(seedc,1)>((halfT)x), RecursiveInjectionHi::template injection<ITHARE_OBF_NEW_PRNG(seedc,2)>(x >> halfTBits) };
 			ITHARE_OBF_DBG_ASSERT_SURJECTION("<5>", x, ret);
 			return ret;
 		}
 		template<ITHARE_OBF_SEEDTPARAM seed2>
 		ITHARE_OBF_FORCEINLINE constexpr static T surjection(return_type y_) {
-			halfT hi = RecursiveInjectionHi::template surjection<seed2>(y_.hi);
-			halfT lo = RecursiveInjectionLo::template surjection<seed2>(y_.lo);
+			ITHARE_OBF_DECLAREPRNG_INFUNC seedc = ITHARE_OBF_COMBINED_PRNG(seed,seed2);
+			halfT hi = RecursiveInjectionHi::template surjection<ITHARE_OBF_NEW_PRNG(seedc,3)>(y_.hi);
+			halfT lo = RecursiveInjectionLo::template surjection<ITHARE_OBF_NEW_PRNG(seedc,4)>(y_.lo);
 			return (T)lo + ((T)hi << halfTBits);
 		}
 
@@ -1284,19 +1298,21 @@ namespace ithare {
 
 		template<ITHARE_OBF_SEEDTPARAM seed2>
 		ITHARE_OBF_FORCEINLINE constexpr static return_type injection(T x) {
+			ITHARE_OBF_DECLAREPRNG_INFUNC seedc = ITHARE_OBF_COMBINED_PRNG(seed,seed2);
 			halfT lo0 = halfT(x);
-			typename LoInjection::return_type lo1 = LoInjection::template injection<seed2>(lo0);
+			typename LoInjection::return_type lo1 = LoInjection::template injection<ITHARE_OBF_NEW_PRNG(seedc,1)>(lo0);
 			//halfT lo = *reinterpret_cast<halfT*>(&lo1);//relies on static_assert(sizeof(return_type)==sizeof(halfT)) above
 			halfT lo = halfT(lo1);
-			return_type ret = RecursiveInjection::template injection<seed2>(x - T(lo0) + lo);
+			return_type ret = RecursiveInjection::template injection<ITHARE_OBF_NEW_PRNG(seedc,2)>(x - T(lo0) + lo);
 			ITHARE_OBF_DBG_ASSERT_SURJECTION("<6>", x, ret);
 			return ret;
 		}
 		template<ITHARE_OBF_SEEDTPARAM seed2>
 		ITHARE_OBF_FORCEINLINE constexpr static T surjection(return_type yy) {
-			T y = RecursiveInjection::template surjection<seed2>(yy);
+			ITHARE_OBF_DECLAREPRNG_INFUNC seedc = ITHARE_OBF_COMBINED_PRNG(seed,seed2);
+			T y = RecursiveInjection::template surjection<ITHARE_OBF_NEW_PRNG(seedc,3)>(yy);
 			halfT lo0 = halfT(y);
-			halfT lo = LoInjection::template surjection<seed2>(/* *reinterpret_cast<typename LoInjection::return_type*>(&lo0)*/ typename LoInjection::return_type(lo0));//relies on static_assert(sizeof(return_type)==sizeof(halfT)) above
+			halfT lo = LoInjection::template surjection<ITHARE_OBF_NEW_PRNG(seedc,4)>(/* *reinterpret_cast<typename LoInjection::return_type*>(&lo0)*/ typename LoInjection::return_type(lo0));//relies on static_assert(sizeof(return_type)==sizeof(halfT)) above
 			return y - T(lo0) + lo;
 		}
 
@@ -1402,12 +1418,13 @@ namespace ithare {
 
 		template<ITHARE_OBF_SEEDTPARAM seed2>
 		ITHARE_OBF_FORCEINLINE constexpr static return_type injection(T x) {
+			ITHARE_OBF_DECLAREPRNG_INFUNC seedc = ITHARE_OBF_COMBINED_PRNG(seed,seed2);
 			TypeLo lo = TypeLo(typename TypeLo::T(x));
 			TypeHi hi = TypeHi(typename TypeHi::T(x >> loBits));
 			//ITHARE_OBF_DBG_MAP_ADD("<7>/lo",dbg_map_lo, x, lo);
 			//ITHARE_OBF_DBG_MAP_ADD("<7>/hi",dbg_map_hi, x, hi);
-			return_type ret{ RecursiveInjectionLo::template injection<seed2>(lo),
-				RecursiveInjectionHi::template injection<seed2>(hi) };
+			return_type ret{ RecursiveInjectionLo::template injection<ITHARE_OBF_NEW_PRNG(seedc,1)>(lo),
+				RecursiveInjectionHi::template injection<ITHARE_OBF_NEW_PRNG(seedc,2)>(hi) };
 			//ITHARE_OBF_DBG_MAP_ADD("<7>/rlo",dbg_map_rlo, lo, ret.lo);
 			//ITHARE_OBF_DBG_MAP_ADD("<7>/rhi",dbg_map_rhi, hi, ret.hi);
 			ITHARE_OBF_DBG_ASSERT_SURJECTION("<7>", x, ret);
@@ -1415,9 +1432,10 @@ namespace ithare {
 		}
 		template<ITHARE_OBF_SEEDTPARAM seed2>
 		ITHARE_OBF_FORCEINLINE constexpr static T surjection(return_type y_) {
-			TypeHi hi = RecursiveInjectionHi::template surjection<seed2>(y_.hi);
+			ITHARE_OBF_DECLAREPRNG_INFUNC seedc = ITHARE_OBF_COMBINED_PRNG(seed,seed2);
+			TypeHi hi = RecursiveInjectionHi::template surjection<ITHARE_OBF_NEW_PRNG(seedc,3)>(y_.hi);
 			//ITHARE_OBF_DBG_MAP_CHECK("<7>/rhi",dbg_map_rhi, hi, y_.hi, RecursiveInjectionHi::);
-			TypeLo lo = RecursiveInjectionLo::template surjection<seed2>(y_.lo);
+			TypeLo lo = RecursiveInjectionLo::template surjection<ITHARE_OBF_NEW_PRNG(seedc,4)>(y_.lo);
 			//ITHARE_OBF_DBG_MAP_CHECK("<7>/rlo", dbg_map_rlo, lo , y_.lo, RecursiveInjectionLo::);
 
 			T ret = T(lo) + T(T(hi) << loBits);
@@ -1466,15 +1484,17 @@ namespace ithare {
 		static constexpr T highbit = T(1) << (ObfTraits<T>::nbits - 1);
 		template<ITHARE_OBF_SEEDTPARAM seed2>
 		ITHARE_OBF_FORCEINLINE constexpr static return_type injection(T x) {
+			ITHARE_OBF_DECLAREPRNG_INFUNC seedc = ITHARE_OBF_COMBINED_PRNG(seed,seed2);
 			if ((x % 2) == 0)
 				x = x >> 1;
 			else
 				x = ( x >> 1 ) + highbit;
-			return RecursiveInjection::template injection<seed2>(x);
+			return RecursiveInjection::template injection<seedc>(x);
 		}
 		template<ITHARE_OBF_SEEDTPARAM seed2>
 		ITHARE_OBF_FORCEINLINE constexpr static T surjection(return_type y) {
-			T yy = RecursiveInjection::template surjection<seed2>(y);
+			ITHARE_OBF_DECLAREPRNG_INFUNC seedc = ITHARE_OBF_COMBINED_PRNG(seed,seed2);
+			T yy = RecursiveInjection::template surjection<seedc>(y);
 			ST syy = ST(yy);
 			if (syy < 0)
 				return yy + yy + 1;
@@ -1514,11 +1534,13 @@ namespace ithare {
 		using return_type = typename WhichType::return_type;
 		template<ITHARE_OBF_SEEDTPARAM seed2>
 		ITHARE_OBF_FORCEINLINE constexpr static return_type injection(T x) {
-			return WhichType::template injection<seed2>(x);
+			ITHARE_OBF_DECLAREPRNG_INFUNC seedc = ITHARE_OBF_COMBINED_PRNG(seed,seed2);
+			return WhichType::template injection<seedc>(x);
 		}
 		template<ITHARE_OBF_SEEDTPARAM seed2>
 		ITHARE_OBF_FORCEINLINE constexpr static T surjection(return_type y) {
-			return WhichType::template surjection<seed2>(y);
+			ITHARE_OBF_DECLAREPRNG_INFUNC seedc = ITHARE_OBF_COMBINED_PRNG(seed,seed2);
+			return WhichType::template surjection<seedc>(y);
 		}
 
 	public:
@@ -1991,11 +2013,13 @@ namespace ithare {
 
 		template<ITHARE_OBF_SEEDTPARAM seed2>
 		ITHARE_OBF_FORCEINLINE static constexpr T final_injection(T x) {
-			return WhichType::template final_injection<seed2>(x);
+			ITHARE_OBF_DECLAREPRNG_INFUNC seedc = ITHARE_OBF_COMBINED_PRNG(seed,seed2);
+			return WhichType::template final_injection<seedc>(x);
 		}
 		template<ITHARE_OBF_SEEDTPARAM seed2>
 		ITHARE_OBF_FORCEINLINE static /*non-constexpr*/ T final_surjection(T y) {
-			return WhichType::template final_surjection<seed2>(y);
+			ITHARE_OBF_DECLAREPRNG_INFUNC seedc = ITHARE_OBF_COMBINED_PRNG(seed,seed2);
+			return WhichType::template final_surjection<seedc>(y);
 		}
 
 
@@ -2035,10 +2059,10 @@ namespace ithare {
 		};
 		using Injection = obf_injection<T, Context, ITHARE_OBF_NEW_PRNG(seed, 1), cycles,InjectionRequirements>;
 	public:
-		ITHARE_OBF_FORCEINLINE constexpr obf_literal_ctx() : val(Injection::template injection<seed>(C)) {
+		ITHARE_OBF_FORCEINLINE constexpr obf_literal_ctx() : val(Injection::template injection<ITHARE_OBF_NEW_PRNG(seed, 2)>(C)) {
 		}
 		ITHARE_OBF_FORCEINLINE constexpr T value() const {
-			return Injection::template surjection<seed>(val);
+			return Injection::template surjection<ITHARE_OBF_NEW_PRNG(seed, 3)>(val);
 		}
 
 #ifdef ITHARE_OBF_DBG_ENABLE_DBGPRINT
@@ -2072,10 +2096,10 @@ namespace ithare {
 		};
 		using Injection = obf_injection<T, Context, ITHARE_OBF_NEW_PRNG(seed, 2), cycles,InjectionRequirements>;
 	public:
-		ITHARE_OBF_FORCEINLINE constexpr obf_literal() : val(Injection::template injection<seed>(C)) {
+		ITHARE_OBF_FORCEINLINE constexpr obf_literal() : val(Injection::template injection<ITHARE_OBF_NEW_PRNG(seed, 3)>(C)) {
 		}
 		ITHARE_OBF_FORCEINLINE T value() const {
-			return Injection::template surjection<seed>(val);
+			return Injection::template surjection<ITHARE_OBF_NEW_PRNG(seed, 4)>(val);
 		}
 		ITHARE_OBF_FORCEINLINE operator T() const {
 			return value();
@@ -2146,36 +2170,37 @@ namespace ithare {
 		using Injection = obf_injection<T, Context, ITHARE_OBF_NEW_PRNG(seed, 2), cycles, InjectionRequirements>;
 
 	public:
-		ITHARE_OBF_FORCEINLINE obf_var(T_ t) : val(Injection::template injection<seed>(T(t))) {
+		ITHARE_OBF_FORCEINLINE obf_var(T_ t) : val(Injection::template injection<ITHARE_OBF_NEW_PRNG(seed, 2)>(T(t))) {
 		}
 		template<class T2, ITHARE_OBF_SEEDTPARAM seed2, OBFCYCLES cycles2>
-		ITHARE_OBF_FORCEINLINE obf_var(obf_var<T2, seed2, cycles2> t) : val(Injection::template injection<seed2>(T(T_(t.value())))) {//TODO: randomized injection implementation
+		ITHARE_OBF_FORCEINLINE obf_var(obf_var<T2, seed2, cycles2> t) : val(Injection::template injection<ITHARE_OBF_COMBINED_PRNG(seed,seed2)>(T(T_(t.value())))) {//TODO: randomized injection implementation
 		}
 		template<class T2, T2 C2, ITHARE_OBF_SEEDTPARAM seed2, OBFCYCLES cycles2>
-		ITHARE_OBF_FORCEINLINE obf_var(obf_literal<T2, C2, seed2, cycles2> t) : val(Injection::template injection<seed2>(T(T_(t.value())))) {//TODO: randomized injection implementation
+		ITHARE_OBF_FORCEINLINE obf_var(obf_literal<T2, C2, seed2, cycles2> t) : val(Injection::template injection<ITHARE_OBF_COMBINED_PRNG(seed,seed2)>(T(T_(t.value())))) {//TODO: randomized injection implementation
 		}
 		ITHARE_OBF_FORCEINLINE obf_var& operator =(T_ t) {
-			val = Injection::template injection<seed>(T(t));//TODO: different implementations of the same injection in different contexts
+			val = Injection::template injection<ITHARE_OBF_NEW_PRNG(seed, 3)>(T(t));//TODO: different implementations of the same injection in different contexts
 			return *this;
 		}
 		template<class T2, ITHARE_OBF_SEEDTPARAM seed2, OBFCYCLES cycles2>
 		ITHARE_OBF_FORCEINLINE obf_var& operator =(obf_var<T2, seed2, cycles2> t) {
-			val = Injection::template injection<seed>(T(T_(t.value())));//TODO: different implementations of the same injection in different contexts
+			val = Injection::template injection<ITHARE_OBF_NEW_PRNG(seed, 4)>(T(T_(t.value())));//TODO: different implementations of the same injection in different contexts
 			return *this;
 		}
 		template<class T2, T2 C2, ITHARE_OBF_SEEDTPARAM seed2, OBFCYCLES cycles2>
 		ITHARE_OBF_FORCEINLINE obf_var& operator =(obf_literal<T2, C2, seed2, cycles2> t) {
-			val = Injection::template injection<seed2>(T(T_(t.value())));//TODO: different implementations of the same injection in different contexts
+			ITHARE_OBF_DECLAREPRNG_INFUNC seedc = ITHARE_OBF_COMBINED_PRNG(seed,seed2);
+			val = Injection::template injection<seedc>(T(T_(t.value())));//TODO: different implementations of the same injection in different contexts
 			return *this;
 		}
 		ITHARE_OBF_FORCEINLINE T_ value() const {
-			return T_(Injection::template surjection<seed>(val));
+			return T_(Injection::template surjection<ITHARE_OBF_NEW_PRNG(seed, 5)>(val));
 		}
 
 		ITHARE_OBF_FORCEINLINE operator T_() const { return value(); }
 		ITHARE_OBF_FORCEINLINE obf_var& operator ++() { 
 			if constexpr(Injection::has_add_mod_max_value_ex) {
-				typename Injection::return_type ret = Injection::template injected_add_mod_max_value_ex<seed>(val,1);
+				typename Injection::return_type ret = Injection::template injected_add_mod_max_value_ex<ITHARE_OBF_NEW_PRNG(seed, 6)>(val,1);
 				ITHARE_OBF_DBG_CHECK_SHORTCUT("++",ret,Injection::template injection<seed>(Injection::template surjection<seed>(val)+1));
 				val = ret;
 			}
@@ -2437,21 +2462,21 @@ namespace ithare {
 		}
 		ITHARE_OBF_FORCEINLINE static constexpr std::array<uint32_t, sz4> str_obf() {
 			std::array<uint32_t, sz4> ret = {};
-			ret[0] = Injection0::template injection<seed>(get4(str,0));
+			ret[0] = Injection0::template injection<ITHARE_OBF_NEW_PRNG(seed,3)>(get4(str,0));
 			if constexpr(sz4 > 1)
-				ret[1] = Injection1::template injection<seed>(get4(str, 4));
+				ret[1] = Injection1::template injection<ITHARE_OBF_NEW_PRNG(seed,4)>(get4(str, 4));
 			if constexpr(sz4 > 2)
-				ret[2] = Injection2::template injection<seed>(get4(str, 8));
+				ret[2] = Injection2::template injection<ITHARE_OBF_NEW_PRNG(seed,5)>(get4(str, 8));
 			if constexpr(sz4 > 3)
-				ret[3] = Injection3::template injection<seed>(get4(str, 12));
+				ret[3] = Injection3::template injection<ITHARE_OBF_NEW_PRNG(seed,6)>(get4(str, 12));
 			if constexpr(sz4 > 4)
-				ret[4] = Injection4::template injection<seed>(get4(str, 16));
+				ret[4] = Injection4::template injection<ITHARE_OBF_NEW_PRNG(seed,7)>(get4(str, 16));
 			if constexpr(sz4 > 5)
-				ret[5] = Injection5::template injection<seed>(get4(str, 20));
+				ret[5] = Injection5::template injection<ITHARE_OBF_NEW_PRNG(seed,8)>(get4(str, 20));
 			if constexpr(sz4 > 6)
-				ret[6] = Injection6::template injection<seed>(get4(str, 24));
+				ret[6] = Injection6::template injection<ITHARE_OBF_NEW_PRNG(seed,9)>(get4(str, 24));
 			if constexpr(sz4 > 7)
-				ret[7] = Injection7::template injection<seed>(get4(str, 28));
+				ret[7] = Injection7::template injection<ITHARE_OBF_NEW_PRNG(seed,10)>(get4(str, 28));
 			return ret;
 		}
 
@@ -2460,21 +2485,21 @@ namespace ithare {
 		static std::array<uint32_t, sz4> c;//TODO: volatile
 		ITHARE_OBF_FORCEINLINE std::string value() const {
 			char buf[sz4 * 4];
-			*(uint32_t*)(buf + 0) = Injection0::template surjection<seed>(c[0]);
+			*(uint32_t*)(buf + 0) = Injection0::template surjection<ITHARE_OBF_NEW_PRNG(seed,11)>(c[0]);
 			if constexpr(sz4 > 1)
-				*(uint32_t*)(buf + 4) = Injection1::template surjection<seed>(c[1]);
+				*(uint32_t*)(buf + 4) = Injection1::template surjection<ITHARE_OBF_NEW_PRNG(seed,12)>(c[1]);
 			if constexpr(sz4 > 2)
-				*(uint32_t*)(buf + 8) = Injection2::template surjection<seed>(c[2]);
+				*(uint32_t*)(buf + 8) = Injection2::template surjection<ITHARE_OBF_NEW_PRNG(seed,13)>(c[2]);
 			if constexpr(sz4 > 3)
-				*(uint32_t*)(buf + 12) = Injection3::template surjection<seed>(c[3]);
+				*(uint32_t*)(buf + 12) = Injection3::template surjection<ITHARE_OBF_NEW_PRNG(seed,14)>(c[3]);
 			if constexpr(sz4 > 4)
-				*(uint32_t*)(buf + 16) = Injection4::template surjection<seed>(c[4]);
+				*(uint32_t*)(buf + 16) = Injection4::template surjection<ITHARE_OBF_NEW_PRNG(seed,15)>(c[4]);
 			if constexpr(sz4 > 5)
-				*(uint32_t*)(buf + 20) = Injection5::template surjection<seed>(c[5]);
+				*(uint32_t*)(buf + 20) = Injection5::template surjection<ITHARE_OBF_NEW_PRNG(seed,16)>(c[5]);
 			if constexpr(sz4 > 6)
-				*(uint32_t*)(buf + 24) = Injection6::template surjection<seed>(c[6]);
+				*(uint32_t*)(buf + 24) = Injection6::template surjection<ITHARE_OBF_NEW_PRNG(seed,17)>(c[6]);
 			if constexpr(sz4 > 7)
-				*(uint32_t*)(buf + 28) = Injection7::template surjection<seed>(c[7]);
+				*(uint32_t*)(buf + 28) = Injection7::template surjection<ITHARE_OBF_NEW_PRNG(seed,18)>(c[7]);
 			return std::string(buf,sz);
 		}
 		ITHARE_OBF_FORCEINLINE operator std::string() const {

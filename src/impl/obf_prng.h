@@ -21,13 +21,16 @@ namespace ithare {
 			UINT64_C(0x4d97'89b5'e76f'c505), UINT64_C(0xac1e'21fb'6594'ce31), UINT64_C(0xbc9e'7c29'054a'beb5), UINT64_C(0x418c'3b82'd2d8'a0db),
 			UINT64_C(0x9220'9ecf'b9b7'cb70), UINT64_C(0xfaca'eca7'6bf3'c919), UINT64_C(0x7379'36be'7574'654a), UINT64_C(0x4205'd596'48bc'd330),
 			UINT64_C(0xf2aa'35c8'c670'b1a2), UINT64_C(0xeef5'9ef8'28d8'fed2), UINT64_C(0x8d86'2109'a268'8a6b), UINT64_C(0x535d'2930'052b'7ab5),
-			UINT64_C(0x7f79'42d6'cffd'21a7), UINT64_C(0x8f18'3618'68b2'c1ac), UINT64_C(0x69da'cd1c'a7fd'549a), UINT64_C(0x9345'341d'e34a'81e0)
+			UINT64_C(0x7f79'42d6'cffd'21a7), UINT64_C(0x8f18'3618'68b2'c1ac), UINT64_C(0x69da'cd1c'a7fd'549a), UINT64_C(0x9345'341d'e34a'81e0),
+			UINT64_C(0x5344'84d5'2a07'c80c), UINT64_C(0xee2d'ef87'6dde'1d20), UINT64_C(0x43d0'3cc3'39ae'deea), UINT64_C(0xf2f3'dbac'698d'b760)  
+			
 		};/*from random.org*/
 		constexpr uint64_t obf_const_random1[] = {
 			UINT64_C(0x30c9'c242'c935'61e2), UINT64_C(0xd529'3193'1e57'0a40), UINT64_C(0xd01d'41d1'142c'e938), UINT64_C(0x327b'2d31'2760'1f6b),
 			UINT64_C(0x463b'ef56'47cb'121a), UINT64_C(0xb657'76c9'8087'3d61), UINT64_C(0x63e8'7a37'88c7'03b4), UINT64_C(0xd648'095c'c6f6'5473),
 			UINT64_C(0xba02'be98'd2e6'4836), UINT64_C(0x6b2b'e8ab'f44c'2af3), UINT64_C(0x971c'4f88'0d7d'd7a5), UINT64_C(0xe728'ed94'3c0e'9724),
-			UINT64_C(0xed42'd3d0'44cf'a1cc), UINT64_C(0xb333'dc8d'6f58'1f30), UINT64_C(0x2700'b0b7'ad09'32eb), UINT64_C(0xa431'c3be'c084'4f3c)
+			UINT64_C(0xed42'd3d0'44cf'a1cc), UINT64_C(0xb333'dc8d'6f58'1f30), UINT64_C(0x2700'b0b7'ad09'32eb), UINT64_C(0xa431'c3be'c084'4f3c),
+			UINT64_C(0xf11b'114c'eaab'76ed), UINT64_C(0xf387'892d'f0d6'9be2), UINT64_C(0x8078'e911'2775'9316), UINT64_C(0xce72'fb19'76fc'6ffe)   
 		};/*from random.org*/
 
 		constexpr const char* obf_normalize_fname(const char* file) {
@@ -140,6 +143,7 @@ namespace ithare {
 
 #define ITHARE_OBF_SEEDTPARAM uint64_t
 #define ITHARE_OBF_DECLAREPRNG constexpr static uint64_t /* sic! */
+#define ITHARE_OBF_DECLAREPRNG_INFUNC constexpr uint64_t
 #define	ITHARE_OBF_INIT_PRNG(file,line,counter) obf_init_prng(file,line,counter) 
 #define ITHARE_OBF_NEW_PRNG(prng,modifier) obf_new_prng(prng,modifier)
 #define ITHARE_OBF_COMBINED_PRNG(prng,prng2) obf_combined_prng(prng,prng2)
@@ -252,6 +256,7 @@ namespace ithare {
 		}
 #define ITHARE_OBF_SEEDTPARAM class /* sic! */
 #define ITHARE_OBF_DECLAREPRNG using /* don't ask ;-) */
+#define ITHARE_OBF_DECLAREPRNG_INFUNC using
 #define	ITHARE_OBF_INIT_PRNG(file,line,counter) ObfSeed<obf_init_prng(file,line,counter).first,obf_init_prng(file,line,counter).second,0>
 #define ITHARE_OBF_NEW_PRNG(prng,modifier) ObfSeed<obf_new_prng(prng::lo,prng::hi,modifier).first,obf_new_prng(prng::lo,prng::hi,modifier).second,prng::depth+1>
 #define ITHARE_OBF_COMBINED_PRNG(prng,prng2) ObfSeed<obf_combined_prng(prng::lo,prng::hi,prng2::lo,prng2::hi).first,obf_combined_prng(prng::lo,prng::hi,prng2::lo,prng2::hi).second,std::max(prng::depth,prng2::depth)+1>
