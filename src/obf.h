@@ -565,7 +565,7 @@ namespace ithare {
 		static constexpr OBFCYCLES own_min_injection_cycles = 1;
 		static constexpr OBFCYCLES own_min_surjection_cycles = 1;
 		static constexpr OBFCYCLES own_min_cycles = Context::context_cycles + Context::calc_cycles(own_min_injection_cycles, own_min_surjection_cycles);
-		static constexpr ObfDescriptor descr = ObfDescriptor(true, own_min_cycles, 1000);//@@!
+		static constexpr ObfDescriptor descr = ObfDescriptor(true, own_min_cycles, 100);
 	};
 
 	template <class T, class Context, class InjectionRequirements, ITHARE_OBF_SEEDTPARAM seed, OBFCYCLES cycles>
@@ -1015,7 +1015,7 @@ namespace ithare {
 		static constexpr OBFCYCLES own_min_injection_cycles = 3 + Context::literal_cycles;
 		static constexpr OBFCYCLES own_min_surjection_cycles = 3;
 		static constexpr OBFCYCLES own_min_cycles = Context::context_cycles + Context::calc_cycles(own_min_injection_cycles, own_min_surjection_cycles);
-		static constexpr ObfDescriptor descr = ObfDescriptor(true, own_min_cycles, 1000);//@@!
+		static constexpr ObfDescriptor descr = ObfDescriptor(true, own_min_cycles, 100);
 	};
 
 	template <class T, class Context, class InjectionRequirements, ITHARE_OBF_SEEDTPARAM seed, OBFCYCLES cycles>
