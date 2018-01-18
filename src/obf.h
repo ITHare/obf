@@ -110,8 +110,11 @@ namespace ithare {
 		}while(false)
 #define ITHARE_OBF_DBG_CHECK_SHORTCUT(where,shortcut,noshortcut_expr) do {\
 			auto noshort = noshortcut_expr;/* can be long*/\
-			if(shortcut!=noshort)\
+			if(shortcut!=noshort) {\
 				std::cout << "DBG_CHECK_SHORTCUT ERROR @" << where << ": " << shortcut << "!=" << noshort << std::endl; \
+				dbgPrint();\
+				abort();\
+			}\
         }while(false)
 #else
 #define ITHARE_OBF_DBG_ASSERT_SURJECTION(where,x,y)
@@ -562,7 +565,7 @@ namespace ithare {
 		static constexpr OBFCYCLES own_min_injection_cycles = 1;
 		static constexpr OBFCYCLES own_min_surjection_cycles = 1;
 		static constexpr OBFCYCLES own_min_cycles = Context::context_cycles + Context::calc_cycles(own_min_injection_cycles, own_min_surjection_cycles);
-		static constexpr ObfDescriptor descr = ObfDescriptor(true, own_min_cycles, 100);
+		static constexpr ObfDescriptor descr = ObfDescriptor(true, own_min_cycles, 1000);//@@!
 	};
 
 	template <class T, class Context, class InjectionRequirements, ITHARE_OBF_SEEDTPARAM seed, OBFCYCLES cycles>
@@ -626,27 +629,33 @@ namespace ithare {
 			}
 		}
 
-		static constexpr bool has_add_mod_max_value_ex = false;
-		ITHARE_OBF_FORCEINLINE constexpr static T injected_add_mod_max_value_ex(T base,T x) {
+		static constexpr bool has_add_mod_max_value_ex = true;
+		ITHARE_OBF_FORCEINLINE constexpr static return_type injected_add_mod_max_value_ex(return_type base,T x) {
+			//effectively returns base + x (base - x if neg); sic! - no C involved
 			if constexpr(RecursiveInjection::has_add_mod_max_value_ex) {
-				//returns base + x; sic! - no C involved
 				if constexpr(neg) {
-					T ret = RecursiveInjection::injected_add_mod_max_value_ex(base, -ST(x));
-					ITHARE_OBF_DBG_CHECK_SHORTCUT("<1>/-",ret,RecursiveInjection::injection(RecursiveInjection::surjection(base) - x));
+					return_type ret = RecursiveInjection::injected_add_mod_max_value_ex(base, -ST(x));
+					ITHARE_OBF_DBG_CHECK_SHORTCUT("<1>/-/r",ret,RecursiveInjection::injection(RecursiveInjection::surjection(base) - x));
+					ITHARE_OBF_DBG_CHECK_SHORTCUT("<1>/-/0", ret, injection(surjection(base) + x));
 					return ret;
 				}
 				else {
-					auto ret = RecursiveInjection::injected_add_mod_max_value_ex(base, x);
-					ITHARE_OBF_DBG_CHECK_SHORTCUT("<1>/+",ret,RecursiveInjection::injection(RecursiveInjection::surjection(base) + x));
+					return_type ret = RecursiveInjection::injected_add_mod_max_value_ex(base, x);
+					ITHARE_OBF_DBG_CHECK_SHORTCUT("<1>/+/r",ret,RecursiveInjection::injection(RecursiveInjection::surjection(base) + x));
+					ITHARE_OBF_DBG_CHECK_SHORTCUT("<1>/+/0", ret, injection(surjection(base) + x));
 					return ret;
 				}
 			}
 			else {
 				if constexpr(neg) {
-					return RecursiveInjection::injection(RecursiveInjection::surjection(base) - x);
+					return_type ret = RecursiveInjection::injection(RecursiveInjection::surjection(base) - x);
+					ITHARE_OBF_DBG_CHECK_SHORTCUT("<1>/-/1", ret, injection(surjection(base) + x));
+					return ret;
 				}
 				else {
-					return RecursiveInjection::injection(RecursiveInjection::surjection(base) + x);
+					return_type ret = RecursiveInjection::injection(RecursiveInjection::surjection(base) + x);
+					ITHARE_OBF_DBG_CHECK_SHORTCUT("<1>/+/1", ret, injection(surjection(base)+x));
+					return ret;
 				}
 			}
 		}
@@ -959,7 +968,7 @@ namespace ithare {
 	//version 4: multiply by odd
 	template< class T >
 	constexpr T obf_mul_inverse_mod2n(T num) {//extended GCD, intended to be used in compile-time only
-											  //by Dmytro Ivanchykhin
+											  //implementation by Dmytro Ivanchykhin
 		assert(num & 1);
 		T num0 = num;
 		T x = 0, lastx = 1, y = 1, lasty = 0;
@@ -1006,7 +1015,7 @@ namespace ithare {
 		static constexpr OBFCYCLES own_min_injection_cycles = 3 + Context::literal_cycles;
 		static constexpr OBFCYCLES own_min_surjection_cycles = 3;
 		static constexpr OBFCYCLES own_min_cycles = Context::context_cycles + Context::calc_cycles(own_min_injection_cycles, own_min_surjection_cycles);
-		static constexpr ObfDescriptor descr = ObfDescriptor(true, own_min_cycles, 100);
+		static constexpr ObfDescriptor descr = ObfDescriptor(true, own_min_cycles, 1000);//@@!
 	};
 
 	template <class T, class Context, class InjectionRequirements, ITHARE_OBF_SEEDTPARAM seed, OBFCYCLES cycles>
@@ -1059,7 +1068,25 @@ namespace ithare {
 			return ret;
 		}
 
-		static constexpr bool has_add_mod_max_value_ex = false;
+		static constexpr bool has_add_mod_max_value_ex = true;
+		ITHARE_OBF_FORCEINLINE constexpr static return_type injected_add_mod_max_value_ex(return_type base, T x) {
+			//effectively returns base + x*CINV0
+			if constexpr(RecursiveInjection::has_add_mod_max_value_ex) {
+				auto lit = literal();
+				ITHARE_OBF_DBG_CHECK_LITERAL("<4>/0", lit, CINV0);
+				return_type ret = RecursiveInjection::injected_add_mod_max_value_ex(base, x*lit.value());
+				ITHARE_OBF_DBG_CHECK_SHORTCUT("<4>/r", ret, RecursiveInjection::injection(RecursiveInjection::surjection(base) + CINV0*x));
+				ITHARE_OBF_DBG_CHECK_SHORTCUT("<4>/0", ret, injection(surjection(base) + x));
+				return ret;
+			}
+			else {
+				auto lit = literal();
+				ITHARE_OBF_DBG_CHECK_LITERAL("<4>/1", lit, CINV0);
+				return_type ret = RecursiveInjection::injection(RecursiveInjection::surjection(base) + lit.value()*x);
+				ITHARE_OBF_DBG_CHECK_SHORTCUT("<4>/1", ret, injection(surjection(base) + x));
+				return ret;
+			}
+		}
 
 #ifdef ITHARE_OBF_DBG_ENABLE_DBGPRINT
 		static void dbgPrint(size_t offset = 0, const char* prefix = "") {
@@ -1473,7 +1500,7 @@ namespace ithare {
 
 	public:
 		static constexpr bool has_add_mod_max_value_ex = WhichType::has_add_mod_max_value_ex;
-		ITHARE_OBF_FORCEINLINE constexpr static T injected_add_mod_max_value_ex(T base, T x) {
+		ITHARE_OBF_FORCEINLINE constexpr static return_type injected_add_mod_max_value_ex(return_type base, T x) {
 			return WhichType::injected_add_mod_max_value_ex(base,x);
 		}
 
@@ -1952,6 +1979,12 @@ namespace ithare {
 		static_assert(std::is_integral<T>::value);
 		static_assert(std::is_unsigned<T>::value);
 
+		/*constexpr static OBFCYCLES literal_cycles = 0;
+		template<class T2, T2 C, ITHARE_OBF_SEEDTPARAM seed2>
+		struct literal {
+			using type = obf_literal_ctx<T2, C, ObfZeroLiteralContext<T2>, seed2, literal_cycles>;
+		};*/
+
 		struct InjectionRequirements {
 			static constexpr size_t exclude_version = size_t(-1);
 			static constexpr bool is_constexpr = true;
@@ -2056,7 +2089,7 @@ namespace ithare {
 	template<class T_, ITHARE_OBF_SEEDTPARAM seed, OBFCYCLES cycles>
 	class obf_var {
 		static_assert(std::is_integral<T_>::value);
-		using T = typename std::make_unsigned<T_>::type;//from this point on, unsigned only
+		using T = typename std::make_unsigned<T_>::type;//from this point on (and down the hierarchy), unsigned only
 		//using TTraits = ObfTraits<T>;
 
 		using Context = ObfVarContext<T, ITHARE_OBF_NEW_PRNG(seed, 1), cycles>;
@@ -2099,7 +2132,7 @@ namespace ithare {
 		ITHARE_OBF_FORCEINLINE obf_var& operator ++() { 
 			if constexpr(Injection::has_add_mod_max_value_ex) {
 				typename Injection::return_type ret = Injection::injected_add_mod_max_value_ex(val,1);
-				ITHARE_OBF_DBG_CHECK_SHORTCUT("++",ret,value()+1);
+				ITHARE_OBF_DBG_CHECK_SHORTCUT("++",ret,Injection::injection(Injection::surjection(val)+1));
 				val = ret;
 			}
 			else {
@@ -2458,7 +2491,7 @@ namespace ithare {
 }//namespace obf
 }//namespace ithare
 
- //macros; DON'T belong to the namespace...
+ //macros; DON'T belong to any namespace...
 #define ITHARE_OBFS_HELPER(seed,cycles,s) obf_str_literal<seed,cycles,(sizeof(s)>0?s[0]:'\0'),(sizeof(s)>1?s[1]:'\0'),(sizeof(s)>2?s[2]:'\0'),(sizeof(s)>3?s[3]:'\0'),\
 							(sizeof(s)>4?s[4]:'\0'),(sizeof(s)>5?s[5]:'\0'),(sizeof(s)>6?s[6]:'\0'),(sizeof(s)>7?s[7]:'\0'),\
 							(sizeof(s)>8?s[8]:'\0'),(sizeof(s)>9?s[9]:'\0'),(sizeof(s)>10?s[10]:'\0'),(sizeof(s)>11?s[11]:'\0'),\
