@@ -11,3 +11,17 @@
 /test/MSVC/x64/Debug
 /test/MSVC/x64/Release-noPDB
 /test/MSVC/ConsoleApplication1.log
+/test/MSVC/*.exe
+/test/MSVC/*.obj
+/test/MSVC/*.pdb
+/test/MSVC/*.idb
+/test/MSVC/*.ilk
+/test/MSVC/obftemp.bat
+/test/Clang/obfdbg
+/test/Clang/obfrel
+/test/Clang/obfofficial
+/test/Clang/helper
+/test/Clang/obftemp
+/test/Clang/obftemptest.sh
+/test/Clang/ConsoleApplication1.log
+/test/MSVC/MSVC-linker-MT-bug
