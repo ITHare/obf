@@ -562,11 +562,8 @@ namespace ithare {
 		static constexpr OBFCYCLES availCycles = cycles - obf_injection_version1_descr<Context>::own_min_cycles;
 		static_assert(availCycles >= 0);
 
-		struct RecursiveInjectionRequirements {
+		struct RecursiveInjectionRequirements : public InjectionRequirements {
 			static constexpr size_t exclude_version = 1;
-			static constexpr bool is_constexpr = InjectionRequirements::is_constexpr;
-			static constexpr bool only_bijections = InjectionRequirements::only_bijections;
-			static constexpr bool no_physical_size_increase = InjectionRequirements::no_physical_size_increase;
 		};
 
 		using RecursiveInjection = obf_injection<T, Context, ITHARE_OBF_NEW_PRNG(seed, 1), availCycles+Context::context_cycles,RecursiveInjectionRequirements>;
@@ -799,11 +796,8 @@ namespace ithare {
 		static constexpr OBFCYCLES cycles_rInj = cycles_rInj0 + delta_f;
 		static_assert(cycles_f + cycles_rInj <= availCycles);
 
-		struct RecursiveInjectionRequirements {
+		struct RecursiveInjectionRequirements : public InjectionRequirements {
 			static constexpr size_t exclude_version = size_t(-1);
-			static constexpr bool is_constexpr = InjectionRequirements::is_constexpr;
-			static constexpr bool only_bijections = InjectionRequirements::only_bijections;
-			static constexpr bool no_physical_size_increase = InjectionRequirements::no_physical_size_increase;
 		};
 
 		using RecursiveInjection = obf_injection<T, Context, ITHARE_OBF_NEW_PRNG(seed, 2), cycles_rInj+ Context::context_cycles,RecursiveInjectionRequirements>;
@@ -890,20 +884,15 @@ namespace ithare {
 		static constexpr OBFCYCLES cycles_hi = splitCycles[2];
 		static_assert(cycles_rInj + cycles_lo + cycles_hi <= availCycles);
 
-		struct RecursiveInjectionRequirements {
+		struct RecursiveInjectionRequirements : public InjectionRequirements {
 			static constexpr size_t exclude_version = size_t(-1);
-			static constexpr bool is_constexpr = InjectionRequirements::is_constexpr;
-			static constexpr bool only_bijections = InjectionRequirements::only_bijections;
-			static constexpr bool no_physical_size_increase = InjectionRequirements::no_physical_size_increase;
 		};
 		using RecursiveInjection = obf_injection<T, Context, ITHARE_OBF_NEW_PRNG(seed, 2), cycles_rInj+ Context::context_cycles, RecursiveInjectionRequirements>;
 		using return_type = typename RecursiveInjection::return_type;
 
-		struct LoHiInjectionRequirements {
+		struct LoHiInjectionRequirements : public InjectionRequirements {
 			static constexpr size_t exclude_version = size_t(-1);
-			static constexpr bool is_constexpr = InjectionRequirements::is_constexpr;
 			static constexpr bool only_bijections = true;
-			static constexpr bool no_physical_size_increase = InjectionRequirements::no_physical_size_increase;
 		};
 
 		constexpr static std::array<ObfDescriptor, 2> splitLo {
@@ -1028,11 +1017,8 @@ namespace ithare {
 		static constexpr OBFCYCLES availCycles = cycles - obf_injection_version4_descr<Context>::own_min_cycles;
 		static_assert(availCycles >= 0);
 
-		struct RecursiveInjectionRequirements {
+		struct RecursiveInjectionRequirements : public InjectionRequirements {
 			static constexpr size_t exclude_version = 4;
-			static constexpr bool is_constexpr = InjectionRequirements::is_constexpr;
-			static constexpr bool only_bijections = InjectionRequirements::only_bijections;
-			static constexpr bool no_physical_size_increase = InjectionRequirements::no_physical_size_increase;
 		};
 
 	public:
@@ -1136,11 +1122,8 @@ namespace ithare {
 		using halfT = typename ObfTraits<T>::HalfT;
 		constexpr static int halfTBits = sizeof(halfT) * 8;
 
-		struct RecursiveInjectionRequirements {
+		struct RecursiveInjectionRequirements : public InjectionRequirements {
 			static constexpr size_t exclude_version = size_t(-1);
-			static constexpr bool is_constexpr = InjectionRequirements::is_constexpr;
-			static constexpr bool only_bijections = InjectionRequirements::only_bijections;
-			static constexpr bool no_physical_size_increase = InjectionRequirements::no_physical_size_increase;
 		};
 
 		static constexpr OBFCYCLES availCycles = cycles - obf_injection_version5_descr<T,Context>::own_min_cycles;
@@ -1241,11 +1224,8 @@ namespace ithare {
 		static constexpr OBFCYCLES availCycles = cycles - obf_injection_version6_descr<T,Context>::own_min_cycles;
 		static_assert(availCycles >= 0);
 
-		struct RecursiveInjectionRequirements {
+		struct RecursiveInjectionRequirements : public InjectionRequirements {
 			static constexpr size_t exclude_version = 6;
-			static constexpr bool is_constexpr = InjectionRequirements::is_constexpr;
-			static constexpr bool only_bijections = InjectionRequirements::only_bijections;
-			static constexpr bool no_physical_size_increase = InjectionRequirements::no_physical_size_increase;
 		};
 		using halfT = typename ObfTraits<T>::HalfT;
 
@@ -1262,11 +1242,9 @@ namespace ithare {
 		using return_type = typename RecursiveInjection::return_type;
 
 	public:
-		struct LoInjectionRequirements {
+		struct LoInjectionRequirements : public InjectionRequirements {
 			static constexpr size_t exclude_version = size_t(-1);
-			static constexpr bool is_constexpr = InjectionRequirements::is_constexpr;
 			static constexpr bool only_bijections = true;
-			static constexpr bool no_physical_size_increase = InjectionRequirements::no_physical_size_increase;
 		};
 
 		constexpr static std::array<ObfDescriptor, 2> splitLo{
@@ -1336,10 +1314,8 @@ namespace ithare {
 		using TypeLo = ObfBitUint<loBits>;
 		using TypeHi = ObfBitUint<hiBits>;
 
-		struct RecursiveInjectionRequirements {
+		struct RecursiveInjectionRequirements : public InjectionRequirements {
 			static constexpr size_t exclude_version = size_t(-1);
-			static constexpr bool is_constexpr = InjectionRequirements::is_constexpr;
-			static constexpr bool only_bijections = InjectionRequirements::only_bijections;
 			static constexpr bool no_physical_size_increase = true;
 		};
 

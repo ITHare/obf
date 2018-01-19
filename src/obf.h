@@ -34,6 +34,7 @@ namespace ithare {
 			static constexpr bool is_constexpr = true;
 			static constexpr bool only_bijections = false;
 			static constexpr bool no_physical_size_increase = false;
+			static constexpr bool cross_platform_only = false;//TODO - get from template param
 		};
 		using Injection = obf_injection<T, Context, ITHARE_OBF_NEW_PRNG(seed, 2), cycles,InjectionRequirements>;
 	public:
@@ -107,6 +108,7 @@ namespace ithare {
 			static constexpr bool is_constexpr = false;
 			static constexpr bool only_bijections = false;
 			static constexpr bool no_physical_size_increase = false;
+			static constexpr bool cross_platform_only = false;//TODO - get from template param
 		};
 		using Injection = obf_injection<T, Context, ITHARE_OBF_NEW_PRNG(seed, 2), cycles, InjectionRequirements>;
 
@@ -356,6 +358,7 @@ namespace ithare {
 			static constexpr bool is_constexpr = true;
 			static constexpr bool only_bijections = true;
 			static constexpr bool no_physical_size_increase = false;
+			static constexpr bool cross_platform_only = false;//TODO - get from template param
 		};
 
 		using Injection0 = obf_injection<uint32_t, ObfZeroLiteralContext<uint32_t>, ITHARE_OBF_NEW_PRNG(seed, 3), std::max(split0,2), InjectionRequirements>;
