@@ -59,8 +59,12 @@ namespace ithare {
 		//        If disabling - use equivalent ITHARE_OBF0()...ITHARE_OBF6()
 
 		using OBFCYCLES = int32_t;//signed!
+		
 		using OBFFLAGS = uint64_t;
 		constexpr OBFFLAGS obf_flag_cross_platform_only = 0x01; 
+		
+		using OBFINJECTIONCAPS = uint64_t;//injection capability flags
+		constexpr OBFINJECTIONCAPS obf_injection_has_add_mod_max_value_ex = 0x01;
 		
 		template<class T,size_t N>
 		constexpr size_t obf_arraysz(T(&)[N]) { return N; }

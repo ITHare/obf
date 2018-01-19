@@ -74,8 +74,9 @@ public:
 		return xx - (( xx & mask ) << shift);//xx& mask was left intact in injection
 	}
 
-	static constexpr bool has_add_mod_max_value_ex = false;
-	//for examples of implementing "shortcut" injected_* operations (which are HIGHLY RECOMMENDED but are not strictly required) - see impl/obf_injection.h
+	static constexpr OBFINJECTIONCAPS injection_caps = 0;
+	//declares lack of support for "shortcut" injected_* operations
+	// for examples of "shortcut" injected_* operations (which are HIGHLY RECOMMENDED but are not strictly required) - see impl/obf_injection.h
 
 	//} SPECIFIC to shift+add 
 

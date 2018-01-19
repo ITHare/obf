@@ -142,7 +142,7 @@ namespace ithare {
 
 		ITHARE_OBF_FORCEINLINE operator T_() const { return value(); }
 		ITHARE_OBF_FORCEINLINE obf_var& operator ++() { 
-			if constexpr(Injection::has_add_mod_max_value_ex) {
+			if constexpr(Injection::injection_caps & obf_injection_has_add_mod_max_value_ex) {
 				typename Injection::return_type ret = Injection::template injected_add_mod_max_value_ex<ITHARE_OBF_NEW_PRNG(seed, 6)>(val,1);
 				ITHARE_OBF_DBG_CHECK_SHORTCUT("++",ret,Injection::template injection<seed>(Injection::template surjection<seed>(val)+1));
 				val = ret;

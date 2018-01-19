@@ -548,7 +548,7 @@ namespace ithare {
 			return Context::template final_surjection<seed2>(y);
 		}
 
-		static constexpr bool has_add_mod_max_value_ex = false;
+		static constexpr OBFINJECTIONCAPS injection_caps = 0;
 
 #ifdef ITHARE_OBF_DBG_ENABLE_DBGPRINT
 		static void dbgPrint(size_t offset = 0,const char* prefix="") {
@@ -630,13 +630,13 @@ namespace ithare {
 			}
 		}
 
-		static constexpr bool has_add_mod_max_value_ex = true;
+		static constexpr OBFINJECTIONCAPS injection_caps = obf_injection_has_add_mod_max_value_ex;
 
 		template<ITHARE_OBF_SEEDTPARAM seed2>
 		ITHARE_OBF_FORCEINLINE constexpr static return_type injected_add_mod_max_value_ex(return_type base,T x) {
 			//effectively returns base + x (base - x if neg); sic! - no C involved
 			ITHARE_OBF_DECLAREPRNG_INFUNC seedc = ITHARE_OBF_COMBINED_PRNG(seed,seed2);
-			if constexpr(RecursiveInjection::has_add_mod_max_value_ex) {
+			if constexpr(RecursiveInjection::injection_caps & obf_injection_has_add_mod_max_value_ex) {
 				if constexpr(neg) {
 					return_type ret = RecursiveInjection::template injected_add_mod_max_value_ex<seedc>(base, -ST(x));
 									//mutually exclusive with all the other non-CHECK calls to injection<> => no need to randomize seedc further 
@@ -841,7 +841,7 @@ namespace ithare {
 			return z + (lo << halfTBits);
 		}
 
-		static constexpr bool has_add_mod_max_value_ex = false;
+		static constexpr OBFINJECTIONCAPS injection_caps = 0;
 
 #ifdef ITHARE_OBF_DBG_ENABLE_DBGPRINT
 		static void dbgPrint(size_t offset = 0, const char* prefix = "") {
@@ -955,7 +955,7 @@ namespace ithare {
 			return T(hi) + (T(lo) << halfTBits);
 		}
 
-		static constexpr bool has_add_mod_max_value_ex = false;
+		static constexpr OBFINJECTIONCAPS injection_caps = 0;
 
 #ifdef ITHARE_OBF_DBG_ENABLE_DBGPRINT
 		static void dbgPrint(size_t offset = 0, const char* prefix = "") {
@@ -1074,12 +1074,12 @@ namespace ithare {
 			return ret;
 		}
 
-		static constexpr bool has_add_mod_max_value_ex = true;
+		static constexpr OBFINJECTIONCAPS injection_caps = obf_injection_has_add_mod_max_value_ex;
 		template<ITHARE_OBF_SEEDTPARAM seed2>
 		ITHARE_OBF_FORCEINLINE constexpr static return_type injected_add_mod_max_value_ex(return_type base, T x) {
 			//effectively returns base + x*CINV0
 			ITHARE_OBF_DECLAREPRNG_INFUNC seedc = ITHARE_OBF_COMBINED_PRNG(seed,seed2);
-			if constexpr(RecursiveInjection::has_add_mod_max_value_ex) {
+			if constexpr(RecursiveInjection::injection_caps & obf_injection_has_add_mod_max_value_ex) {
 				auto lit = literal();
 				ITHARE_OBF_DBG_CHECK_LITERAL("<4>/0", lit, CINV0);
 				return_type ret = RecursiveInjection::template injected_add_mod_max_value_ex<seedc>(base, x*lit.value());
@@ -1203,7 +1203,7 @@ namespace ithare {
 			return (T)lo + ((T)hi << halfTBits);
 		}
 
-		static constexpr bool has_add_mod_max_value_ex = false;
+		static constexpr OBFINJECTIONCAPS injection_caps = 0;
 
 #ifdef ITHARE_OBF_DBG_ENABLE_DBGPRINT
 		static void dbgPrint(size_t offset = 0, const char* prefix = "") {
@@ -1291,7 +1291,7 @@ namespace ithare {
 			return y - T(lo0) + lo;
 		}
 
-		static constexpr bool has_add_mod_max_value_ex = false;
+		static constexpr OBFINJECTIONCAPS injection_caps = 0;
 
 #ifdef ITHARE_OBF_DBG_ENABLE_DBGPRINT
 		static void dbgPrint(size_t offset = 0, const char* prefix = "") {
@@ -1417,7 +1417,7 @@ namespace ithare {
 			return ret;
 		}
 
-		static constexpr bool has_add_mod_max_value_ex = false;
+		static constexpr OBFINJECTIONCAPS injection_caps = 0;
 
 #ifdef ITHARE_OBF_DBG_ENABLE_DBGPRINT
 		static void dbgPrint(size_t offset = 0, const char* prefix = "") {
@@ -1524,7 +1524,7 @@ namespace ithare {
 		}
 
 	public:
-		static constexpr bool has_add_mod_max_value_ex = WhichType::has_add_mod_max_value_ex;
+		static constexpr OBFINJECTIONCAPS injection_caps = WhichType::injection_caps;
 		template<ITHARE_OBF_SEEDTPARAM seed2>
 		ITHARE_OBF_FORCEINLINE constexpr static return_type injected_add_mod_max_value_ex(return_type base, T x) {
 			return WhichType::template injected_add_mod_max_value_ex<seed2>(base,x);
