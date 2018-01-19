@@ -16,7 +16,7 @@ struct obf_injection_1st_user_version_descr {
 	static constexpr OBFCYCLES own_min_surjection_cycles = 4;//estimate of the CPU cycles for surjection
 	static constexpr OBFCYCLES own_min_cycles = Context::context_cycles + Context::calc_cycles(own_min_injection_cycles, own_min_surjection_cycles);//magical formula, to be used for pretty much all the versions
 	static constexpr ObfDescriptor descr = Traits::is_built_in ? // we want to deal with only uint8_t, uint16_t, uint32_t, and uint64_t
-			ObfDescriptor(true, own_min_cycles, 1000)://100 is a 'relative probability to use corresponding obf_injection_version<> in the randomly generated code'. 
+			ObfDescriptor(true, own_min_cycles, 100)://100 is a 'relative probability to use corresponding obf_injection_version<> in the randomly generated code'. 
 													 //  For most of built-in injections, this defaults to '100', and if you want to have maximum diversity (which is usually a Good Thing(tm)) -
 													 //    100 is usually a reasonably good choice
 			ObfDescriptor(false,0,0);//if T is not a built-in unsigned type - ignore this injection entirely
