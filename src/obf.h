@@ -356,8 +356,8 @@ namespace ithare {
 		struct InjectionRequirements {
 			static constexpr size_t exclude_version = size_t(-1);
 			static constexpr bool is_constexpr = true;
-			static constexpr bool only_bijections = true;
-			static constexpr bool no_physical_size_increase = false;
+			static constexpr bool only_bijections = false;
+			static constexpr bool no_physical_size_increase = true;
 			static constexpr bool cross_platform_only = false;//TODO - get from template param
 		};
 
