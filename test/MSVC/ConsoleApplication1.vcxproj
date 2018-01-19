@@ -232,9 +232,11 @@
   <ItemGroup>
     <ClInclude Include="..\..\src\impl\obf_common.h" />
     <ClInclude Include="..\..\src\impl\obf_crypto.h" />
+    <ClInclude Include="..\..\src\impl\obf_injection.h" />
+    <ClInclude Include="..\..\src\impl\obf_literal.h" />
     <ClInclude Include="..\..\src\impl\obf_prng.h" />
     <ClInclude Include="..\..\src\obf.h" />
-    <ClInclude Include="targetver.h" />
+    <ClInclude Include="..\..\src\obf_user_injection.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\internal.cpp" />
