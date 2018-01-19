@@ -34,7 +34,7 @@ namespace ithare {
 			static constexpr bool is_constexpr = true;
 			static constexpr bool only_bijections = false;
 			static constexpr bool no_physical_size_increase = false;
-			static constexpr bool cross_platform_only = false;//TODO - get from template param
+			static constexpr bool cross_platform_only = false;//currently there seems to be need to ensure cross-platform compatibility for literals
 		};
 		using Injection = obf_injection<T, Context, ITHARE_OBF_NEW_PRNG(seed, 2), cycles,InjectionRequirements>;
 	public:
@@ -96,7 +96,7 @@ namespace ithare {
 
 	//obf_var
 	//IMPORTANT: ANY API CHANGES MUST BE MIRRORED in obf_var_dbg<>
-	template<class T_, ITHARE_OBF_SEEDTPARAM seed, OBFCYCLES cycles>
+	template<class T_, ITHARE_OBF_SEEDTPARAM seed, OBFCYCLES cycles,OBFFLAGS flags=0>
 	class obf_var {
 		static_assert(std::is_integral<T_>::value);
 		using T = typename std::make_unsigned<T_>::type;//from this point on (and down the hierarchy), unsigned only
@@ -108,7 +108,7 @@ namespace ithare {
 			static constexpr bool is_constexpr = false;
 			static constexpr bool only_bijections = false;
 			static constexpr bool no_physical_size_increase = false;
-			static constexpr bool cross_platform_only = false;//TODO - get from template param
+			static constexpr bool cross_platform_only = flags & obf_flag_cross_platform_only;
 		};
 		using Injection = obf_injection<T, Context, ITHARE_OBF_NEW_PRNG(seed, 2), cycles, InjectionRequirements>;
 
@@ -358,7 +358,7 @@ namespace ithare {
 			static constexpr bool is_constexpr = true;
 			static constexpr bool only_bijections = false;
 			static constexpr bool no_physical_size_increase = true;
-			static constexpr bool cross_platform_only = false;//TODO - get from template param
+			static constexpr bool cross_platform_only = false;//currently there seems to be need to ensure cross-platform compatibility for literals 
 		};
 
 		using Injection0 = obf_injection<uint32_t, ObfZeroLiteralContext<uint32_t>, ITHARE_OBF_NEW_PRNG(seed, 3), std::max(split0,2), InjectionRequirements>;

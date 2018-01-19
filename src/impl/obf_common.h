@@ -59,6 +59,8 @@ namespace ithare {
 		//        If disabling - use equivalent ITHARE_OBF0()...ITHARE_OBF6()
 
 		using OBFCYCLES = int32_t;//signed!
+		using OBFFLAGS = uint64_t;
+		constexpr OBFFLAGS obf_flag_cross_platform_only = 0x01; 
 	}
 }
 #endif //ITHARE_OBF_SEED
