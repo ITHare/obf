@@ -221,14 +221,13 @@ namespace ithare {
 		};
 
 		template<ITHARE_OBF_SEEDTPARAM seed, size_t N>
-		constexpr size_t obf_random_obf_from_list(OBFCYCLES cycles, std::array<ObfDescriptor, N> descr, size_t exclude_version = size_t(-1)) {
+		constexpr size_t obf_random_obf_from_list(OBFCYCLES cycles, const ObfDescriptor (&descr)[N], size_t exclude_version = size_t(-1)) {
 			//returns index in descr
-			size_t sz = descr.size();
 			std::array<size_t, N> nr_weights = {};
 			std::array<size_t, N> r_weights = {};
 			size_t sum_r = 0;
 			size_t sum_nr = 0;
-			for (size_t i = 0; i < sz; ++i) {
+			for (size_t i = 0; i < N; ++i) {
 				if (i != exclude_version && cycles >= descr[i].min_cycles) {
 					if (descr[i].is_recursive) {
 						r_weights[i] = descr[i].weight;
@@ -311,6 +310,7 @@ namespace ithare {
 			static constexpr bool has_half_type = true;
 			using HalfT = uint32_t;
 			using UintT = typename obf_larger_type<uint64_t, unsigned>::type;//UintT is a type to cast to, to avoid idiocies like uint16_t*uint16_t being promoted to signed(!) int, and then overflowing to cause UB
+			static constexpr bool is_bit_based = true;
 			static constexpr size_t nbits = 64;
 		};
 
@@ -324,6 +324,7 @@ namespace ithare {
 			static constexpr bool has_half_type = true;
 			using HalfT = uint16_t;
 			using UintT = typename obf_larger_type<uint32_t, unsigned>::type;
+			static constexpr bool is_bit_based = true;
 			static constexpr size_t nbits = 32;
 		};
 
@@ -337,6 +338,7 @@ namespace ithare {
 			static constexpr bool has_half_type = true;
 			using HalfT = uint8_t;
 			using UintT = typename obf_larger_type<uint16_t, unsigned>::type;
+			static constexpr bool is_bit_based = true;
 			static constexpr size_t nbits = 16;
 		};
 
@@ -349,6 +351,7 @@ namespace ithare {
 
 			static constexpr bool has_half_type = false;
 			using UintT = typename obf_larger_type<uint8_t, unsigned>::type;
+			static constexpr bool is_bit_based = true;
 			static constexpr size_t nbits = 8;
 		};
 
@@ -433,11 +436,19 @@ namespace ithare {
 			//constexpr ObfBitUint(const volatile ObfBitUint& other) : val(other.val) {}
 			constexpr ITHARE_OBF_FORCEINLINE operator T() const { assert((val&mask) == val); return val & mask; }
 
+			constexpr ITHARE_OBF_FORCEINLINE ObfBitUint operator -() const { return ObfBitUint(-val); }
 			constexpr ITHARE_OBF_FORCEINLINE ObfBitUint operator *(ObfBitUint x) const { return ObfBitUint(val * x.val); }
 			constexpr ITHARE_OBF_FORCEINLINE ObfBitUint operator +(ObfBitUint x) const { return ObfBitUint(val + x.val); }
 			constexpr ITHARE_OBF_FORCEINLINE ObfBitUint operator -(ObfBitUint x) const { return ObfBitUint(val - x.val); }
 			constexpr ITHARE_OBF_FORCEINLINE ObfBitUint operator %(ObfBitUint x) const { return ObfBitUint(val%x.val); }
 			constexpr ITHARE_OBF_FORCEINLINE ObfBitUint operator /(ObfBitUint x) const { return ObfBitUint(val / x.val); }
+
+			constexpr ITHARE_OBF_FORCEINLINE ObfBitUint operator ~() const { return ObfBitUint(~val); }
+			constexpr ITHARE_OBF_FORCEINLINE ObfBitUint operator &(ObfBitUint x) const { return ObfBitUint(val & x.val); }
+			constexpr ITHARE_OBF_FORCEINLINE ObfBitUint operator |(ObfBitUint x) const { return ObfBitUint(val | x.val); }
+			constexpr ITHARE_OBF_FORCEINLINE ObfBitUint operator ^(ObfBitUint x) const { return ObfBitUint(val ^ x.val); }
+			constexpr ITHARE_OBF_FORCEINLINE ObfBitUint operator <<(size_t shift) const { return ObfBitUint(val << shift); }
+			constexpr ITHARE_OBF_FORCEINLINE ObfBitUint operator >>(size_t shift) const { return ObfBitUint(val >> shift); }
 
 #ifdef ITHARE_OBF_DBG_ENABLE_DBGPRINT
 		static void dbgPrint(size_t offset = 0,const char* prefix="") {
@@ -486,6 +497,7 @@ namespace ithare {
 
 			static constexpr bool has_half_type = false;
 			using UintT = typename obf_larger_type<typename TT::T, unsigned>::type;
+			static constexpr bool is_bit_based = true;
 			static constexpr size_t nbits = N;
 		};
 
@@ -729,7 +741,7 @@ namespace ithare {
 	};
 
 	template<size_t N>
-	constexpr OBFCYCLES obf_max_min_descr(std::array<ObfDescriptor,N> descr) {
+	constexpr OBFCYCLES obf_max_min_descr(const ObfDescriptor (&descr)[N]) {
 		OBFCYCLES ret = 0;
 		for (size_t i = 0; i < N; ++i) {
 			OBFCYCLES mn = descr[i].min_cycles;
@@ -741,7 +753,7 @@ namespace ithare {
 
 	template<class T, ITHARE_OBF_SEEDTPARAM seed, OBFCYCLES cycles>
 	struct obf_randomized_non_reversible_function {
-		constexpr static std::array<ObfDescriptor, 3> descr{
+		constexpr static ObfDescriptor descr[] = {
 			obf_randomized_non_reversible_function_version0_descr::descr,
 			obf_randomized_non_reversible_function_version1_descr::descr,
 			obf_randomized_non_reversible_function_version2_descr::descr,
@@ -962,7 +974,7 @@ namespace ithare {
 	template< class T >
 	constexpr T obf_mul_inverse_mod2n(T num) {//extended GCD, intended to be used in compile-time only
 											  //implementation by Dmytro Ivanchykhin
-		assert(num & 1);
+		assert(num & T(1));
 		T num0 = num;
 		T x = 0, lastx = 1, y = 1, lasty = 0;
 		T q=0, temp1=0, temp2=0, temp3=0;
@@ -1027,7 +1039,7 @@ namespace ithare {
 		//constexpr static T C = (T)(obf_gen_const<T>(obf_compile_time_prng(seed, 2)) | 1);
 		static constexpr std::array<T, 3> consts = { OBF_CONST_A,OBF_CONST_B,OBF_CONST_C };
 		constexpr static T C = obf_random_const<ITHARE_OBF_NEW_PRNG(seed, 2)>(consts);
-		static_assert((C & 1) == 1);
+		static_assert((C & T(1)) == 1);
 		constexpr static T CINV0 = obf_mul_inverse_mod2n(C);
 		static_assert((T)(C*CINV0) == (T)1);
 		constexpr static typename Traits::literal_type CINV = CINV0;
@@ -1472,12 +1484,18 @@ namespace ithare {
 	};
 #endif//#if 0
 
-	//obf_injection: combining obf_injection_version
+#define ITHARE_OBF_FIRST_USER_INJECTION 8
+#include "../obf_user_injection.h"
+#ifndef ITHARE_OBF_USER_INJECTION_DESCRIPTOR_LIST
+#error "ITHARE_OBF_USER_INJECTION_DESCRIPTOR_LIST MUST be defined in obf_user_injection.h"
+#endif
+
+	//obf_injection: choosing one of obf_injection_version<which,...>
 	template<class T, class Context, ITHARE_OBF_SEEDTPARAM seed, OBFCYCLES cycles,class InjectionRequirements>
 	class obf_injection {
 		static_assert(std::is_same<T, typename Context::Type>::value);
 		using Traits = ObfTraits<T>;
-		constexpr static std::array<ObfDescriptor, 8> descr{
+		constexpr static ObfDescriptor descr[] = {
 			obf_injection_version0_descr<Context>::descr,
 			obf_injection_version1_descr<Context>::descr,
 			obf_injection_version2_descr<T,Context>::descr,
@@ -1486,9 +1504,10 @@ namespace ithare {
 			obf_injection_version5_descr<T,Context>::descr,
 			obf_injection_version6_descr<T,Context>::descr,
 			obf_injection_version7_descr<T,Context,InjectionRequirements>::descr,
+			ITHARE_OBF_USER_INJECTION_DESCRIPTOR_LIST//MUST be defined in "../obf_user_injection.h", even if empty
 		};
 		constexpr static size_t which = obf_random_obf_from_list<ITHARE_OBF_NEW_PRNG(seed, 1)>(cycles, descr,InjectionRequirements::exclude_version);
-		static_assert(which >= 0 && which < descr.size());
+		static_assert(which >= 0 && which < obf_arraysz(descr));
 		using WhichType = obf_injection_version<which, T, Context, InjectionRequirements, seed, cycles>;
 
 	public:

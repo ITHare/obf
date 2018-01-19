@@ -61,6 +61,9 @@ namespace ithare {
 		using OBFCYCLES = int32_t;//signed!
 		using OBFFLAGS = uint64_t;
 		constexpr OBFFLAGS obf_flag_cross_platform_only = 0x01; 
+		
+		template<class T,size_t N>
+		constexpr size_t obf_arraysz(T(&)[N]) { return N; }
 	}
 }
 #endif //ITHARE_OBF_SEED

@@ -444,7 +444,7 @@ namespace ithare {
 	template<class T, ITHARE_OBF_SEEDTPARAM seed, OBFCYCLES cycles>
 	class ObfLiteralContext {
 		using Traits = ObfTraits<T>;
-		constexpr static std::array<ObfDescriptor, 5> descr{
+		constexpr static ObfDescriptor descr[] = {
 			obf_literal_context_version0_descr::descr,
 			obf_literal_context_version1_descr::descr,
 			obf_literal_context_version2_descr::descr,
