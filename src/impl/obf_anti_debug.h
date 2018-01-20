@@ -152,16 +152,38 @@ namespace ithare {
 
 /* ************** TIME-BASED **************** */
 
+	constexpr int obf_bit_upper_bound(uint64_t x) {
+	uint64_t test = 1;
+	for (int i = 0; i < 64; ++i, test <<= 1) {
+		if (test > x)
+			return i;
+	}
+	assert(false);
+	return 63;
+}
+
+#define ITHARE_OBF_NON_BLOCKING_DAMN_LOT_SECONDS 15
+
 #if defined(_MSC_VER) && ( defined(_M_IX86) || defined(_M_X64))  	
+
+#if defined(_WIN32)//includes _WIN64; I currently prefer reading of SharedUserData on Windows; change to 0 if you still prefer RDTSC
+//since Windows 5.2 (late WinXP) TODO: check what happens on pre-XP (guess it should still work but...)
+#define ITHARE_OBF_TIME_TYPE uint32_t /*ULONG*/
+#define ITHARE_OBF_TIME_NOW() ((uint64_t((*(uint32_t*)(0x7FFE'0320)))*uint64_t((*(uint32_t*)(0x7FFE'0004))))>>0x18) //TODO: consider obfuscating 0x7FFExxxx constants
+#define ITHARE_OBF_TIME_NON_BLOCKING_THRESHOLD (ITHARE_OBF_NON_BLOCKING_DAMN_LOT_SECONDS*1000)
+//TODO: think about polyvariant implementation of ObfNonBlockingCode (some being based on reading SharedUserData, some - on RDTSC)
+#else//#if _WIN32
 #include <intrin.h>
 #define ITHARE_OBF_TIME_TYPE uint64_t
 #define ITHARE_OBF_TIME_NOW() __rdtsc() //TODO: consider rewriting manually (MSVC intrinsic tends to exhibit a very obvious pattern, and we don't really need lower word of RDTSC) 
-#define ITHARE_OBF_TIME_NON_BLOCKING_THRESHOLD (UINT64_C(4'000'000'000)*15) //4GHz * 15 seconds is a Damn Lot(tm); if frequency is lower - it is even safer
+#define ITHARE_OBF_TIME_NON_BLOCKING_THRESHOLD (UINT64_C(4'000'000'000)*ITHARE_OBF_NON_BLOCKING_DAMN_LOT_SECONDS) //4GHz is currently about the absolute-maximum frequency; if frequency is lower - it is even safer
+#endif
+
 #elif defined(__clang__) && (defined(__x86_64__)||defined(__i386__))
 #include <x86intrin.h>
 #define ITHARE_OBF_TIME_TYPE uint64_t
 #define ITHARE_OBF_TIME_NOW() __rdtsc()
-#define ITHARE_OBF_TIME_NON_BLOCKING_THRESHOLD (UINT64_C(4'000'000'000)*15) //4GHz * 15 seconds is a Damn Lot(tm)
+#define ITHARE_OBF_TIME_NON_BLOCKING_THRESHOLD (UINT64_C(4'000'000'000)*ITHARE_OBF_NON_BLOCKING_DAMN_LOT_SECONDS) //4GHz is currently about the absolute-maximum frequency; if frequency is lower - it is even safer
 #else
 #warning "Time-based protection is not supported yet for this platform (executable will work, but without time-based protection)"
 #define ITHARE_OBF_TIME_TYPE unsigned //we don't really need it
@@ -173,25 +195,16 @@ namespace ithare {
 //using template to move static data to header...
 template<class Dummy>
 struct ObfNonBlockingCodeStaticData {
-	static std::atomic<uint64_t> violation_count;
+	static std::atomic<uint32_t> violation_count;
 	
 	template<ITHARE_OBF_SEEDTPARAM seed2>
-	ITHARE_OBF_FORCEINLINE static uint64_t zero_if_not_being_debugged() {
+	ITHARE_OBF_FORCEINLINE static uint32_t zero_if_not_being_debugged() {
 		return violation_count.load();
 	} 
 };
 template<class Dummy>
-std::atomic<uint64_t> ObfNonBlockingCodeStaticData<Dummy>::violation_count = 0;
+std::atomic<uint32_t> ObfNonBlockingCodeStaticData<Dummy>::violation_count = 0;
 
-constexpr int obf_bit_upper_bound(uint64_t x) {
-	uint64_t test = 1;
-	for(int i=0; i < 64; ++i, test <<= 1 ) {
-		if( test > x )
-			return i;
-	}
-	assert(false);
-	return 63;
-}
 
 class ObfNonBlockingCode {
 	//MUST be used ONLY on-stack
