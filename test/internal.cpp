@@ -108,6 +108,7 @@ private:
 };
 
 ITHARE_OBF_NOINLINE OBF6(int64_t) factorial(OBF6(int64_t) x) {
+	ObfNonBlockingCode obf_nb_guard;
 	DBGPRINT(x)
 	if (x < 0)
 		throw MyException(OBF5S("Negative argument to factorial!"));
@@ -215,11 +216,11 @@ int main(int argc, char** argv) {
 	//std::string s = deobfuscate<seed,cycles>(constexpr obfuscate<seed,XYZ>("Long string which makes lots of sense"));
 	if (argc <= 1)
 		return 0;
-	ObfNonBlockingCode obf_nb_guard;
 	int x = atoi(argv[1]);
 	int64_t total = 0;
 	int64_t f = 0;
 	try {
+		ObfNonBlockingCode obf_nb_guard;
 		Benchmark bm;
 		for (int i = 0; i < 1000; ++i) {
 			auto ff = factorial(x);

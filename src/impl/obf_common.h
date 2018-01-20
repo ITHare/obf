@@ -9,6 +9,7 @@
 #include <array>
 #include <assert.h>
 #include <type_traits>
+#include <atomic>
 #include <string>//for dbgPrint() only
 #include <iostream>//for dbgPrint() only
 //---#include <map>//for dbg_map only

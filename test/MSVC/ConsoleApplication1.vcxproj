@@ -230,6 +230,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\src\impl\obf_anti_debug.h" />
     <ClInclude Include="..\..\src\impl\obf_common.h" />
     <ClInclude Include="..\..\src\impl\obf_crypto.h" />
     <ClInclude Include="..\..\src\impl\obf_injection.h" />
