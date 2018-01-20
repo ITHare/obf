@@ -120,7 +120,7 @@ namespace ithare {
 #endif
 	};
 
-	//version 3: System-Dependent (and naive) Anti-Debugging
+	//version 3: Naive System-Dependent Anti-Debugging
 	struct obf_literal_context_version3_descr {//NB: to ensure 100%-compatible generation across platforms, probabilities MUST NOT depend on the platform, directly or indirectly
 #if defined(ITHARE_OBF_INIT) && !defined(ITHARE_OBF_NO_ANTI_DEBUG) &&!defined(ITHARE_OBF_NO_IMPLICIT_ANTI_DEBUG)
 		static constexpr ObfDescriptor descr = ObfDescriptor(true, 10, 100);
@@ -148,7 +148,7 @@ namespace ithare {
 
 #ifdef ITHARE_OBF_DBG_ENABLE_DBGPRINT
 		static void dbgPrint(size_t offset = 0, const char* prefix = "") {
-			std::cout << std::string(offset, ' ') << prefix << "ObfLiteralContext_version<3/*PEB*/," << obf_dbgPrintT<T>() << "," << obf_dbgPrintSeed<seed>() << ">: CC=" << obf_dbgPrintC<T>(CC) << std::endl;
+			std::cout << std::string(offset, ' ') << prefix << "ObfLiteralContext_version<3/*Naive System-Dependent Anti-Debug*/," << obf_dbgPrintT<T>() << "," << obf_dbgPrintSeed<seed>() << ">: CC=" << obf_dbgPrintC<T>(CC) << std::endl;
 		}
 #endif
 	};
@@ -231,6 +231,38 @@ namespace ithare {
 	template<class T, ITHARE_OBF_SEEDTPARAM seed>
 	std::atomic<T> ObfLiteralContext_version<4, T, seed>::c = CC0;
 
+	//version 5: Time-Based Anti-Debugging
+	struct obf_literal_context_version5_descr {//NB: to ensure 100%-compatible generation across platforms, probabilities MUST NOT depend on the platform, directly or indirectly
+#if defined(ITHARE_OBF_INIT) && !defined(ITHARE_OBF_NO_ANTI_DEBUG) &&!defined(ITHARE_OBF_NO_IMPLICIT_ANTI_DEBUG)
+		static constexpr ObfDescriptor descr = ObfDescriptor(true, 15, 100);//may involve reading from std::atomic<>
+#else
+		static constexpr ObfDescriptor descr = ObfDescriptor(false, 0, 0);
+#endif
+	};
+
+	template<class T, ITHARE_OBF_SEEDTPARAM seed>
+	struct ObfLiteralContext_version<5,T,seed> {
+		using Traits = ObfTraits<T>;
+		constexpr static OBFCYCLES context_cycles = obf_literal_context_version5_descr::descr.min_cycles;
+
+		static constexpr std::array<T, 3> consts = { OBF_CONST_A,OBF_CONST_B,OBF_CONST_C };
+		constexpr static T CC = obf_random_const<ITHARE_OBF_NEW_PRNG(seed, 1)>(consts);
+		template<ITHARE_OBF_SEEDTPARAM seed2>
+		ITHARE_OBF_FORCEINLINE static constexpr T final_injection(T x) {
+			return x + CC;
+		}
+		template<ITHARE_OBF_SEEDTPARAM seed2>
+		ITHARE_OBF_FORCEINLINE static T final_surjection(T y) {
+			return y - CC * T(1 + ObfNonBlockingCodeStaticData<void>::template zero_if_not_being_debugged<seed2>());
+		}
+
+#ifdef ITHARE_OBF_DBG_ENABLE_DBGPRINT
+		static void dbgPrint(size_t offset = 0, const char* prefix = "") {
+			std::cout << std::string(offset, ' ') << prefix << "ObfLiteralContext_version<5/*ObfNonBlockingCode()*/," << obf_dbgPrintT<T>() << "," << obf_dbgPrintSeed<seed>() << ">: CC=" << obf_dbgPrintC<T>(CC) << std::endl;
+		}
+#endif
+	};
+
 	//ObfZeroLiteralContext
 	template<class T>
 	struct ObfZeroLiteralContext {
@@ -277,6 +309,7 @@ namespace ithare {
 			obf_literal_context_version2_descr::descr,
 			obf_literal_context_version3_descr::descr,
 			obf_literal_context_version4_descr<T>::descr,
+			obf_literal_context_version5_descr::descr,
 		};
 		constexpr static size_t which = obf_random_obf_from_list<ITHARE_OBF_NEW_PRNG(seed, 1)>(cycles, descr);
 		using WhichType = ObfLiteralContext_version<which, T, seed>;
