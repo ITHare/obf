@@ -193,7 +193,10 @@ constexpr int obf_bit_upper_bound(uint64_t x) {
 	return 63;
 }
 
-class ObfNonBlockingCode {//to be used ONLY on-stack
+class ObfNonBlockingCode {
+	//MUST be used ONLY on-stack
+	//MUST NOT be used over potentially-lengthy operations such as ANY over-the-network operations   
+	//SHOULD NOT be used to over I/O operations, even when such operations are local (such as disk reads/writes or console writes)
 	ITHARE_OBF_TIME_TYPE started;
 
 	public:
