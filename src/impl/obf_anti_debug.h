@@ -185,7 +185,7 @@ namespace ithare {
 #define ITHARE_OBF_TIME_NOW() __rdtsc()
 #define ITHARE_OBF_TIME_NON_BLOCKING_THRESHOLD (UINT64_C(4'000'000'000)*ITHARE_OBF_NON_BLOCKING_DAMN_LOT_SECONDS) //4GHz is currently about the absolute-maximum frequency; if frequency is lower - it is even safer
 #else
-#warning "Time-based protection is not supported yet for this platform (executable will work, but without time-based protection)"
+#warning "Time-based protection is not supported yet for this platform (executable will work, but without time-based anti-debug)"
 #define ITHARE_OBF_TIME_TYPE unsigned //we don't really need it
 #define ITHARE_OBF_TIME_NOW() 0
 #define ITHARE_OBF_TIME_NON_BLOCKING_THRESHOLD 1
