@@ -17,6 +17,25 @@
 //  2. compile your code without -DITHARE_OBF_SEED for debugging and during development
 //  3. compile with -DITHARE_OBF_SEED=0x<really-random-64-bit-seed> for deployments
 
+// LIST OF supported #defines:
+// MAIN SWITCH:
+//   ITHARE_OBF_SEED 0x<some-random-64-bit-number>
+//     if not specified - no obfuscation happens
+// TODO: add ITHARE_OBF_DISABLED (to work around some compiler's performance hit even when no ITHARE_OBF_SEED is specified)  
+//
+// COMMON ONES:
+//   ITHARE_OBF_SEED2
+//   ITHARE_OBF_NO_ANTI_DEBUG
+//   ITHARE_OBF_NO_IMPLICIT_ANTI_DEBUG (disables using anti debug in generated obfuscations, but still allows to read it)
+//
+// DEBUG-ONLY
+//    ITHARE_OBF_COMPILE_TIME_TESTS
+// DEBUG-ONLY; NOT to be used in production
+//   ITHARE_OBF_DBG_ENABLE_DBGPRINT
+//   ITHARE_OBF_DBG_RUNTIME_CHECKS
+//   ITHARE_OBF_DEBUG_ANTI_DEBUG_ALWAYS_FALSE (to disable anti-debug - use ITHARE_OBF_NO_ANTI_DEBUG or 
+
+
 #ifdef ITHARE_OBF_SEED
 
 namespace ithare {
@@ -492,8 +511,8 @@ namespace ithare {
 		Base val;
 	};*/
 
-	inline void obf_init() {
-		obf_init_literal_context_version3();
+	ITHARE_OBF_FORCEINLINE void obf_init() {
+		obf_literal_init();
 	}
 #ifdef ITHARE_OBF_DBG_ENABLE_DBGPRINT
 	inline void obf_dbgPrint() {

@@ -585,10 +585,10 @@ namespace ithare {
 		static constexpr bool neg = C == 0 ? true : ITHARE_OBF_RANDOM(seed, 3, 2) == 0;
 		using ST = typename Traits::signed_type;
 
-#ifdef ITHARE_OBF_DEFINE_DBG_MAP
-		static std::map<T,T> dbg_map;
-		static std::map<T,return_type> dbg_map_r;
-#endif
+//#ifdef ITHARE_OBF_DEFINE_DBG_MAP
+//		static std::map<T,T> dbg_map;
+//		static std::map<T,return_type> dbg_map_r;
+//#endif
 
 		template<ITHARE_OBF_SEEDTPARAM seed2>
 		ITHARE_OBF_FORCEINLINE constexpr static return_type injection(T x) {
@@ -673,12 +673,12 @@ namespace ithare {
 #endif
 	};
 
-#ifdef ITHARE_OBF_DEFINE_DBG_MAP
-	template <class T, class Context, class InjectionRequirements, ITHARE_OBF_SEEDTPARAM seed, OBFCYCLES cycles>
-	std::map<T, T> obf_injection_version<1, T, Context, InjectionRequirements, seed, cycles>::dbg_map = {};
-	template <class T, class Context, class InjectionRequirements, ITHARE_OBF_SEEDTPARAM seed, OBFCYCLES cycles>
-	std::map<T, typename obf_injection_version<1, T, Context, InjectionRequirements, seed, cycles>::return_type> obf_injection_version<1, T, Context, InjectionRequirements, seed, cycles>::dbg_map_r = {};
-#endif
+//#ifdef ITHARE_OBF_DEFINE_DBG_MAP
+//	template <class T, class Context, class InjectionRequirements, ITHARE_OBF_SEEDTPARAM seed, OBFCYCLES cycles>
+//	std::map<T, T> obf_injection_version<1, T, Context, InjectionRequirements, seed, cycles>::dbg_map = {};
+//	template <class T, class Context, class InjectionRequirements, ITHARE_OBF_SEEDTPARAM seed, OBFCYCLES cycles>
+//	std::map<T, typename obf_injection_version<1, T, Context, InjectionRequirements, seed, cycles>::return_type> obf_injection_version<1, T, Context, InjectionRequirements, seed, cycles>::dbg_map_r = {};
+//#endif
 
 	//helper for Feistel-like: randomized_non_reversible_function 
 	template<size_t which, class T, ITHARE_OBF_SEEDTPARAM seed, OBFCYCLES cycles>
@@ -1047,10 +1047,10 @@ namespace ithare {
 		using literal = typename Context::template literal<typename Traits::literal_type, CINV, ITHARE_OBF_NEW_PRNG(seed, 3)>::type;
 			//using CINV in injection to hide literals a bit better...
 
-#ifdef ITHARE_OBF_DEFINE_DBG_MAP
-		static std::map<T,T> dbg_map;
-		static std::map<T,return_type> dbg_map_r;
-#endif
+//#ifdef ITHARE_OBF_DEFINE_DBG_MAP
+//		static std::map<T,T> dbg_map;
+//		static std::map<T,return_type> dbg_map_r;
+//#endif
 
 		template<ITHARE_OBF_SEEDTPARAM seed2>
 		ITHARE_OBF_FORCEINLINE constexpr static return_type injection(T x) {
@@ -1107,12 +1107,12 @@ namespace ithare {
 #endif
 	};
 
-#ifdef ITHARE_OBF_DEFINE_DBG_MAP
-	template <class T, class Context, class InjectionRequirements, ITHARE_OBF_SEEDTPARAM seed, OBFCYCLES cycles>
-	std::map<T, T> obf_injection_version<4, T, Context, InjectionRequirements, seed, cycles>::dbg_map = {};
-	template <class T, class Context, class InjectionRequirements, ITHARE_OBF_SEEDTPARAM seed, OBFCYCLES cycles>
-	std::map<T, typename obf_injection_version<4, T, Context, InjectionRequirements, seed, cycles>::return_type> obf_injection_version<4, T, Context, InjectionRequirements, seed, cycles>::dbg_map_r = {};
-#endif
+//#ifdef ITHARE_OBF_DEFINE_DBG_MAP
+//	template <class T, class Context, class InjectionRequirements, ITHARE_OBF_SEEDTPARAM seed, OBFCYCLES cycles>
+//	std::map<T, T> obf_injection_version<4, T, Context, InjectionRequirements, seed, cycles>::dbg_map = {};
+//	template <class T, class Context, class InjectionRequirements, ITHARE_OBF_SEEDTPARAM seed, OBFCYCLES cycles>
+//	std::map<T, typename obf_injection_version<4, T, Context, InjectionRequirements, seed, cycles>::return_type> obf_injection_version<4, T, Context, InjectionRequirements, seed, cycles>::dbg_map_r = {};
+//#endif
 
 	//version 5: split (w/o join)
 	template<class T, class Context>
@@ -1382,12 +1382,12 @@ namespace ithare {
 			}
 		};
 
-#ifdef ITHARE_OBF_DEFINE_DBG_MAP
-		inline static std::map<T, TypeLo> dbg_map_lo = {};
-		inline static std::map<T, TypeHi> dbg_map_hi = {};
-		inline static std::map<TypeLo,typename RecursiveInjectionLo::return_type> dbg_map_rlo = {};
-		inline static std::map<TypeHi, typename RecursiveInjectionHi::return_type> dbg_map_rhi = {};
-#endif
+//#ifdef ITHARE_OBF_DEFINE_DBG_MAP
+//		inline static std::map<T, TypeLo> dbg_map_lo = {};
+//		inline static std::map<T, TypeHi> dbg_map_hi = {};
+//		inline static std::map<TypeLo,typename RecursiveInjectionLo::return_type> dbg_map_rlo = {};
+//		inline static std::map<TypeHi, typename RecursiveInjectionHi::return_type> dbg_map_rhi = {};
+//#endif
 
 		template<ITHARE_OBF_SEEDTPARAM seed2>
 		ITHARE_OBF_FORCEINLINE constexpr static return_type injection(T x) {
