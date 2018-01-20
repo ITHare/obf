@@ -46,5 +46,11 @@ const lest::test spec[] = {
 
 int main(int argc, char** argv) {
 	obf_init();
-	return lest::run(spec,argc,argv);
+	{
+		ObfNonBlockingCode obf_nb_guard;	
+		int err = lest::run(spec,argc,argv);
+		if(err)
+			return err;
+	}//~ObfNonBlockingCode() is called here 
+	return lest::run(spec,argc,argv);//running once again, but with a chance for ~ObfNonBlockingCode() to kick in
 }

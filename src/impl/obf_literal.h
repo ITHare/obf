@@ -8,6 +8,7 @@
 
 #include "obf_common.h"
 #include "obf_prng.h"
+#include "obf_anti_debug.h"
 #include "obf_injection.h"
 
 //NB: principles for cross-platform obfuscations, laid out in obf_injection.h, _seem_ to be UNNECESSARY for literals

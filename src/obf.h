@@ -4,6 +4,7 @@
 #include "impl/obf_common.h"
 #include "impl/obf_prng.h"
 #include "impl/obf_injection.h"
+#include "impl/obf_anti_debug.h"
 #include "impl/obf_literal.h"
 
 //Usage: 

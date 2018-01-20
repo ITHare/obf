@@ -215,6 +215,7 @@ int main(int argc, char** argv) {
 	//std::string s = deobfuscate<seed,cycles>(constexpr obfuscate<seed,XYZ>("Long string which makes lots of sense"));
 	if (argc <= 1)
 		return 0;
+	ObfNonBlockingCode obf_nb_guard;
 	int x = atoi(argv[1]);
 	int64_t total = 0;
 	int64_t f = 0;
