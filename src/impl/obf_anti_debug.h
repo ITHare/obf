@@ -155,7 +155,7 @@ namespace ithare {
 #if defined(_MSC_VER) && ( defined(_M_IX86) || defined(_M_X64))  	
 #include <intrin.h>
 #define ITHARE_OBF_TIME_TYPE uint64_t
-#define ITHARE_OBF_TIME_NOW() __rdtsc()
+#define ITHARE_OBF_TIME_NOW() __rdtsc() //TODO: consider rewriting manually (MSVC intrinsic tends to exhibit a very obvious pattern, and we don't really need lower word of RDTSC) 
 #define ITHARE_OBF_TIME_NON_BLOCKING_THRESHOLD (UINT64_C(4'000'000'000)*15) //4GHz * 15 seconds is a Damn Lot(tm); if frequency is lower - it is even safer
 #elif defined(__clang__) && (defined(__x86_64__)||defined(__i386__))
 #include <x86intrin.h>
