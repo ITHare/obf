@@ -48,6 +48,41 @@
 #error Other compilers than MSVC and Clang are not supported (feel free to try adding GCC though)
 #endif//_MSC_VER || __clang__
 
+//regardless of ITHARE_OBF_SEED
+namespace ithare {
+	namespace obf {
+				template<class T,size_t N>
+		constexpr size_t obf_arraysz(T(&)[N]) { return N; }
+
+		constexpr size_t obf_strlen(const char* s) {
+			for (size_t ret = 0; ; ++ret, ++s)
+				if (*s == 0)
+					return ret;
+		}
+		
+		enum class obf_endian//along the lines of p0463r1, to be replaced with std::endian
+		{
+#ifdef _MSC_VER
+#if defined(_M_IX86) || defined(_M_X64)
+			little = 0x22d7,//from random.org :-), to prevent relying on specific values
+			big    = 0xe72d,//from random.org
+			native = little
+//x86/x64
+#else
+#error "Endianness not defined yet"
+#endif 
+
+//_MSC_VER
+#else
+			little = __ORDER_LITTLE_ENDIAN__,
+			big    = __ORDER_BIG_ENDIAN__,
+			native = __BYTE_ORDER__,
+#endif
+		};
+
+	}//namespace obf
+}//namespace ithare
+
 #ifdef ITHARE_OBF_SEED
 
 namespace ithare {
@@ -67,10 +102,10 @@ namespace ithare {
 		using OBFINJECTIONCAPS = uint64_t;//injection capability flags
 		constexpr OBFINJECTIONCAPS obf_injection_has_add_mod_max_value_ex = 0x01;
 		
-		template<class T,size_t N>
-		constexpr size_t obf_arraysz(T(&)[N]) { return N; }
-	}
-}
+
+	}//namespace obf
+}//namespace ithare
+
 #endif //ITHARE_OBF_SEED
 
 #endif //ithare_obf_common_h_included

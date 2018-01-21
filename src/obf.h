@@ -596,11 +596,6 @@ namespace ithare {
 #else//ITHARE_OBF_SEED
 namespace ithare {
 	namespace obf {
-		constexpr size_t obf_strlen(const char* s) {
-			for (size_t ret = 0; ; ++ret, ++s)
-				if (*s == 0)
-					return ret;
-		}
 
 #ifdef ITHARE_OBF_DBG_ENABLE_DBGPRINT
 		//dbgPrint helpers

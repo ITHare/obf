@@ -32,6 +32,11 @@
 //    Move whatever-possible to namespace ithare::obf::tls::
 //    Add prefix ITHARE_OBF_TLS_ to all the macros (as macros don't belong to any namespace)
 
+#ifndef ithare_obf_tls_crypto_chacha_h_included
+#define ithare_obf_tls_crypto_chacha_h_included
+
+#include "../../../src/obf.h"
+
 namespace ithare {
 	namespace obf {
 		namespace tls {
@@ -62,7 +67,7 @@ static_assert(sizeof(chacha_buf)==64);
                                 } while(0)
 
 /* QUARTERROUND updates a, b, c, d with a ChaCha "quarter" round. */
-# define QUARTERROUND(a,b,c,d) ( \
+# define ITHARE_OBF_TLS_QUARTERROUND(a,b,c,d) ( \
                 x[a] += x[b], x[d] = ITHARE_OBF_TLS_ROTATE((x[d] ^ x[a]),16), \
                 x[c] += x[d], x[b] = ITHARE_OBF_TLS_ROTATE((x[b] ^ x[c]),12), \
                 x[a] += x[b], x[d] = ITHARE_OBF_TLS_ROTATE((x[d] ^ x[a]), 8), \
@@ -73,30 +78,24 @@ static_assert(sizeof(chacha_buf)==64);
 ITHARE_OBF_FORCEINLINE void chacha20_core(chacha_buf *output, const uint32_t input[16])
 {
     uint32_t x[16];
-    int i;
-    const union {
-        long one;
-        char little;
-    } is_endian = { 1 };
-
     memcpy(x, input, sizeof(x));
 
-    for (i = 20; i > 0; i -= 2) {
-        QUARTERROUND(0, 4, 8, 12);
-        QUARTERROUND(1, 5, 9, 13);
-        QUARTERROUND(2, 6, 10, 14);
-        QUARTERROUND(3, 7, 11, 15);
-        QUARTERROUND(0, 5, 10, 15);
-        QUARTERROUND(1, 6, 11, 12);
-        QUARTERROUND(2, 7, 8, 13);
-        QUARTERROUND(3, 4, 9, 14);
+    for (int i = 20; i > 0; i -= 2) {
+        ITHARE_OBF_TLS_QUARTERROUND(0, 4, 8, 12);
+        ITHARE_OBF_TLS_QUARTERROUND(1, 5, 9, 13);
+        ITHARE_OBF_TLS_QUARTERROUND(2, 6, 10, 14);
+        ITHARE_OBF_TLS_QUARTERROUND(3, 7, 11, 15);
+        ITHARE_OBF_TLS_QUARTERROUND(0, 5, 10, 15);
+        ITHARE_OBF_TLS_QUARTERROUND(1, 6, 11, 12);
+        ITHARE_OBF_TLS_QUARTERROUND(2, 7, 8, 13);
+        ITHARE_OBF_TLS_QUARTERROUND(3, 4, 9, 14);
     }
 
-    if (is_endian.little) {
-        for (i = 0; i < 16; ++i)
+    if constexpr (obf_endian::native == obf_endian::little) {
+        for (int i = 0; i < 16; ++i)
             output->u[i] = x[i] + input[i];
     } else {
-        for (i = 0; i < 16; ++i)
+        for (int i = 0; i < 16; ++i)
             ITHARE_OBF_TLS_U32TO8_LITTLE(output->c + 4 * i, (x[i] + input[i]));
     }
 }
@@ -285,6 +284,7 @@ const EVP_CIPHER *EVP_chacha20(void)
 }
 #endif
 
+#undef ITHARE_OBF_TLS_QUARTERROUND
 #undef ITHARE_OBF_TLS_U32TO8_LITTLE
 #undef ITHARE_OBF_TLS_ROTATE
 #undef ITHARE_OBF_TLS_CHACHA_U8TOU32
@@ -292,3 +292,5 @@ const EVP_CIPHER *EVP_chacha20(void)
     }//namespace tls
   }//namespace obf
 }//namespace ithare
+
+#endif //#ifndef ithare_obf_tls_crypto_chacha_h_included

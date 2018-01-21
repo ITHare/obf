@@ -124,12 +124,6 @@ namespace ithare {
 		}
 
 		//helper constexpr functions
-		constexpr size_t obf_strlen(const char* s) {
-			for (size_t ret = 0; ; ++ret, ++s)
-				if (*s == 0)
-					return ret;
-		}
-
 		template<class T, size_t N>
 		constexpr T obf_compile_time_approximation(T x, std::array<T, N> xref, std::array<T, N> yref) {
 			for (size_t i = 0; i < N - 1; ++i) {
