@@ -162,27 +162,32 @@ void buildCheckRunCheck(std::string cmd,bool obfuscated=true) {
 	std::cout << exitCheck() << std::endl;
 }
 
+void buildCheckRunCheckx2(std::string cmd,bool obfuscated=true) {
+	buildCheckRunCheck(cmd,obfuscated);
+	buildCheckRunCheck(cmd+" -DITHARE_OBF_TEST_NO_NAMESPACE",obfuscated);
+}
+
 void genDefineTests() {
 	std::cout << echo( std::string("=== -Define Test 1/10 ===" ) ) << std::endl;
-	buildCheckRunCheck(buildDebug(""),false);
+	buildCheckRunCheckx2(buildDebug(""),false);
 	std::cout << echo( std::string("=== -Define Test 2/10 ===" ) ) << std::endl;
-	buildCheckRunCheck(buildRelease(""),false);
+	buildCheckRunCheckx2(buildRelease(""),false);
 	std::cout << echo( std::string("=== -Define Test 3/10 ===" ) ) << std::endl;
-	buildCheckRunCheck(buildDebug(genSeed()));
+	buildCheckRunCheckx2(buildDebug(genSeed()));
 	std::cout << echo( std::string("=== -Define Test 4/10 ===" ) ) << std::endl;
-	buildCheckRunCheck(buildRelease(genSeed()));
+	buildCheckRunCheckx2(buildRelease(genSeed()));
 	std::cout << echo( std::string("=== -Define Test 5/10 ===" ) ) << std::endl;
-	buildCheckRunCheck(buildDebug(genSeeds()));
+	buildCheckRunCheckx2(buildDebug(genSeeds()));
 	std::cout << echo( std::string("=== -Define Test 6/10 ===" ) ) << std::endl;
-	buildCheckRunCheck(buildRelease(genSeeds()));
+	buildCheckRunCheckx2(buildRelease(genSeeds()));
 	std::cout << echo( std::string("=== -Define Test 7/10 ===" ) ) << std::endl;
-	buildCheckRunCheck(buildDebug(genSeeds()+" -DITHARE_OBF_DBG_RUNTIME_CHECKS"));
+	buildCheckRunCheckx2(buildDebug(genSeeds()+" -DITHARE_OBF_DBG_RUNTIME_CHECKS"));
 	std::cout << echo( std::string("=== -Define Test 8/10 ===" ) ) << std::endl;
-	buildCheckRunCheck(buildRelease(genSeeds()+" -DITHARE_OBF_DBG_RUNTIME_CHECKS"));
+	buildCheckRunCheckx2(buildRelease(genSeeds()+" -DITHARE_OBF_DBG_RUNTIME_CHECKS"));
 	std::cout << echo( std::string("=== -Define Test 9/10 ===" ) ) << std::endl;
-	buildCheckRunCheck(buildDebug(genSeeds()+" -DITHARE_OBF_CRYPTO_PRNG"));
+	buildCheckRunCheckx2(buildDebug(genSeeds()+" -DITHARE_OBF_CRYPTO_PRNG"));
 	std::cout << echo( std::string("=== -Define Test 10/10 ===" ) ) << std::endl;
-	buildCheckRunCheck(buildRelease(genSeeds()+" -DITHARE_OBF_CRYPTO_PRNG"));
+	buildCheckRunCheckx2(buildRelease(genSeeds()+" -DITHARE_OBF_CRYPTO_PRNG"));
 }
 
 void genRandomTests(size_t n) {

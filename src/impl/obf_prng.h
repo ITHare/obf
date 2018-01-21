@@ -144,11 +144,11 @@ namespace ithare {
 #define ITHARE_OBF_SEEDTPARAM uint64_t
 #define ITHARE_OBF_DECLAREPRNG constexpr static uint64_t /* sic! */
 #define ITHARE_OBF_DECLAREPRNG_INFUNC constexpr uint64_t
-#define	ITHARE_OBF_INIT_PRNG(file,line,counter) obf_init_prng(file,line,counter) 
-#define ITHARE_OBF_NEW_PRNG(prng,modifier) obf_new_prng(prng,modifier)
-#define ITHARE_OBF_COMBINED_PRNG(prng,prng2) obf_combined_prng(prng,prng2)
-#define ITHARE_OBF_RANDOM(prng,modifier,maxn) obf_random(prng,modifier,maxn)
-#define ITHARE_OBF_RANDOM_UINT32(prng,modifier) obf_random_uint32(prng,modifier)
+#define	ITHARE_OBF_INIT_PRNG(file,line,counter) ithare::obf::obf_init_prng(file,line,counter) 
+#define ITHARE_OBF_NEW_PRNG(prng,modifier) ithare::obf::obf_new_prng(prng,modifier)
+#define ITHARE_OBF_COMBINED_PRNG(prng,prng2) ithare::obf::obf_combined_prng(prng,prng2)
+#define ITHARE_OBF_RANDOM(prng,modifier,maxn) ithare::obf::obf_random(prng,modifier,maxn)
+#define ITHARE_OBF_RANDOM_UINT32(prng,modifier) ithare::obf::obf_random_uint32(prng,modifier)
 #define ITHARE_OBF_DUMMY_PRNG 0
 #ifdef ITHARE_OBF_DBG_ENABLE_DBGPRINT
 		//dbgPrint helpers
@@ -257,11 +257,11 @@ namespace ithare {
 #define ITHARE_OBF_SEEDTPARAM class /* sic! */
 #define ITHARE_OBF_DECLAREPRNG using /* don't ask ;-) */
 #define ITHARE_OBF_DECLAREPRNG_INFUNC using
-#define	ITHARE_OBF_INIT_PRNG(file,line,counter) ObfSeed<obf_init_prng(file,line,counter).first,obf_init_prng(file,line,counter).second,0>
-#define ITHARE_OBF_NEW_PRNG(prng,modifier) ObfSeed<obf_new_prng(prng::lo,prng::hi,modifier).first,obf_new_prng(prng::lo,prng::hi,modifier).second,prng::depth+1>
-#define ITHARE_OBF_COMBINED_PRNG(prng,prng2) ObfSeed<obf_combined_prng(prng::lo,prng::hi,prng2::lo,prng2::hi).first,obf_combined_prng(prng::lo,prng::hi,prng2::lo,prng2::hi).second,std::max(prng::depth,prng2::depth)+1>
-#define ITHARE_OBF_RANDOM(prng,modifier,maxn) obf_random(prng::lo,prng::hi,modifier,maxn)
-#define ITHARE_OBF_RANDOM_UINT32(prng,modifier) obf_random_uint32(prng::lo,prng::hi,modifier)
+#define	ITHARE_OBF_INIT_PRNG(file,line,counter) ithare::obf::ObfSeed<ithare::obf::obf_init_prng(file,line,counter).first,ithare::obf::obf_init_prng(file,line,counter).second,0>
+#define ITHARE_OBF_NEW_PRNG(prng,modifier) ithare::obf::ObfSeed<ithare::obf::obf_new_prng(prng::lo,prng::hi,modifier).first,ithare::obf::obf_new_prng(prng::lo,prng::hi,modifier).second,prng::depth+1>
+#define ITHARE_OBF_COMBINED_PRNG(prng,prng2) ithare::obf::ObfSeed<ithare::obf::obf_combined_prng(prng::lo,prng::hi,prng2::lo,prng2::hi).first,ithare::obf::obf_combined_prng(prng::lo,prng::hi,prng2::lo,prng2::hi).second,std::max(prng::depth,prng2::depth)+1>
+#define ITHARE_OBF_RANDOM(prng,modifier,maxn) ithare::obf::obf_random(prng::lo,prng::hi,modifier,maxn)
+#define ITHARE_OBF_RANDOM_UINT32(prng,modifier) ithare::obf::obf_random_uint32(prng::lo,prng::hi,modifier)
 #define ITHARE_OBF_DUMMY_PRNG ObfSeed<0,0,0>
 #ifdef ITHARE_OBF_DBG_ENABLE_DBGPRINT
 		//dbgPrint helpers

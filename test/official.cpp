@@ -1,6 +1,12 @@
 #include "lest.hpp"
 #include "../src/obf.h"
+
+#ifdef ITHARE_OBF_TEST_NO_NAMESPACE
 using namespace ithare::obf;
+#define NAMESPACE
+#else
+#define NAMESPACE ithare::obf::
+#endif
 
 #include "../no-longer-standard/obfuscated-TLS/crypto/chacha.h"
 
@@ -91,9 +97,9 @@ const lest::test spec[] = {
 };
 
 int main(int argc, char** argv) {
-	obf_init();
+	NAMESPACE obf_init();
 	{
-		ObfNonBlockingCode obf_nb_guard;	
+		NAMESPACE ObfNonBlockingCode obf_nb_guard;	
 		int err = lest::run(spec,argc,argv);
 		if(err)
 			return err;
