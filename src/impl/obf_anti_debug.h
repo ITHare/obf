@@ -168,9 +168,9 @@ namespace ithare {
 
 #if defined(_WIN32)//includes _WIN64; I currently prefer reading of SharedUserData on Windows; change to 0 if you still prefer RDTSC
 //since Windows 5.2 (late WinXP) TODO: check what happens on pre-XP (guess it should still work but...)
-#define ITHARE_OBF_TIME_TYPE uint32_t /*ULONG*/
-#define ITHARE_OBF_TIME_NOW() ((uint64_t((*(uint32_t*)(0x7FFE'0320)))*uint64_t((*(uint32_t*)(0x7FFE'0004))))>>0x18) //TODO: consider obfuscating 0x7FFExxxx constants
-#define ITHARE_OBF_TIME_NON_BLOCKING_THRESHOLD (ITHARE_OBF_NON_BLOCKING_DAMN_LOT_SECONDS*1000)
+#define ITHARE_OBF_TIME_TYPE uint64_t 
+#define ITHARE_OBF_TIME_NOW() (uint64_t((*(uint32_t*)(0x7FFE'0320)))*uint64_t((*(uint32_t*)(0x7FFE'0004)))) //TODO: consider obfuscating 0x7FFExxxx constants
+#define ITHARE_OBF_TIME_NON_BLOCKING_THRESHOLD (uint64_t(ITHARE_OBF_NON_BLOCKING_DAMN_LOT_SECONDS*1000)<<0x18)
 //TODO: think about polyvariant implementation of ObfNonBlockingCode (some being based on reading SharedUserData, some - on RDTSC)
 #else//#if _WIN32
 #include <intrin.h>
