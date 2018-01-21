@@ -1,7 +1,7 @@
 #include "lest.hpp"
 #include "../src/obf.h"
 
-#include "../no-longer-standard/obfuscated-TLS/crypto/chacha.h"
+#include "../no-longer-standard/tls/crypto/chacha.h"
 
 #ifdef ITHARE_OBF_TEST_NO_NAMESPACE
 using namespace ithare::obf;
