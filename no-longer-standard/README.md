@@ -1,3 +1,6 @@
 This folder is intended to store "obfuscated adaptations" of certain 3rd-party libraries.
 
-In addition to providing an "obfuscated option", they're also likely to provide constexpr-friendly versions (such as constexpr-friendly cryptography in tls/ subproject). 
+As a big fat rule of thumb, "obfuscated adaptations" will inherit the license of the original library-to-be-adapted. 
+
+In addition to providing an "obfuscated option", they're also likely to include constexpr-friendly versions of the relevant functions (such as constexpr-friendly cryptography in tls/ subproject). 
+
