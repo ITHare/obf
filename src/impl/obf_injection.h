@@ -1269,7 +1269,7 @@ namespace ithare {
 		static_assert(cycles_loCtx + cycles_loInj <= cycles_lo);
 		using LoContext = typename ObfRecursiveContext < halfT, Context, ITHARE_OBF_NEW_PRNG(seed, 4), cycles_loCtx>::intermediate_context_type;
 		using LoInjection = obf_injection<halfT, LoContext, ITHARE_OBF_NEW_PRNG(seed, 5), cycles_loInj + LoContext::context_cycles, LoInjectionRequirements>;
-		static_assert(sizeof(typename LoInjection::return_type) == sizeof(halfT));//bijections ONLY
+		static_assert(sizeof(typename LoInjection::return_type) == sizeof(halfT));//only_bijections
 
 		template<ITHARE_OBF_SEEDTPARAM seed2>
 		ITHARE_OBF_FORCEINLINE constexpr static return_type injection(T x) {
@@ -1328,7 +1328,7 @@ namespace ithare {
 
 		struct RecursiveInjectionRequirements : public InjectionRequirements {
 			static constexpr size_t exclude_version = size_t(-1);
-			static constexpr bool no_physical_size_increase = true;
+			static constexpr bool no_physical_size_increase = true;//not a strict requirement, but we don't want to grow infinitely 
 		};
 
 		static constexpr OBFCYCLES availCycles = cycles - obf_injection_version7_descr<T, Context,InjectionRequirements>::own_min_cycles;

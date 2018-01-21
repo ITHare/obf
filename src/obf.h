@@ -376,27 +376,27 @@ namespace ithare {
 		struct InjectionRequirements {
 			static constexpr size_t exclude_version = size_t(-1);
 			static constexpr bool is_constexpr = true;
-			static constexpr bool only_bijections = false;
-			static constexpr bool no_physical_size_increase = true;
-			static constexpr bool cross_platform_only = false;//currently there seems to be need to ensure cross-platform compatibility for literals 
+			static constexpr bool only_bijections = true;
+			static constexpr bool no_physical_size_increase = false;
+			static constexpr bool cross_platform_only = false;//currently there seems to be no need to ensure cross-platform compatibility for literals 
 		};
 
 		using Injection0 = obf_injection<uint32_t, ObfZeroLiteralContext<uint32_t>, ITHARE_OBF_NEW_PRNG(seed, 3), std::max(split0,2), InjectionRequirements>;
-		static_assert(sizeof(typename Injection0::return_type) == sizeof(uint32_t));//no_physical_size_increase
+		static_assert(sizeof(typename Injection0::return_type) == sizeof(uint32_t));//only_bijections
 		using Injection1 = obf_injection<uint32_t, ObfZeroLiteralContext<uint32_t>, ITHARE_OBF_NEW_PRNG(seed, 4), std::max(split1,2), InjectionRequirements>;
-		static_assert(sizeof(typename Injection1::return_type) == sizeof(uint32_t));//no_physical_size_increase
+		static_assert(sizeof(typename Injection1::return_type) == sizeof(uint32_t));//only_bijections
 		using Injection2 = obf_injection<uint32_t, ObfZeroLiteralContext<uint32_t>, ITHARE_OBF_NEW_PRNG(seed, 5), std::max(split2,2), InjectionRequirements>;
-		static_assert(sizeof(typename Injection2::return_type) == sizeof(uint32_t));//no_physical_size_increase
+		static_assert(sizeof(typename Injection2::return_type) == sizeof(uint32_t));//only_bijections
 		using Injection3 = obf_injection<uint32_t, ObfZeroLiteralContext<uint32_t>, ITHARE_OBF_NEW_PRNG(seed, 6), std::max(split3,2), InjectionRequirements>;
-		static_assert(sizeof(typename Injection3::return_type) == sizeof(uint32_t));//no_physical_size_increase
+		static_assert(sizeof(typename Injection3::return_type) == sizeof(uint32_t));//only_bijections
 		using Injection4 = obf_injection<uint32_t, ObfZeroLiteralContext<uint32_t>, ITHARE_OBF_NEW_PRNG(seed, 7), std::max(split4,2), InjectionRequirements>;
-		static_assert(sizeof(typename Injection4::return_type) == sizeof(uint32_t));//no_physical_size_increase
+		static_assert(sizeof(typename Injection4::return_type) == sizeof(uint32_t));//only_bijections
 		using Injection5 = obf_injection<uint32_t, ObfZeroLiteralContext<uint32_t>, ITHARE_OBF_NEW_PRNG(seed, 8), std::max(split5,2), InjectionRequirements>;
-		static_assert(sizeof(typename Injection5::return_type) == sizeof(uint32_t));//no_physical_size_increase
+		static_assert(sizeof(typename Injection5::return_type) == sizeof(uint32_t));//only_bijections
 		using Injection6 = obf_injection<uint32_t, ObfZeroLiteralContext<uint32_t>, ITHARE_OBF_NEW_PRNG(seed, 9), std::max(split6,2), InjectionRequirements>;
-		static_assert(sizeof(typename Injection6::return_type) == sizeof(uint32_t));//no_physical_size_increase
+		static_assert(sizeof(typename Injection6::return_type) == sizeof(uint32_t));//only_bijections
 		using Injection7 = obf_injection<uint32_t, ObfZeroLiteralContext<uint32_t>, ITHARE_OBF_NEW_PRNG(seed, 10), std::max(split7,2), InjectionRequirements>;
-		static_assert(sizeof(typename Injection7::return_type) == sizeof(uint32_t));//no_physical_size_increase
+		static_assert(sizeof(typename Injection7::return_type) == sizeof(uint32_t));//only_bijections
 
 		ITHARE_OBF_FORCEINLINE static constexpr uint32_t little_endian4(const char* str, size_t offset) {//TODO: BIG-ENDIAN
 			//replacement for non-constexpr return *(uint32_t*)(str + offset);
