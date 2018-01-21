@@ -371,7 +371,7 @@ namespace ithare {
 			static constexpr size_t exclude_version = size_t(-1);
 			static constexpr bool is_constexpr = true;
 			static constexpr bool only_bijections = false;
-			static constexpr bool no_physical_size_increase = false;
+			static constexpr bool no_substrate_size_increase = false;
 		};
 		using Injection = obf_injection<T, Context, ITHARE_OBF_NEW_PRNG(seed, 1), cycles,InjectionRequirements>;
 	public:

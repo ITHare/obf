@@ -53,7 +53,7 @@ namespace ithare {
 			static constexpr size_t exclude_version = size_t(-1);
 			static constexpr bool is_constexpr = true;
 			static constexpr bool only_bijections = false;
-			static constexpr bool no_physical_size_increase = false;
+			static constexpr bool no_substrate_size_increase = false;
 			static constexpr bool cross_platform_only = false;//currently there seems to be need to ensure cross-platform compatibility for literals
 		};
 		using Injection = obf_injection<T, Context, ITHARE_OBF_NEW_PRNG(seed, 2), cycles,InjectionRequirements>;
@@ -127,7 +127,7 @@ namespace ithare {
 			static constexpr size_t exclude_version = size_t(-1);
 			static constexpr bool is_constexpr = false;
 			static constexpr bool only_bijections = false;
-			static constexpr bool no_physical_size_increase = false;
+			static constexpr bool no_substrate_size_increase = false;
 			static constexpr bool cross_platform_only = flags & obf_flag_cross_platform_only;
 		};
 		using Injection = obf_injection<T, Context, ITHARE_OBF_NEW_PRNG(seed, 2), cycles, InjectionRequirements>;
@@ -377,7 +377,7 @@ namespace ithare {
 			static constexpr size_t exclude_version = size_t(-1);
 			static constexpr bool is_constexpr = true;
 			static constexpr bool only_bijections = true;
-			static constexpr bool no_physical_size_increase = false;
+			static constexpr bool no_substrate_size_increase = false;
 			static constexpr bool cross_platform_only = false;//currently there seems to be no need to ensure cross-platform compatibility for literals 
 		};
 

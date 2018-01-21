@@ -1309,7 +1309,7 @@ namespace ithare {
 		static constexpr OBFCYCLES own_min_surjection_cycles = 15;
 		static constexpr OBFCYCLES own_min_cycles = 2 * Context::context_cycles /* have to allocate context_cycles for BOTH branches */ + Context::calc_cycles(own_min_injection_cycles, own_min_surjection_cycles);
 		static constexpr ObfDescriptor descr =
-			!InjectionRequirements::only_bijections && !InjectionRequirements::no_physical_size_increase && ObfTraits<T>::nbits >= 2 ?
+			!InjectionRequirements::only_bijections && !InjectionRequirements::no_substrate_size_increase && ObfTraits<T>::nbits >= 2 ?
 			ObfDescriptor(true, own_min_cycles, 100)
 			: 
 			ObfDescriptor(false, 0, 0);
@@ -1328,7 +1328,7 @@ namespace ithare {
 
 		struct RecursiveInjectionRequirements : public InjectionRequirements {
 			static constexpr size_t exclude_version = size_t(-1);
-			static constexpr bool no_physical_size_increase = true;//not a strict requirement, but we don't want to grow infinitely 
+			static constexpr bool no_substrate_size_increase = true;//not a strict requirement, but we don't want to grow infinitely 
 		};
 
 		static constexpr OBFCYCLES availCycles = cycles - obf_injection_version7_descr<T, Context,InjectionRequirements>::own_min_cycles;
