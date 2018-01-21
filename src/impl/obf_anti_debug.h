@@ -220,7 +220,7 @@ class ObfNonBlockingCode {
 		ITHARE_OBF_TIME_TYPE delta = ITHARE_OBF_TIME_NOW() - started;
 		constexpr int threshold_bits = obf_bit_upper_bound(ITHARE_OBF_TIME_NON_BLOCKING_THRESHOLD);
 		delta >>= threshold_bits;//expected to be zero at this point
-		ObfNonBlockingCodeStaticData<void>::violation_count += delta;
+		ObfNonBlockingCodeStaticData<void>::violation_count += uint32_t(delta);
 	}
 	
 	//trying to prevent accidental non-stack uses; not bulletproof, but better than nothing
