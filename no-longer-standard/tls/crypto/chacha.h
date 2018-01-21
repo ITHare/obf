@@ -94,10 +94,13 @@ ITHARE_OBF_FORCEINLINE void chacha20_core(chacha_buf *output, const uint32_t inp
     if constexpr (obf_endian::native == obf_endian::little) {
         for (int i = 0; i < 16; ++i)
             output->u[i] = x[i] + input[i];
-    } else {
+    } else if constexpr (obf_endian::native == obf_endian::big) {
         for (int i = 0; i < 16; ++i)
             ITHARE_OBF_TLS_U32TO8_LITTLE(output->c + 4 * i, (x[i] + input[i]));
     }
+    else {
+		assert(false);
+	}
 }
 
 inline void ChaCha20_ctr32(unsigned char *out, const unsigned char *inp,
