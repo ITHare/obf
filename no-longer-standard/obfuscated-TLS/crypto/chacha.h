@@ -26,15 +26,23 @@
  * as trivial as collecting bytes into 32-bit elements, it's reckoned
  * that below macro is sufficient.
  */
-#define CHACHA_U8TOU32(p)  ( \
+
+//OBF: Adapted from OpenSSL 1.1.0g, file chacha_enc.c
+//  As we're moving all the stuff to headers, to avoid potential for name collisions we have to:
+//    Move whatever-possible to namespace ithare::obf::tls::
+//    Add prefix ITHARE_OBF_TLS_ to all the macros (as macros don't belong to any namespace)
+
+#define ITHARE_OBF_TLS_CHACHA_U8TOU32(p)  ( \
                 ((unsigned int)(p)[0])     | ((unsigned int)(p)[1]<<8) | \
                 ((unsigned int)(p)[2]<<16) | ((unsigned int)(p)[3]<<24)  )
 
-#define CHACHA_KEY_SIZE		32
-#define CHACHA_CTR_SIZE		16
-#define CHACHA_BLK_SIZE		64
+namespace ithare {
+	namespace obf {
+		namespace tls {
 
-//OBF: Adapted from OpenSSL 1.1.0g, file chacha_enc.c
+constexpr int CHACHA_KEY_SIZE = 32;
+constexpr int CHACHA_CTR_SIZE = 16;
+constexpr int CHACHA_BLK_SIZE = 64;
 
 /* Adapted from the public domain code by D. Bernstein from SUPERCOP. */
 
@@ -172,12 +180,12 @@ inline int chacha_init_key(EVP_CIPHER_CTX *ctx,
 
     if (user_key)
         for (i = 0; i < CHACHA_KEY_SIZE; i+=4) {
-            key->key.d[i/4] = CHACHA_U8TOU32(user_key+i);
+            key->key.d[i/4] = ITHARE_OBF_TLS_CHACHA_U8TOU32(user_key+i);
         }
 
     if (iv)
         for (i = 0; i < CHACHA_CTR_SIZE; i+=4) {
-            key->counter[i/4] = CHACHA_U8TOU32(iv+i);
+            key->counter[i/4] = ITHARE_OBF_TLS_CHACHA_U8TOU32(iv+i);
         }
 
     key->partial_len = 0;
@@ -277,3 +285,7 @@ const EVP_CIPHER *EVP_chacha20(void)
     return (&chacha20);
 }
 #endif
+
+    }//namespace tls
+  }//namespace obf
+}//namespace ithare
