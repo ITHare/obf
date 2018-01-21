@@ -170,6 +170,8 @@ public:
 	}
 };
 
+#include "../no-longer-standard/obfuscated-TLS/crypto/chacha.h"
+
 int main(int argc, char** argv) {
 #ifndef NDEBUG
 	freopen("ConsoleApplication1.log", "w", stdout);
@@ -214,6 +216,19 @@ int main(int argc, char** argv) {
 	//obf_dbgPrint();
 	//std::string s = obf_literal<decltype(""), "",0, 1>();
 	//std::string s = deobfuscate<seed,cycles>(constexpr obfuscate<seed,XYZ>("Long string which makes lots of sense"));
+	uint8_t user_key[CHACHA_KEY_SIZE] = { 0 };
+	uint8_t iv[CHACHA_CTR_SIZE] = { 1,0 };
+	EVP_CIPHER_CTX ctx;
+	int ok = chacha_init_key(&ctx, user_key, iv, 1);
+	
+	uint8_t inp[16] = {0};
+	uint8_t out[16] = {0};
+	ok = chacha_cipher(&ctx, out, inp, 16);
+	
+	//for(int i=0;i<16;++i) {
+	//	std::cout << std::hex << int(out[i]) << " " << std::endl;
+	//}
+
 	if (argc <= 1)
 		return 0;
 	int x = atoi(argv[1]);
