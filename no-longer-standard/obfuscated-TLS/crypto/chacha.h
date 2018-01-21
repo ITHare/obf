@@ -32,10 +32,6 @@
 //    Move whatever-possible to namespace ithare::obf::tls::
 //    Add prefix ITHARE_OBF_TLS_ to all the macros (as macros don't belong to any namespace)
 
-#define ITHARE_OBF_TLS_CHACHA_U8TOU32(p)  ( \
-                ((unsigned int)(p)[0])     | ((unsigned int)(p)[1]<<8) | \
-                ((unsigned int)(p)[2]<<16) | ((unsigned int)(p)[3]<<24)  )
-
 namespace ithare {
 	namespace obf {
 		namespace tls {
@@ -44,36 +40,39 @@ constexpr int CHACHA_KEY_SIZE = 32;
 constexpr int CHACHA_CTR_SIZE = 16;
 constexpr int CHACHA_BLK_SIZE = 64;
 
+#define ITHARE_OBF_TLS_CHACHA_U8TOU32(p)  ( \
+                ((unsigned int)(p)[0])     | ((unsigned int)(p)[1]<<8) | \
+                ((unsigned int)(p)[2]<<16) | ((unsigned int)(p)[3]<<24)  )
+
 /* Adapted from the public domain code by D. Bernstein from SUPERCOP. */
 
-typedef unsigned int u32;
-typedef unsigned char u8;
-typedef union {
-    u32 u[16];
-    u8 c[64];
-} chacha_buf;
+union chacha_buf {
+    uint32_t u[16];
+    uint8_t c[64];
+};
+static_assert(sizeof(chacha_buf)==64);
 
-# define ROTATE(v, n) (((v) << (n)) | ((v) >> (32 - (n))))
+# define ITHARE_OBF_TLS_ROTATE(v, n) (((v) << (n)) | ((v) >> (32 - (n))))
 
-# define U32TO8_LITTLE(p, v) do { \
-                                (p)[0] = (u8)(v >>  0); \
-                                (p)[1] = (u8)(v >>  8); \
-                                (p)[2] = (u8)(v >> 16); \
-                                (p)[3] = (u8)(v >> 24); \
+# define ITHARE_OBF_TLS_U32TO8_LITTLE(p, v) do { \
+                                (p)[0] = (uint8_t)(v >>  0); \
+                                (p)[1] = (uint8_t)(v >>  8); \
+                                (p)[2] = (uint8_t)(v >> 16); \
+                                (p)[3] = (uint8_t)(v >> 24); \
                                 } while(0)
 
 /* QUARTERROUND updates a, b, c, d with a ChaCha "quarter" round. */
 # define QUARTERROUND(a,b,c,d) ( \
-                x[a] += x[b], x[d] = ROTATE((x[d] ^ x[a]),16), \
-                x[c] += x[d], x[b] = ROTATE((x[b] ^ x[c]),12), \
-                x[a] += x[b], x[d] = ROTATE((x[d] ^ x[a]), 8), \
-                x[c] += x[d], x[b] = ROTATE((x[b] ^ x[c]), 7)  )
+                x[a] += x[b], x[d] = ITHARE_OBF_TLS_ROTATE((x[d] ^ x[a]),16), \
+                x[c] += x[d], x[b] = ITHARE_OBF_TLS_ROTATE((x[b] ^ x[c]),12), \
+                x[a] += x[b], x[d] = ITHARE_OBF_TLS_ROTATE((x[d] ^ x[a]), 8), \
+                x[c] += x[d], x[b] = ITHARE_OBF_TLS_ROTATE((x[b] ^ x[c]), 7)  )
 
 /* chacha_core performs 20 rounds of ChaCha on the input words in
  * |input| and writes the 64 output bytes to |output|. */
-ITHARE_OBF_FORCEINLINE void chacha20_core(chacha_buf *output, const u32 input[16])
+ITHARE_OBF_FORCEINLINE void chacha20_core(chacha_buf *output, const uint32_t input[16])
 {
-    u32 x[16];
+    uint32_t x[16];
     int i;
     const union {
         long one;
@@ -98,7 +97,7 @@ ITHARE_OBF_FORCEINLINE void chacha20_core(chacha_buf *output, const u32 input[16
             output->u[i] = x[i] + input[i];
     } else {
         for (i = 0; i < 16; ++i)
-            U32TO8_LITTLE(output->c + 4 * i, (x[i] + input[i]));
+            ITHARE_OBF_TLS_U32TO8_LITTLE(output->c + 4 * i, (x[i] + input[i]));
     }
 }
 
@@ -106,15 +105,15 @@ inline void ChaCha20_ctr32(unsigned char *out, const unsigned char *inp,
                     size_t len, const unsigned int key[8],
                     const unsigned int counter[4])
 {
-    u32 input[16];
+    uint32_t input[16];
     chacha_buf buf;
     size_t todo, i;
 
     /* sigma constant "expand 32-byte k" in little-endian encoding */
-    input[0] = ((u32)'e') | ((u32)'x'<<8) | ((u32)'p'<<16) | ((u32)'a'<<24);
-    input[1] = ((u32)'n') | ((u32)'d'<<8) | ((u32)' '<<16) | ((u32)'3'<<24);
-    input[2] = ((u32)'2') | ((u32)'-'<<8) | ((u32)'b'<<16) | ((u32)'y'<<24);
-    input[3] = ((u32)'t') | ((u32)'e'<<8) | ((u32)' '<<16) | ((u32)'k'<<24);
+    input[0] = ((uint32_t)'e') | ((uint32_t)'x'<<8) | ((uint32_t)'p'<<16) | ((uint32_t)'a'<<24);
+    input[1] = ((uint32_t)'n') | ((uint32_t)'d'<<8) | ((uint32_t)' '<<16) | ((uint32_t)'3'<<24);
+    input[2] = ((uint32_t)'2') | ((uint32_t)'-'<<8) | ((uint32_t)'b'<<16) | ((uint32_t)'y'<<24);
+    input[3] = ((uint32_t)'t') | ((uint32_t)'e'<<8) | ((uint32_t)' '<<16) | ((uint32_t)'k'<<24);
 
     input[4] = key[0];
     input[5] = key[1];
@@ -285,6 +284,10 @@ const EVP_CIPHER *EVP_chacha20(void)
     return (&chacha20);
 }
 #endif
+
+#undef ITHARE_OBF_TLS_U32TO8_LITTLE
+#undef ITHARE_OBF_TLS_ROTATE
+#undef ITHARE_OBF_TLS_CHACHA_U8TOU32
 
     }//namespace tls
   }//namespace obf
