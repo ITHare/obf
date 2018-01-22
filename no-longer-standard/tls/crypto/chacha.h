@@ -53,7 +53,14 @@ constexpr int CHACHA_BLK_SIZE = 64;
 
 union chacha_buf {
     uint32_t u[16];
-    uint8_t c[64];
+    uint8_t c[64];//CANNOT be used in constexpr calls; use get_byte_n() below instead in constexpr
+    
+    constexpr uint8_t get_byte_n( size_t idx) const {
+		assert(idx <= 63);
+		size_t uidx = idx / 4;
+		size_t intraidx = idx % 4;//TODO: test under big-endian
+		return uint8_t(u[uidx] >> (8*intraidx));
+	}
 };
 static_assert(sizeof(chacha_buf)==64);
 
@@ -96,13 +103,13 @@ void chacha20_core(chacha_buf *output, const uint32_t input[16])
         ITHARE_OBF_TLS_QUARTERROUND(3, 4, 9, 14);
     }
 
-	static_assert(obf_endian::native == obf_endian::little || obf_endian::native == obf_endian::big);//if not - big-endian one might or might not work...
-    if constexpr (obf_endian::native == obf_endian::little) {
+	static_assert(obf_endian::native == obf_endian::little || obf_endian::native == obf_endian::big);
+    if constexpr (obf_endian::native == obf_endian::little || obfflags&obf_flag_is_constexpr) {
         for (int i = 0; i < 16; ++i)
             output->u[i] = x[i] + input[i];
-    } else {
-        for (int i = 0; i < 16; ++i)
-            ITHARE_OBF_TLS_U32TO8_LITTLE(output->c + 4 * i, (x[i] + input[i]));
+    } else {//TODO: test on big-endian platform
+			for (int i = 0; i < 16; ++i)
+            		ITHARE_OBF_TLS_U32TO8_LITTLE(output->c + 4 * i, (x[i] + input[i]));
     }
 }
 
@@ -133,7 +140,7 @@ void ChaCha20_ctr32(unsigned char *out, const unsigned char *inp,
     input[14] = counter[2];
     input[15] = counter[3];
 
-    chacha_buf buf;
+    chacha_buf buf = {};
     while (len > 0) {
         size_t todo = sizeof(buf);
         if (len < todo)
@@ -141,8 +148,12 @@ void ChaCha20_ctr32(unsigned char *out, const unsigned char *inp,
 
         ITHARE_OBF_CALLFROMLIB(chacha20_core)(&buf, input);
 
-        for (size_t i = 0; i < todo; i++)
-            out[i] = inp[i] ^ buf.c[i];
+        for (size_t i = 0; i < todo; i++) {
+            if constexpr(obfflags&obf_flag_is_constexpr)
+				out[i] = inp[i] ^ buf.get_byte_n(i);
+			else
+				out[i] = inp[i] ^ buf.c[i];
+		}
         out += todo;
         inp += todo;
         len -= todo;
@@ -176,7 +187,7 @@ class EVP_CHACHA {
 	: key(std::move(key_)) {
 	}
 	ITHARE_OBF_DECLARELIBFUNC
-	static KEY construct_data(const unsigned char user_key[CHACHA_KEY_SIZE],
+	static KEY init_key(const unsigned char user_key[CHACHA_KEY_SIZE],
 				const unsigned char iv[CHACHA_CTR_SIZE], int enc){
 		KEY key = {};
 
@@ -193,24 +204,12 @@ class EVP_CHACHA {
 		key.partial_len = 0;
 		return key;
 	}
-
-	public:
 	ITHARE_OBF_DECLARELIBFUNC
-	EVP_CHACHA( const unsigned char user_key[CHACHA_KEY_SIZE],
-				const unsigned char iv[CHACHA_CTR_SIZE], int enc)
-				: key(construct_data(user_key,iv,enc)) {
-	}
-	ITHARE_OBF_DECLARELIBFUNC
-	static EVP_CHACHA construct(const unsigned char user_key[CHACHA_KEY_SIZE],
-				const unsigned char iv[CHACHA_CTR_SIZE], int enc){
-		return EVP_CHACHA(obf_private_constructor_tag(),std::move(construct_data(user_key,iv,enc)));
-	}
-
-	ITHARE_OBF_DECLARELIBFUNC
-	void cipher( unsigned char *out,
+	static void cipher( KEY& key, unsigned char *out,
 			    const unsigned char *inp, size_t len)
 	{
-		ITHARE_OBFLIB(unsigned int) n = key.partial_len;
+		//@@!ITHARE_OBFLIB(unsigned int) n = key.partial_len;
+		unsigned int n = key.partial_len;
 		if (n) {
 			while (len && n < CHACHA_BLK_SIZE) {
 				*out++ = *inp++ ^ key.buf[n++];
@@ -264,13 +263,45 @@ class EVP_CHACHA {
 		}
 
 		if (rem) {
-			memset(key.buf, 0, sizeof(key.buf));
+			if constexpr(obfflags&obf_flag_is_constexpr) {
+				obf_zeroarray(key.buf);
+			}
+			else
+				memset(key.buf, 0, sizeof(key.buf));
 			ITHARE_OBF_CALLFROMLIB(ChaCha20_ctr32)(key.buf, key.buf, CHACHA_BLK_SIZE,
 						   key.key.d, key.counter);
 			for (n = 0; n < rem; n++)
 				out[n] = inp[n] ^ key.buf[n];
 			key.partial_len = rem;
 		}
+	}	
+
+	public:
+	ITHARE_OBF_DECLARELIBFUNC //cannot really invoke constructors with explicit template parameters :-(
+							  //  use EVP_CHACHA::construct<...> defined below instead
+	EVP_CHACHA( const unsigned char user_key[CHACHA_KEY_SIZE],
+				const unsigned char iv[CHACHA_CTR_SIZE], int enc)
+				: key(init_key(user_key,iv,enc)) {
+	}
+	ITHARE_OBF_DECLARELIBFUNC
+	static EVP_CHACHA construct(const unsigned char user_key[CHACHA_KEY_SIZE],
+				const unsigned char iv[CHACHA_CTR_SIZE], int enc){
+		return EVP_CHACHA(obf_private_constructor_tag(),std::move(init_key(user_key,iv,enc)));
+	}
+
+	ITHARE_OBF_DECLARELIBFUNC
+	void cipher(unsigned char *out,
+			    const unsigned char *inp, size_t len) {
+		cipher(key,out,inp,len);
+	}
+	
+	ITHARE_OBF_DECLARELIBFUNC_WITHEXTRA(size_t N)
+	std::pair<EVP_CHACHA,ObfArrayWrapper<unsigned char,N> > constexpr_cipher(const unsigned char (&inp)[N]) const {
+		KEY modifiable_key = key;
+		ObfArrayWrapper<unsigned char,N> out = {}; 
+		ITHARE_OBF_CALL_AS_CONSTEXPR(cipher)(modifiable_key,out.arr,inp,N);
+		EVP_CHACHA new_state = EVP_CHACHA(obf_private_constructor_tag(),std::move(modifiable_key));
+		return std::pair<EVP_CHACHA,ObfArrayWrapper<unsigned char,N>>(new_state,out);
 	}
 };
 

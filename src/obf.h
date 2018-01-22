@@ -568,6 +568,7 @@ namespace ithare {
 #define ITHARE_OBF6S(s) ITHARE_OBFS_HELPER(ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+6),s)()
 
 #define ITHARE_OBF_DECLARELIBFUNC template<ITHARE_OBF_SEEDTPARAM obfseed = ITHARE_OBF_DUMMYSEED, OBFLEVEL obflevel=-1,OBFFLAGS obfflags=0> constexpr ITHARE_OBF_FORCEINLINE
+#define ITHARE_OBF_DECLARELIBFUNC_WITHEXTRA(...) template<ITHARE_OBF_SEEDTPARAM obfseed = ITHARE_OBF_DUMMYSEED, OBFLEVEL obflevel=-1,OBFFLAGS obfflags=0,__VA_ARGS__> constexpr ITHARE_OBF_FORCEINLINE
 #define ITHARE_OBF_CALL0(fname) fname<ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__),(ITHARE_OBF_SCALE)+0,0>
 #define ITHARE_OBF_CALL1(fname) fname<ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__),(ITHARE_OBF_SCALE)+1,0>
 #define ITHARE_OBF_CALL2(fname) fname<ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__),(ITHARE_OBF_SCALE)+2,0>
@@ -898,6 +899,7 @@ namespace ithare {
 #define ITHARE_OBF6S(s) ITHARE_OBFS_DBG_HELPER(s)()
 
 #define ITHARE_OBF_DECLARELIBFUNC template<OBFFLAGS obfflags=0> constexpr inline
+#define ITHARE_OBF_DECLARELIBFUNC_WITHEXTRA(...) template<OBFFLAGS obfflags=0,__VA_ARGS__> constexpr inline
 #define ITHARE_OBF_CALL0(fname) fname<0>
 #define ITHARE_OBF_CALL1(fname) fname<0>
 #define ITHARE_OBF_CALL2(fname) fname<0>
@@ -906,7 +908,7 @@ namespace ithare {
 #define ITHARE_OBF_CALL5(fname) fname<0>
 #define ITHARE_OBF_CALL6(fname) fname<0>
 #define ITHARE_OBF_CALL_AS_CONSTEXPR(fname) fname<ithare::obf::obf_flag_is_constexpr>
-#define ITHARE_OBF_CALLFROMLIB(fname) fname<0>
+#define ITHARE_OBF_CALLFROMLIB(fname) fname<obfflags>
 
 #define ITHARE_OBFLIBM3(type) ithare::obf::obf_var_dbg<type>
 #define ITHARE_OBFLIBM2(type) ithare::obf::obf_var_dbg<type>

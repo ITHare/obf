@@ -56,11 +56,21 @@ namespace ithare {
 		constexpr size_t obf_arraysz(T(&)[N]) { return N; }
 
 		template<class T,size_t N>
-		void obf_copyarray(T(&to)[N], const T from[]) {
+		constexpr void obf_copyarray(T(&to)[N], const T from[]) {
 			for(size_t i=0; i < N; ++i ) {
 				to[i] = from[i];
 			}
 		}
+		template<class T,size_t N>
+		constexpr void obf_zeroarray(T(&to)[N]) {
+			for(size_t i=0; i < N; ++i ) {
+				to[i] = 0;
+			}
+		}
+		template<class T,size_t N>
+		struct ObfArrayWrapper {
+			T arr[N];
+		};
 
 		constexpr size_t obf_strlen(const char* s) {
 			for (size_t ret = 0; ; ++ret, ++s)
