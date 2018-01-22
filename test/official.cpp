@@ -96,7 +96,7 @@ const lest::test spec[] = {
 		constexpr uint8_t inp[16] = {0};
 		constexpr std::pair<ITOBF_TLS EVP_CHACHA,ITOBF ObfArrayWrapper<unsigned char,16>> ciphered = chacha.constexpr_cipher(inp);
 		constexpr ITOBF_TLS EVP_CHACHA chacha2 = ciphered.first;
-		constexpr auto out = ciphered.second;
+		constexpr ITOBF ObfArrayWrapper<unsigned char, 16> out = ciphered.second;
 		uint8_t expected_out[16] = { 0x22,0x4f,0x51,0xf3,0x40,0x1b,0xd9,0xe1,0x2f,0xde,0x27,0x6f,0xb8,0x63,0x1d,0xed };
 			//from RFC7539
 		EXPECT(std::equal(std::begin(out.arr), std::end(out.arr), std::begin(expected_out), std::end(expected_out)));
