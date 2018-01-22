@@ -497,11 +497,11 @@ namespace ithare {
 
 	//forward declarations
 	template<class T, class Context, ITHARE_OBF_SEEDTPARAM seed, OBFCYCLES cycles,class InjectionRequirements>
-	class obf_injection;
+	class obf_injection;//using function-like naming, as it is essentially a bunch-of-functions, not a real object-with-data
 	template<class T, T C, class Context, ITHARE_OBF_SEEDTPARAM seed, OBFCYCLES cycles>
-	class obf_literal_ctx;
+	class obf_literal_ctx;//using function-like naming, as logically it is a function-returning-constant, not a real object-with-data
 	template<class T_, T_ C_, ITHARE_OBF_SEEDTPARAM seed, OBFCYCLES cycles>
-	class obf_literal;
+	class obf_literal;//using function-like naming, as logically it is a function-returning-constant, not a real object-with-data
 
 	//ObfRecursiveContext
 	template<class T, class Context, ITHARE_OBF_SEEDTPARAM seed, OBFCYCLES cycles>

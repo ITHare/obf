@@ -50,8 +50,7 @@
 
 //regardless of ITHARE_OBF_SEED
 namespace ithare {
-	namespace obf {
-		
+	namespace obf {		
 		template<class T,size_t N>
 		constexpr size_t obf_arraysz(T(&)[N]) { return N; }
 
