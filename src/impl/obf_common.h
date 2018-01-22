@@ -90,6 +90,9 @@ namespace ithare {
 
 		using OBFFLAGS = uint64_t;
 		constexpr OBFFLAGS obf_flag_is_constexpr = 0x01;
+		
+		struct obf_private_constructor_tag {
+		};
 	}//namespace obf
 }//namespace ithare
 

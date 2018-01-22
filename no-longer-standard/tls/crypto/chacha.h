@@ -158,105 +158,123 @@ void ChaCha20_ctr32(unsigned char *out, const unsigned char *inp,
 }
 
 //OBF: Adapted from OpenSSL 1.1.0g, CHACHA part of file crypto/evp/e_chacha20_poly1305.c
+//OBF: combined stuff into EVP_CHACHA class
 
-struct EVP_CHACHA_KEY {
-    union {
-        double align;   /* this ensures even sizeof(EVP_CHACHA_KEY)%8==0 */
-        unsigned int d[CHACHA_KEY_SIZE / 4];
-    } key;
-    unsigned int  counter[CHACHA_CTR_SIZE / 4];
-    unsigned char buf[CHACHA_BLK_SIZE];
-    unsigned int  partial_len;
+class EVP_CHACHA {
+	struct KEY {//former EVP_CHACHA_KEY
+		struct {
+		    alignas(double) /* this ensures even sizeof(EVP_CHACHA_KEY)%8==0 */
+				unsigned int d[CHACHA_KEY_SIZE / 4];
+		} key;
+		unsigned int  counter[CHACHA_CTR_SIZE / 4];
+		unsigned char buf[CHACHA_BLK_SIZE];
+		unsigned int  partial_len;
+	};
+	KEY key;
+
+	constexpr EVP_CHACHA( obf_private_constructor_tag, const KEY&& key_ )
+	: key(std::move(key_)) {
+	}
+	ITHARE_OBF_DECLARELIBFUNC
+	static KEY construct_data(const unsigned char user_key[CHACHA_KEY_SIZE],
+				const unsigned char iv[CHACHA_CTR_SIZE], int enc){
+		KEY key = {};
+
+		if (user_key)
+			for (unsigned int i = 0; i < CHACHA_KEY_SIZE; i+=4) {
+				key.key.d[i/4] = ITHARE_OBF_TLS_CHACHA_U8TOU32(user_key+i);
+			}
+
+		if (iv)
+			for (unsigned int i = 0; i < CHACHA_CTR_SIZE; i+=4) {
+				key.counter[i/4] = ITHARE_OBF_TLS_CHACHA_U8TOU32(iv+i);
+			}
+
+		key.partial_len = 0;
+		return key;
+	}
+
+	public:
+	ITHARE_OBF_DECLARELIBFUNC
+	EVP_CHACHA( const unsigned char user_key[CHACHA_KEY_SIZE],
+				const unsigned char iv[CHACHA_CTR_SIZE], int enc)
+				: key(construct_data(user_key,iv,enc)) {
+	}
+	ITHARE_OBF_DECLARELIBFUNC
+	static EVP_CHACHA construct(const unsigned char user_key[CHACHA_KEY_SIZE],
+				const unsigned char iv[CHACHA_CTR_SIZE], int enc){
+		return EVP_CHACHA(obf_private_constructor_tag(),std::move(construct_data(user_key,iv,enc)));
+	}
+
+	ITHARE_OBF_DECLARELIBFUNC
+	void cipher( unsigned char *out,
+			    const unsigned char *inp, size_t len)
+	{
+		ITHARE_OBFLIB(unsigned int) n = key.partial_len;
+		if (n) {
+			while (len && n < CHACHA_BLK_SIZE) {
+				*out++ = *inp++ ^ key.buf[n++];
+				len--;
+			}
+			key.partial_len = n;
+
+			if (len == 0)
+				return;
+
+			if (n == CHACHA_BLK_SIZE) {
+				key.partial_len = 0;
+				key.counter[0]++;
+				if (key.counter[0] == 0)
+					key.counter[1]++;
+			}
+		}
+
+		unsigned int rem = (unsigned int)(len % CHACHA_BLK_SIZE);
+		len -= rem;
+		unsigned int ctr32 = key.counter[0];//TODO: is it really unsigned int, or maybe uint32_t?
+		while (len >= CHACHA_BLK_SIZE) {
+			size_t blocks = len / CHACHA_BLK_SIZE;
+			/*
+			 * 1<<28 is just a not-so-small yet not-so-large number...
+			 * Below condition is practically never met, but it has to
+			 * be checked for code correctness.
+			 */
+			if (sizeof(size_t)>sizeof(unsigned int) && blocks>(1U<<28))
+				blocks = (1U<<28);
+
+			/*
+			 * As ChaCha20_ctr32 operates on 32-bit counter, caller
+			 * has to handle overflow. 'if' below detects the
+			 * overflow, which is then handled by limiting the
+			 * amount of blocks to the exact overflow point...
+			 */
+			ctr32 += (unsigned int)blocks;
+			if (ctr32 < blocks) {
+				blocks -= ctr32;
+				ctr32 = 0;
+			}
+			blocks *= CHACHA_BLK_SIZE;
+			ITHARE_OBF_CALLFROMLIB(ChaCha20_ctr32)(out, inp, blocks, key.key.d, key.counter);
+			len -= blocks;
+			inp += blocks;
+			out += blocks;
+
+			key.counter[0] = ctr32;
+			if (ctr32 == 0) key.counter[1]++;
+		}
+
+		if (rem) {
+			memset(key.buf, 0, sizeof(key.buf));
+			ITHARE_OBF_CALLFROMLIB(ChaCha20_ctr32)(key.buf, key.buf, CHACHA_BLK_SIZE,
+						   key.key.d, key.counter);
+			for (n = 0; n < rem; n++)
+				out[n] = inp[n] ^ key.buf[n];
+			key.partial_len = rem;
+		}
+	}
 };
 
-ITHARE_OBF_DECLARELIBFUNC
-int chacha_init_key(EVP_CHACHA_KEY* key,
-                           const unsigned char user_key[CHACHA_KEY_SIZE],
-                           const unsigned char iv[CHACHA_CTR_SIZE], int enc)
-{
-    if (user_key)
-        for (unsigned int i = 0; i < CHACHA_KEY_SIZE; i+=4) {
-            key->key.d[i/4] = ITHARE_OBF_TLS_CHACHA_U8TOU32(user_key+i);
-        }
 
-    if (iv)
-        for (unsigned int i = 0; i < CHACHA_CTR_SIZE; i+=4) {
-            key->counter[i/4] = ITHARE_OBF_TLS_CHACHA_U8TOU32(iv+i);
-        }
-
-    key->partial_len = 0;
-
-    return 1;
-}
-
-ITHARE_OBF_DECLARELIBFUNC
-int chacha_cipher(EVP_CHACHA_KEY* key, unsigned char *out,
-                         const unsigned char *inp, size_t len)
-{
-    ITHARE_OBFLIB(unsigned int) n = key->partial_len;
-    if (n) {
-        while (len && n < CHACHA_BLK_SIZE) {
-            *out++ = *inp++ ^ key->buf[n++];
-            len--;
-        }
-        key->partial_len = n;
-
-        if (len == 0)
-            return 1;
-
-        if (n == CHACHA_BLK_SIZE) {
-            key->partial_len = 0;
-            key->counter[0]++;
-            if (key->counter[0] == 0)
-                key->counter[1]++;
-        }
-    }
-
-    unsigned int rem = (unsigned int)(len % CHACHA_BLK_SIZE);
-    len -= rem;
-    unsigned int ctr32 = key->counter[0];//TODO: is it really unsigned int, or maybe uint32_t?
-    while (len >= CHACHA_BLK_SIZE) {
-        size_t blocks = len / CHACHA_BLK_SIZE;
-        /*
-         * 1<<28 is just a not-so-small yet not-so-large number...
-         * Below condition is practically never met, but it has to
-         * be checked for code correctness.
-         */
-        if (sizeof(size_t)>sizeof(unsigned int) && blocks>(1U<<28))
-            blocks = (1U<<28);
-
-        /*
-         * As ChaCha20_ctr32 operates on 32-bit counter, caller
-         * has to handle overflow. 'if' below detects the
-         * overflow, which is then handled by limiting the
-         * amount of blocks to the exact overflow point...
-         */
-        ctr32 += (unsigned int)blocks;
-        if (ctr32 < blocks) {
-            blocks -= ctr32;
-            ctr32 = 0;
-        }
-        blocks *= CHACHA_BLK_SIZE;
-        ITHARE_OBF_CALLFROMLIB(ChaCha20_ctr32)(out, inp, blocks, key->key.d, key->counter);
-        len -= blocks;
-        inp += blocks;
-        out += blocks;
-
-        key->counter[0] = ctr32;
-        if (ctr32 == 0) key->counter[1]++;
-    }
-
-    if (rem) {
-        memset(key->buf, 0, sizeof(key->buf));
-        ITHARE_OBF_CALLFROMLIB(ChaCha20_ctr32)(key->buf, key->buf, CHACHA_BLK_SIZE,
-                       key->key.d, key->counter);
-        for (n = 0; n < rem; n++)
-            out[n] = inp[n] ^ key->buf[n];
-        key->partial_len = rem;
-    }
-
-    return 1;
-}
 
 #if 0
 static const EVP_CIPHER chacha20 = {
