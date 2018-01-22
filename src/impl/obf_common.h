@@ -51,8 +51,16 @@
 //regardless of ITHARE_OBF_SEED
 namespace ithare {
 	namespace obf {
-				template<class T,size_t N>
+		
+		template<class T,size_t N>
 		constexpr size_t obf_arraysz(T(&)[N]) { return N; }
+
+		template<class T,size_t N>
+		void obf_copyarray(T(&to)[N], const T from[]) {
+			for(size_t i=0; i < N; ++i ) {
+				to[i] = from[i];
+			}
+		}
 
 		constexpr size_t obf_strlen(const char* s) {
 			for (size_t ret = 0; ; ++ret, ++s)
@@ -80,6 +88,8 @@ namespace ithare {
 #endif
 		};
 
+		using OBFFLAGS = uint64_t;
+		constexpr OBFFLAGS obf_flag_is_constexpr = 0x01;
 	}//namespace obf
 }//namespace ithare
 
@@ -95,9 +105,9 @@ namespace ithare {
 		//        If disabling - use equivalent ITHARE_OBF0()...ITHARE_OBF6()
 
 		using OBFCYCLES = int32_t;//signed!
+		using OBFLEVEL = int8_t;//signed! 
 		
-		using OBFFLAGS = uint64_t;
-		constexpr OBFFLAGS obf_flag_cross_platform_only = 0x01; 
+		constexpr OBFFLAGS obf_flag_cross_platform_only = 0x02; 
 		
 		using OBFINJECTIONCAPS = uint64_t;//injection capability flags
 		constexpr OBFINJECTIONCAPS obf_injection_has_add_mod_max_value_ex = 0x01;

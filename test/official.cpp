@@ -56,7 +56,7 @@ const lest::test spec[] = {
 		uint8_t user_key[ITOBF_TLS CHACHA_KEY_SIZE] = { 0 };
 		uint8_t iv[ITOBF_TLS CHACHA_CTR_SIZE] = { 0 };
 		ITOBF_TLS EVP_CIPHER_CTX ctx;
-		int ok = chacha_init_key(&ctx, user_key, iv, 1);
+		int ok = ITOBF_TLS chacha_init_key(&ctx, user_key, iv, 1);
 		EXPECT(ok);
 		
 		uint8_t inp[16] = {0};
@@ -71,12 +71,12 @@ const lest::test spec[] = {
 		uint8_t user_key[ITOBF_TLS CHACHA_KEY_SIZE] = { 1, 0 };
 		uint8_t iv[ITOBF_TLS CHACHA_CTR_SIZE] = { 0 };
 		ITOBF_TLS EVP_CIPHER_CTX ctx;
-		int ok = ITOBF_TLS chacha_init_key(&ctx, user_key, iv, 1);
+		int ok = OBF_CALL3(ITOBF_TLS chacha_init_key)(&ctx, user_key, iv, 1);
 		EXPECT(ok);
 		
 		uint8_t inp[16] = {0};
 		uint8_t out[16] = {0};
-		ok = ITOBF_TLS chacha_cipher(&ctx, out, inp, 16);
+		ok = OBF_CALL3(ITOBF_TLS chacha_cipher)(&ctx, out, inp, 16);
 		EXPECT(ok);
 		uint8_t expected_out[16] = { 0xc5, 0xd3, 0x0a, 0x7c, 0xe1, 0xec, 0x11, 0x93, 0x78, 0xc8, 0x4f, 0x48, 0x7d, 0x77, 0x5a, 0x85 };
 			//from https://github.com/secworks/chacha_testvectors/blob/master/src/chacha_testvectors.txt (look for SECOND entry with "Rounds: 20" in TC2, SECOND entry corresponds to 256-bit Chacha20 which is used in TLS per RFC7539
@@ -86,12 +86,12 @@ const lest::test spec[] = {
 		uint8_t user_key[ITOBF_TLS CHACHA_KEY_SIZE] = { 0x00,0x01,0x02,0x03,0x04,0x05,0x06,0x07,0x08,0x09,0x0a,0x0b,0x0c,0x0d,0x0e,0x0f,0x10,0x11,0x12,0x13,0x14,0x15,0x16,0x17,0x18,0x19,0x1a,0x1b,0x1c,0x1d,0x1e,0x1f };
 		uint8_t iv[ITOBF_TLS CHACHA_CTR_SIZE] = { 1,0,0,0,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x4a,0x00,0x00,0x00,0x00 };//1st 4 bytes are ctr
 		ITOBF_TLS EVP_CIPHER_CTX ctx;
-		int ok = ITOBF_TLS chacha_init_key(&ctx, user_key, iv, 1);
+		int ok = OBF_CALL3(ITOBF_TLS chacha_init_key)(&ctx, user_key, iv, 1);
 		EXPECT(ok);
 		
 		uint8_t inp[16] = {0};
 		uint8_t out[16] = {0};
-		ok = ITOBF_TLS chacha_cipher(&ctx, out, inp, 16);
+		ok = OBF_CALL3(ITOBF_TLS chacha_cipher)(&ctx, out, inp, 16);
 		EXPECT(ok);
 		uint8_t expected_out[16] = { 0x22,0x4f,0x51,0xf3,0x40,0x1b,0xd9,0xe1,0x2f,0xde,0x27,0x6f,0xb8,0x63,0x1d,0xed };
 			//from RFC7539

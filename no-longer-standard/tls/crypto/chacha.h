@@ -73,12 +73,34 @@ static_assert(sizeof(chacha_buf)==64);
                 x[a] += x[b], x[d] = ITHARE_OBF_TLS_ROTATE((x[d] ^ x[a]), 8), \
                 x[c] += x[d], x[b] = ITHARE_OBF_TLS_ROTATE((x[b] ^ x[c]), 7)  )
 
+#ifdef ITHARE_OBF_SEED
+#define ITHARE_OBF_DECLARELIBFUNC template<ITHARE_OBF_SEEDTPARAM seed = ITHARE_OBF_DUMMYSEED, OBFLEVEL level=-1,OBFFLAGS flags=0> ITHARE_OBF_FORCEINLINE
+#define ITHARE_OBF_CALL0(fname) fname<ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__),0,0>
+#define ITHARE_OBF_CALL3(fname) fname<ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__),3,0>
+#define ITHARE_OBF_CALL_AS_CONSTEXPR(fname) fname<ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__),0,ithare::obf::obf_flag_is_constexpr>
+#define ITHARE_OBF_CALLFROMLIB(fname) fname<seed,level,flags>
+#else
+#define ITHARE_OBF_DECLARELIBFUNC template<OBFFLAGS flags=0> inline
+#define ITHARE_OBF_CALL0(fname) fname<0>
+#define ITHARE_OBF_CALL3(fname) fname<0>
+#define ITHARE_OBF_CALL_AS_CONSTEXPR(fname) fname<ithare::obf::obf_flag_is_constexpr>
+#define ITHARE_OBF_CALLFROMLIB(fname) fname<0>
+#endif
+
+#define OBF_CALL0 ITHARE_OBF_CALL0
+#define OBF_CALL3 ITHARE_OBF_CALL3
+
 /* chacha_core performs 20 rounds of ChaCha on the input words in
  * |input| and writes the 64 output bytes to |output|. */
-ITHARE_OBF_FORCEINLINE void chacha20_core(chacha_buf *output, const uint32_t input[16])
+ITHARE_OBF_DECLARELIBFUNC
+void chacha20_core(chacha_buf *output, const uint32_t input[16])
 {
     uint32_t x[16];
-    memcpy(x, input, sizeof(x));
+    if constexpr(flags&obf_flag_is_constexpr) {
+		obf_copyarray(x,input);
+	}
+    else
+		memcpy(x, input, sizeof(x));
 
     for (int i = 20; i > 0; i -= 2) {
         ITHARE_OBF_TLS_QUARTERROUND(0, 4, 8, 12);
@@ -101,7 +123,8 @@ ITHARE_OBF_FORCEINLINE void chacha20_core(chacha_buf *output, const uint32_t inp
     }
 }
 
-inline void ChaCha20_ctr32(unsigned char *out, const unsigned char *inp,
+ITHARE_OBF_DECLARELIBFUNC
+void ChaCha20_ctr32(unsigned char *out, const unsigned char *inp,
                     size_t len, const unsigned int key[8],
                     const unsigned int counter[4])
 {
@@ -134,7 +157,7 @@ inline void ChaCha20_ctr32(unsigned char *out, const unsigned char *inp,
         if (len < todo)
             todo = len;
 
-        chacha20_core(&buf, input);
+        ITHARE_OBF_CALLFROMLIB(chacha20_core)(&buf, input);
 
         for (i = 0; i < todo; i++)
             out[i] = inp[i] ^ buf.c[i];
@@ -170,7 +193,8 @@ struct EVP_CIPHER_CTX {
 
 #define data(ctx)   (&ctx->cipher_data)
 
-inline int chacha_init_key(EVP_CIPHER_CTX *ctx,
+ITHARE_OBF_DECLARELIBFUNC
+int chacha_init_key(EVP_CIPHER_CTX *ctx,
                            const unsigned char user_key[CHACHA_KEY_SIZE],
                            const unsigned char iv[CHACHA_CTR_SIZE], int enc)
 {
@@ -192,7 +216,8 @@ inline int chacha_init_key(EVP_CIPHER_CTX *ctx,
     return 1;
 }
 
-inline int chacha_cipher(EVP_CIPHER_CTX * ctx, unsigned char *out,
+ITHARE_OBF_DECLARELIBFUNC
+int chacha_cipher(EVP_CIPHER_CTX * ctx, unsigned char *out,
                          const unsigned char *inp, size_t len)
 {
     EVP_CHACHA_KEY *key = data(ctx);
@@ -241,7 +266,7 @@ inline int chacha_cipher(EVP_CIPHER_CTX * ctx, unsigned char *out,
             ctr32 = 0;
         }
         blocks *= CHACHA_BLK_SIZE;
-        ChaCha20_ctr32(out, inp, blocks, key->key.d, key->counter);
+        ITHARE_OBF_CALLFROMLIB(ChaCha20_ctr32)(out, inp, blocks, key->key.d, key->counter);
         len -= blocks;
         inp += blocks;
         out += blocks;
@@ -252,7 +277,7 @@ inline int chacha_cipher(EVP_CIPHER_CTX * ctx, unsigned char *out,
 
     if (rem) {
         memset(key->buf, 0, sizeof(key->buf));
-        ChaCha20_ctr32(key->buf, key->buf, CHACHA_BLK_SIZE,
+        ITHARE_OBF_CALLFROMLIB(ChaCha20_ctr32)(key->buf, key->buf, CHACHA_BLK_SIZE,
                        key->key.d, key->counter);
         for (n = 0; n < rem; n++)
             out[n] = inp[n] ^ key->buf[n];

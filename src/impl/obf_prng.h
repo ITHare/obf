@@ -142,6 +142,7 @@ namespace ithare {
 		}
 
 #define ITHARE_OBF_SEEDTPARAM uint64_t
+#define ITHARE_OBF_DUMMYSEED 0
 #define ITHARE_OBF_DECLAREPRNG constexpr static uint64_t /* sic! */
 #define ITHARE_OBF_DECLAREPRNG_INFUNC constexpr uint64_t
 #define	ITHARE_OBF_INIT_PRNG(file,line,counter) ithare::obf::obf_init_prng(file,line,counter) 
@@ -255,6 +256,7 @@ namespace ithare {
 			return std::pair<uint64_t, uint64_t>(rlo, rhi);
 		}
 #define ITHARE_OBF_SEEDTPARAM class /* sic! */
+#define ITHARE_OBF_DUMMYSEED ithare::obf::ObfSeed<0,0,-1>
 #define ITHARE_OBF_DECLAREPRNG using /* don't ask ;-) */
 #define ITHARE_OBF_DECLAREPRNG_INFUNC using
 #define	ITHARE_OBF_INIT_PRNG(file,line,counter) ithare::obf::ObfSeed<ithare::obf::obf_init_prng(file,line,counter).first,ithare::obf::obf_init_prng(file,line,counter).second,0>
