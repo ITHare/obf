@@ -169,19 +169,11 @@ struct EVP_CHACHA_KEY {
     unsigned int  partial_len;
 };
 
-struct EVP_CIPHER_CTX {
-	EVP_CHACHA_KEY cipher_data;
-};
-
-#define data(ctx)   (&ctx->cipher_data)
-
 ITHARE_OBF_DECLARELIBFUNC
-int chacha_init_key(EVP_CIPHER_CTX *ctx,
+int chacha_init_key(EVP_CHACHA_KEY* key,
                            const unsigned char user_key[CHACHA_KEY_SIZE],
                            const unsigned char iv[CHACHA_CTR_SIZE], int enc)
 {
-    EVP_CHACHA_KEY *key = data(ctx);
-
     if (user_key)
         for (unsigned int i = 0; i < CHACHA_KEY_SIZE; i+=4) {
             key->key.d[i/4] = ITHARE_OBF_TLS_CHACHA_U8TOU32(user_key+i);
@@ -198,11 +190,9 @@ int chacha_init_key(EVP_CIPHER_CTX *ctx,
 }
 
 ITHARE_OBF_DECLARELIBFUNC
-int chacha_cipher(EVP_CIPHER_CTX * ctx, unsigned char *out,
+int chacha_cipher(EVP_CHACHA_KEY* key, unsigned char *out,
                          const unsigned char *inp, size_t len)
 {
-    EVP_CHACHA_KEY *key = data(ctx);
-    
     ITHARE_OBFLIB(unsigned int) n = key->partial_len;
     if (n) {
         while (len && n < CHACHA_BLK_SIZE) {
