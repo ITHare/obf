@@ -78,7 +78,7 @@ static_assert(sizeof(chacha_buf)==64);
 ITHARE_OBF_DECLARELIBFUNC
 void chacha20_core(chacha_buf *output, const uint32_t input[16])
 {
-    uint32_t x[16];
+    uint32_t x[16] = {};
     if constexpr(flags&obf_flag_is_constexpr) {
 		obf_copyarray(x,input);
 	}
@@ -111,9 +111,7 @@ void ChaCha20_ctr32(unsigned char *out, const unsigned char *inp,
                     size_t len, const unsigned int key[8],
                     const unsigned int counter[4])
 {
-    uint32_t input[16];
-    chacha_buf buf;
-    size_t todo, i;
+    uint32_t input[16] = {};
 
     /* sigma constant "expand 32-byte k" in little-endian encoding */
     input[0] = ((uint32_t)'e') | ((uint32_t)'x'<<8) | ((uint32_t)'p'<<16) | ((uint32_t)'a'<<24);
@@ -135,14 +133,15 @@ void ChaCha20_ctr32(unsigned char *out, const unsigned char *inp,
     input[14] = counter[2];
     input[15] = counter[3];
 
+    chacha_buf buf;
     while (len > 0) {
-        todo = sizeof(buf);
+        size_t todo = sizeof(buf);
         if (len < todo)
             todo = len;
 
         ITHARE_OBF_CALLFROMLIB(chacha20_core)(&buf, input);
 
-        for (i = 0; i < todo; i++)
+        for (size_t i = 0; i < todo; i++)
             out[i] = inp[i] ^ buf.c[i];
         out += todo;
         inp += todo;
@@ -182,15 +181,14 @@ int chacha_init_key(EVP_CIPHER_CTX *ctx,
                            const unsigned char iv[CHACHA_CTR_SIZE], int enc)
 {
     EVP_CHACHA_KEY *key = data(ctx);
-    unsigned int i;
 
     if (user_key)
-        for (i = 0; i < CHACHA_KEY_SIZE; i+=4) {
+        for (unsigned int i = 0; i < CHACHA_KEY_SIZE; i+=4) {
             key->key.d[i/4] = ITHARE_OBF_TLS_CHACHA_U8TOU32(user_key+i);
         }
 
     if (iv)
-        for (i = 0; i < CHACHA_CTR_SIZE; i+=4) {
+        for (unsigned int i = 0; i < CHACHA_CTR_SIZE; i+=4) {
             key->counter[i/4] = ITHARE_OBF_TLS_CHACHA_U8TOU32(iv+i);
         }
 
@@ -204,9 +202,9 @@ int chacha_cipher(EVP_CIPHER_CTX * ctx, unsigned char *out,
                          const unsigned char *inp, size_t len)
 {
     EVP_CHACHA_KEY *key = data(ctx);
-    unsigned int n, rem, ctr32;
-
-    if ((n = key->partial_len)) {
+    
+    unsigned int n = key->partial_len;
+    if (n) {
         while (len && n < CHACHA_BLK_SIZE) {
             *out++ = *inp++ ^ key->buf[n++];
             len--;
@@ -224,9 +222,9 @@ int chacha_cipher(EVP_CIPHER_CTX * ctx, unsigned char *out,
         }
     }
 
-    rem = (unsigned int)(len % CHACHA_BLK_SIZE);
+    unsigned int rem = (unsigned int)(len % CHACHA_BLK_SIZE);
     len -= rem;
-    ctr32 = key->counter[0];
+    unsigned int ctr32 = key->counter[0];//TODO: is it really unsigned int, or maybe uint32_t?
     while (len >= CHACHA_BLK_SIZE) {
         size_t blocks = len / CHACHA_BLK_SIZE;
         /*

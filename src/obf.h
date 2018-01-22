@@ -567,33 +567,7 @@ namespace ithare {
 #define ITHARE_OBF5S(s) ITHARE_OBFS_HELPER(ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+5),s)()
 #define ITHARE_OBF6S(s) ITHARE_OBFS_HELPER(ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+6),s)()
 
-/*#else//!_MSC_VER
-#define ITHARE_OBF0(type) ithare::obf::obf_var<type,ITHARE_OBF_INIT_PRNG(__FILE__,__LINE__,__COUNTER__),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+0)>
-#define ITHARE_OBF1(type) ithare::obf::obf_var<type,ITHARE_OBF_INIT_PRNG(__FILE__,__LINE__,__COUNTER__),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+1)>
-#define ITHARE_OBF2(type) ithare::obf::obf_var<type,ITHARE_OBF_INIT_PRNG(__FILE__,__LINE__,__COUNTER__),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+2)>
-#define ITHARE_OBF3(type) ithare::obf::obf_var<type,ITHARE_OBF_INIT_PRNG(__FILE__,__LINE__,__COUNTER__),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+3)>
-#define ITHARE_OBF4(type) ithare::obf::obf_var<type,ITHARE_OBF_INIT_PRNG(__FILE__,__LINE__,__COUNTER__),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+4)>
-#define ITHARE_OBF5(type) ithare::obf::obf_var<type,ITHARE_OBF_INIT_PRNG(__FILE__,__LINE__,__COUNTER__),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+5)>
-#define ITHARE_OBF6(type) ithare::obf::obf_var<type,ITHARE_OBF_INIT_PRNG(__FILE__,__LINE__,__COUNTER__),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+6)>
-
-#define ITHARE_OBF0I(c) obf_literal<decltype(c),c,ITHARE_OBF_INIT_PRNG(__FILE__,__LINE__,__COUNTER__),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+0)>()
-#define ITHARE_OBF1I(c) obf_literal<decltype(c),c,ITHARE_OBF_INIT_PRNG(__FILE__,__LINE__,__COUNTER__),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+1)>()
-#define ITHARE_OBF2I(c) obf_literal<decltype(c),c,ITHARE_OBF_INIT_PRNG(__FILE__,__LINE__,__COUNTER__),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+2)>()
-#define ITHARE_OBF3I(c) obf_literal<decltype(c),c,ITHARE_OBF_INIT_PRNG(__FILE__,__LINE__,__COUNTER__),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+3)>()
-#define ITHARE_OBF4I(c) obf_literal<decltype(c),c,ITHARE_OBF_INIT_PRNG(__FILE__,__LINE__,__COUNTER__),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+4)>()
-#define ITHARE_OBF5I(c) obf_literal<decltype(c),c,ITHARE_OBF_INIT_PRNG(__FILE__,__LINE__,__COUNTER__),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+5)>()
-#define ITHARE_OBF6I(c) obf_literal<decltype(c),c,ITHARE_OBF_INIT_PRNG(__FILE__,__LINE__,__COUNTER__),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+6)>()
-
-#define ITHARE_OBF0S(s) ITHARE_OBFS_HELPER(ITHARE_OBF_INIT_PRNG(__FILE__,__LINE__,__COUNTER__),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+0),s)().value()
-#define ITHARE_OBF1S(s) ITHARE_OBFS_HELPER(ITHARE_OBF_INIT_PRNG(__FILE__,__LINE__,__COUNTER__),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+1),s)().value()
-#define ITHARE_OBF2S(s) ITHARE_OBFS_HELPER(ITHARE_OBF_INIT_PRNG(__FILE__,__LINE__,__COUNTER__),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+2),s)().value()
-#define ITHARE_OBF3S(s) ITHARE_OBFS_HELPER(ITHARE_OBF_INIT_PRNG(__FILE__,__LINE__,__COUNTER__),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+3),s)().value()
-#define ITHARE_OBF4S(s) ITHARE_OBFS_HELPER(ITHARE_OBF_INIT_PRNG(__FILE__,__LINE__,__COUNTER__),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+4),s)().value()
-#define ITHARE_OBF5S(s) ITHARE_OBFS_HELPER(ITHARE_OBF_INIT_PRNG(__FILE__,__LINE__,__COUNTER__),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+5),s)().value()
-#define ITHARE_OBF6S(s) ITHARE_OBFS_HELPER(ITHARE_OBF_INIT_PRNG(__FILE__,__LINE__,__COUNTER__),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+6),s)().value()
-#endif*/
-
-#define ITHARE_OBF_DECLARELIBFUNC template<ITHARE_OBF_SEEDTPARAM seed = ITHARE_OBF_DUMMYSEED, OBFLEVEL level=-1,OBFFLAGS flags=0> ITHARE_OBF_FORCEINLINE
+#define ITHARE_OBF_DECLARELIBFUNC template<ITHARE_OBF_SEEDTPARAM seed = ITHARE_OBF_DUMMYSEED, OBFLEVEL level=-1,OBFFLAGS flags=0> constexpr ITHARE_OBF_FORCEINLINE
 #define ITHARE_OBF_CALL0(fname) fname<ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__),0,0>
 #define ITHARE_OBF_CALL1(fname) fname<ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__),1,0>
 #define ITHARE_OBF_CALL2(fname) fname<ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__),2,0>
@@ -602,7 +576,14 @@ namespace ithare {
 #define ITHARE_OBF_CALL5(fname) fname<ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__),5,0>
 #define ITHARE_OBF_CALL6(fname) fname<ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__),6,0>
 #define ITHARE_OBF_CALL_AS_CONSTEXPR(fname) fname<ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__),-1,ithare::obf::obf_flag_is_constexpr>
-#define ITHARE_OBF_CALLFROMLIB(fname) fname<seed,level,flags>
+
+#define ITHARE_OBF_CALLFROMLIBM3(fname) fname<ITHARE_OBF_COMBINED_PRNG(seed,ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__)),level-3,flags>
+#define ITHARE_OBF_CALLFROMLIBM2(fname) fname<ITHARE_OBF_COMBINED_PRNG(seed,ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__)),level-2,flags>
+#define ITHARE_OBF_CALLFROMLIBM1(fname) fname<ITHARE_OBF_COMBINED_PRNG(seed,ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__)),level-1,flags>
+#define ITHARE_OBF_CALLFROMLIB(fname)   fname<ITHARE_OBF_COMBINED_PRNG(seed,ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__)),level,flags>
+#define ITHARE_OBF_CALLFROMLIBP1(fname) fname<ITHARE_OBF_COMBINED_PRNG(seed,ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__)),level+1,flags>
+#define ITHARE_OBF_CALLFROMLIBP2(fname) fname<ITHARE_OBF_COMBINED_PRNG(seed,ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__)),level+2,flags>
+#define ITHARE_OBF_CALLFROMLIBP3(fname) fname<ITHARE_OBF_COMBINED_PRNG(seed,ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__)),level+3,flags>
 
 #else//ITHARE_OBF_SEED
 namespace ithare {
@@ -908,7 +889,7 @@ namespace ithare {
 #define ITHARE_OBF5S(s) ITHARE_OBFS_DBG_HELPER(s)()
 #define ITHARE_OBF6S(s) ITHARE_OBFS_DBG_HELPER(s)()
 
-#define ITHARE_OBF_DECLARELIBFUNC template<OBFFLAGS flags=0> inline
+#define ITHARE_OBF_DECLARELIBFUNC template<OBFFLAGS flags=0> constexpr inline
 #define ITHARE_OBF_CALL0(fname) fname<0>
 #define ITHARE_OBF_CALL1(fname) fname<0>
 #define ITHARE_OBF_CALL2(fname) fname<0>
