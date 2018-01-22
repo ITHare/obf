@@ -230,6 +230,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\no-longer-standard\tls\crypto\chacha.h" />
     <ClInclude Include="..\..\src\impl\obf_anti_debug.h" />
     <ClInclude Include="..\..\src\impl\obf_common.h" />
     <ClInclude Include="..\..\src\impl\obf_crypto.h" />

@@ -39,6 +39,9 @@
     <ClInclude Include="..\..\src\impl\obf_anti_debug.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\no-longer-standard\tls\crypto\chacha.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\internal.cpp">

@@ -37,7 +37,9 @@
 #include "../src/obf.h"
 #include <chrono>//for benchmarking
 
+#include "../no-longer-standard/tls/crypto/chacha.h"
 using namespace ithare::obf;
+using namespace ithare::obf::tls;
 
 #if 0
 template<class T, size_t N>
@@ -169,8 +171,6 @@ public:
 		return (int32_t)length.count();
 	}
 };
-
-#include "../no-longer-standard/tls/crypto/chacha.h"
 
 int main(int argc, char** argv) {
 #ifndef NDEBUG
