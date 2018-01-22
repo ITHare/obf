@@ -79,7 +79,7 @@ ITHARE_OBF_DECLARELIBFUNC
 void chacha20_core(chacha_buf *output, const uint32_t input[16])
 {
     uint32_t x[16] = {};
-    if constexpr(flags&obf_flag_is_constexpr) {
+    if constexpr(obfflags&obf_flag_is_constexpr) {
 		obf_copyarray(x,input);
 	}
     else
@@ -111,7 +111,7 @@ void ChaCha20_ctr32(unsigned char *out, const unsigned char *inp,
                     size_t len, const unsigned int key[8],
                     const unsigned int counter[4])
 {
-    uint32_t input[16] = {};
+    uint32_t input[16] = {};//TODO: move initialization here
 
     /* sigma constant "expand 32-byte k" in little-endian encoding */
     input[0] = ((uint32_t)'e') | ((uint32_t)'x'<<8) | ((uint32_t)'p'<<16) | ((uint32_t)'a'<<24);
@@ -203,7 +203,7 @@ int chacha_cipher(EVP_CIPHER_CTX * ctx, unsigned char *out,
 {
     EVP_CHACHA_KEY *key = data(ctx);
     
-    unsigned int n = key->partial_len;
+    ITHARE_OBFLIB(unsigned int) n = key->partial_len;
     if (n) {
         while (len && n < CHACHA_BLK_SIZE) {
             *out++ = *inp++ ^ key->buf[n++];

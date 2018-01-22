@@ -106,6 +106,10 @@ namespace ithare {
 
 		using OBFCYCLES = int32_t;//signed!
 		using OBFLEVEL = int8_t;//signed! 
+
+		constexpr OBFLEVEL obf_addlevel(OBFLEVEL base, OBFLEVEL diff) {
+			return base < 0 ? base : base + diff;
+		}
 		
 		constexpr OBFFLAGS obf_flag_cross_platform_only = 0x02; 
 		
