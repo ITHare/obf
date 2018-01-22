@@ -73,23 +73,6 @@ static_assert(sizeof(chacha_buf)==64);
                 x[a] += x[b], x[d] = ITHARE_OBF_TLS_ROTATE((x[d] ^ x[a]), 8), \
                 x[c] += x[d], x[b] = ITHARE_OBF_TLS_ROTATE((x[b] ^ x[c]), 7)  )
 
-#ifdef ITHARE_OBF_SEED
-#define ITHARE_OBF_DECLARELIBFUNC template<ITHARE_OBF_SEEDTPARAM seed = ITHARE_OBF_DUMMYSEED, OBFLEVEL level=-1,OBFFLAGS flags=0> ITHARE_OBF_FORCEINLINE
-#define ITHARE_OBF_CALL0(fname) fname<ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__),0,0>
-#define ITHARE_OBF_CALL3(fname) fname<ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__),3,0>
-#define ITHARE_OBF_CALL_AS_CONSTEXPR(fname) fname<ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__),0,ithare::obf::obf_flag_is_constexpr>
-#define ITHARE_OBF_CALLFROMLIB(fname) fname<seed,level,flags>
-#else
-#define ITHARE_OBF_DECLARELIBFUNC template<OBFFLAGS flags=0> inline
-#define ITHARE_OBF_CALL0(fname) fname<0>
-#define ITHARE_OBF_CALL3(fname) fname<0>
-#define ITHARE_OBF_CALL_AS_CONSTEXPR(fname) fname<ithare::obf::obf_flag_is_constexpr>
-#define ITHARE_OBF_CALLFROMLIB(fname) fname<0>
-#endif
-
-#define OBF_CALL0 ITHARE_OBF_CALL0
-#define OBF_CALL3 ITHARE_OBF_CALL3
-
 /* chacha_core performs 20 rounds of ChaCha on the input words in
  * |input| and writes the 64 output bytes to |output|. */
 ITHARE_OBF_DECLARELIBFUNC

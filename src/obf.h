@@ -593,6 +593,17 @@ namespace ithare {
 #define ITHARE_OBF6S(s) ITHARE_OBFS_HELPER(ITHARE_OBF_INIT_PRNG(__FILE__,__LINE__,__COUNTER__),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+6),s)().value()
 #endif*/
 
+#define ITHARE_OBF_DECLARELIBFUNC template<ITHARE_OBF_SEEDTPARAM seed = ITHARE_OBF_DUMMYSEED, OBFLEVEL level=-1,OBFFLAGS flags=0> ITHARE_OBF_FORCEINLINE
+#define ITHARE_OBF_CALL0(fname) fname<ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__),0,0>
+#define ITHARE_OBF_CALL1(fname) fname<ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__),1,0>
+#define ITHARE_OBF_CALL2(fname) fname<ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__),2,0>
+#define ITHARE_OBF_CALL3(fname) fname<ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__),3,0>
+#define ITHARE_OBF_CALL4(fname) fname<ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__),4,0>
+#define ITHARE_OBF_CALL5(fname) fname<ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__),5,0>
+#define ITHARE_OBF_CALL6(fname) fname<ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__),6,0>
+#define ITHARE_OBF_CALL_AS_CONSTEXPR(fname) fname<ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__),-1,ithare::obf::obf_flag_is_constexpr>
+#define ITHARE_OBF_CALLFROMLIB(fname) fname<seed,level,flags>
+
 #else//ITHARE_OBF_SEED
 namespace ithare {
 	namespace obf {
@@ -897,6 +908,17 @@ namespace ithare {
 #define ITHARE_OBF5S(s) ITHARE_OBFS_DBG_HELPER(s)()
 #define ITHARE_OBF6S(s) ITHARE_OBFS_DBG_HELPER(s)()
 
+#define ITHARE_OBF_DECLARELIBFUNC template<OBFFLAGS flags=0> inline
+#define ITHARE_OBF_CALL0(fname) fname<0>
+#define ITHARE_OBF_CALL1(fname) fname<0>
+#define ITHARE_OBF_CALL2(fname) fname<0>
+#define ITHARE_OBF_CALL3(fname) fname<0>
+#define ITHARE_OBF_CALL4(fname) fname<0>
+#define ITHARE_OBF_CALL5(fname) fname<0>
+#define ITHARE_OBF_CALL6(fname) fname<0>
+#define ITHARE_OBF_CALL_AS_CONSTEXPR(fname) fname<ithare::obf::obf_flag_is_constexpr>
+#define ITHARE_OBF_CALLFROMLIB(fname) fname<0>
+
 #endif //ITHARE_OBF_SEED
 
 #ifndef ITHARE_OBF_NO_SHORT_DEFINES//#define to avoid polluting global namespace w/o prefix
@@ -923,6 +945,17 @@ namespace ithare {
 #define OBF4S ITHARE_OBF4S
 #define OBF5S ITHARE_OBF5S
 #define OBF6S ITHARE_OBF6S
-#endif
+
+#define OBF_CALL0 ITHARE_OBF_CALL0
+#define OBF_CALL1 ITHARE_OBF_CALL1
+#define OBF_CALL2 ITHARE_OBF_CALL2
+#define OBF_CALL3 ITHARE_OBF_CALL3
+#define OBF_CALL4 ITHARE_OBF_CALL4
+#define OBF_CALL5 ITHARE_OBF_CALL5
+#define OBF_CALL6 ITHARE_OBF_CALL6
+#define OBF_CALL_AS_CONSTEXPR ITHARE_OBF_CALL_AS_CONSTEXPR
+//no shortcut for ITHARE_OBF_CALLFROMLIB - MUST use the full form as within libs we don't control NO_SHORT_DEFINES
+
+#endif //ITHARE_OBF_NO_SHORT_DEFINES
 
 #endif//ithare_obf_obfuscate_h_included
