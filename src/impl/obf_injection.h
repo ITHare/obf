@@ -107,22 +107,6 @@ namespace ithare {
 #define ITHARE_OBF_DBG_CHECK_SHORTCUT(where,shortcut,noshortcut_expr)
 #endif//ITHARE_OBF_DBG_RUNTIME_CHECKS
 
-		//POTENTIALLY user-modifiable constexpr function:
-		constexpr OBFCYCLES obf_exp_cycles(int exp) {
-			if (exp < 0)
-				return 0;
-			OBFCYCLES ret = 1;
-			if (exp & 1) {
-				ret *= 3;
-				exp -= 1;
-			}
-			assert((exp & 1) == 0);
-			exp >>= 1;
-			for (int i = 0; i < exp; ++i)
-				ret *= 10;
-			return ret;
-		}
-
 		//helper constexpr functions
 		template<class T, size_t N>
 		constexpr T obf_compile_time_approximation(T x, std::array<T, N> xref, std::array<T, N> yref) {

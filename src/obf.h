@@ -52,6 +52,22 @@
 namespace ithare {
 	namespace obf {
 
+	//POTENTIALLY user-modifiable constexpr function:
+	constexpr OBFCYCLES obf_exp_cycles(int exp) {
+		if (exp < 0)
+			return 0;
+		OBFCYCLES ret = 1;
+		if (exp & 1) {
+			ret *= 3;
+			exp -= 1;
+		}
+		assert((exp & 1) == 0);
+		exp >>= 1;
+		for (int i = 0; i < exp; ++i)
+			ret *= 10;
+		return ret;
+	}
+
 	//IMPORTANT: ANY API CHANGES MUST BE MIRRORED in obf_literal_dbg<>
 	template<class T_, T_ C_, ITHARE_OBF_SEEDTPARAM seed, OBFCYCLES cycles>
 	class obf_literal {
@@ -124,6 +140,18 @@ namespace ithare {
 		using recursive_context_type = ObfVarContext<T,seed,cycles>;
 		using intermediate_context_type = ObfVarContext<T,seed,cycles>;
 	};
+	
+	template<bool obfuscate, class T, class Context, ITHARE_OBF_SEEDTPARAM seed, OBFCYCLES cycles,class InjectionRequirements>
+	struct obf_var_injection;
+	
+	template<class T, class Context, ITHARE_OBF_SEEDTPARAM seed, OBFCYCLES cycles,class InjectionRequirements>
+	struct obf_var_injection<true,T,Context,seed,cycles,InjectionRequirements> {
+		using Injection = obf_injection<T, Context, seed, cycles, InjectionRequirements>;
+	};
+	template<class T, class Context, ITHARE_OBF_SEEDTPARAM seed, OBFCYCLES cycles,class InjectionRequirements>
+	struct obf_var_injection<false,T,Context,seed,cycles,InjectionRequirements> {
+		using Injection = obf_injection_version<0,T, Context, InjectionRequirements, seed, cycles>;
+	};
 
 	//ObfVar
 	//IMPORTANT: ANY API CHANGES MUST BE MIRRORED in ObfVarDbg<>
@@ -141,38 +169,39 @@ namespace ithare {
 			static constexpr bool no_substrate_size_increase = false;
 			static constexpr bool cross_platform_only = flags & obf_flag_cross_platform_only;
 		};
-		using Injection = obf_injection<T, Context, ITHARE_OBF_NEW_PRNG(seed, 2), cycles, InjectionRequirements>;
+		static constexpr bool obfuscate = (flags&obf_flag_is_constexpr) == 0;
+		using Injection = typename obf_var_injection<obfuscate,T, Context, ITHARE_OBF_NEW_PRNG(seed, 2), cycles, InjectionRequirements>::Injection;
 
 	public:
-		ITHARE_OBF_FORCEINLINE ObfVar(T_ t) : val(Injection::template injection<ITHARE_OBF_NEW_PRNG(seed, 2)>(T(t))) {
+		ITHARE_OBF_FORCEINLINE constexpr ObfVar(T_ t) : val(Injection::template injection<ITHARE_OBF_NEW_PRNG(seed, 2)>(T(t))) {
 		}
 		template<class T2, ITHARE_OBF_SEEDTPARAM seed2, OBFCYCLES cycles2>
 		ITHARE_OBF_FORCEINLINE ObfVar(ObfVar<T2, seed2, cycles2> t) : val(Injection::template injection<ITHARE_OBF_COMBINED_PRNG(seed,seed2)>(T(T_(t.value())))) {//TODO: randomized injection implementation
 		}
 		template<class T2, T2 C2, ITHARE_OBF_SEEDTPARAM seed2, OBFCYCLES cycles2>
-		ITHARE_OBF_FORCEINLINE ObfVar(obf_literal<T2, C2, seed2, cycles2> t) : val(Injection::template injection<ITHARE_OBF_COMBINED_PRNG(seed,seed2)>(T(T_(t.value())))) {//TODO: randomized injection implementation
+		ITHARE_OBF_FORCEINLINE constexpr ObfVar(obf_literal<T2, C2, seed2, cycles2> t) : val(Injection::template injection<ITHARE_OBF_COMBINED_PRNG(seed,seed2)>(T(T_(t.value())))) {//TODO: randomized injection implementation
 		}
-		ITHARE_OBF_FORCEINLINE ObfVar& operator =(T_ t) {
+		ITHARE_OBF_FORCEINLINE constexpr ObfVar& operator =(T_ t) {
 			val = Injection::template injection<ITHARE_OBF_NEW_PRNG(seed, 3)>(T(t));//TODO: different implementations of the same injection in different contexts
 			return *this;
 		}
 		template<class T2, ITHARE_OBF_SEEDTPARAM seed2, OBFCYCLES cycles2>
-		ITHARE_OBF_FORCEINLINE ObfVar& operator =(ObfVar<T2, seed2, cycles2> t) {
+		ITHARE_OBF_FORCEINLINE constexpr ObfVar& operator =(ObfVar<T2, seed2, cycles2> t) {
 			val = Injection::template injection<ITHARE_OBF_NEW_PRNG(seed, 4)>(T(T_(t.value())));//TODO: different implementations of the same injection in different contexts
 			return *this;
 		}
 		template<class T2, T2 C2, ITHARE_OBF_SEEDTPARAM seed2, OBFCYCLES cycles2>
-		ITHARE_OBF_FORCEINLINE ObfVar& operator =(obf_literal<T2, C2, seed2, cycles2> t) {
+		ITHARE_OBF_FORCEINLINE constexpr ObfVar& operator =(obf_literal<T2, C2, seed2, cycles2> t) {
 			ITHARE_OBF_DECLAREPRNG_INFUNC seedc = ITHARE_OBF_COMBINED_PRNG(seed,seed2);
 			val = Injection::template injection<seedc>(T(T_(t.value())));//TODO: different implementations of the same injection in different contexts
 			return *this;
 		}
-		ITHARE_OBF_FORCEINLINE T_ value() const {
+		ITHARE_OBF_FORCEINLINE constexpr T_ value() const {
 			return T_(Injection::template surjection<ITHARE_OBF_NEW_PRNG(seed, 5)>(val));
 		}
 
-		ITHARE_OBF_FORCEINLINE operator T_() const { return value(); }
-		ITHARE_OBF_FORCEINLINE ObfVar& operator ++() { 
+		ITHARE_OBF_FORCEINLINE constexpr operator T_() const { return value(); }
+		ITHARE_OBF_FORCEINLINE constexpr ObfVar& operator ++() { 
 			if constexpr(Injection::injection_caps & obf_injection_has_add_mod_max_value_ex) {
 				typename Injection::return_type ret = Injection::template injected_add_mod_max_value_ex<ITHARE_OBF_NEW_PRNG(seed, 6)>(val,1);
 				ITHARE_OBF_DBG_CHECK_SHORTCUT("++",ret,Injection::template injection<seed>(Injection::template surjection<seed>(val)+1));
@@ -183,158 +212,158 @@ namespace ithare {
 			}
 			return *this;
 		}
-		ITHARE_OBF_FORCEINLINE ObfVar& operator --() { *this = value() - 1; return *this; }
-		ITHARE_OBF_FORCEINLINE ObfVar operator++(int) { ObfVar ret = ObfVar(value());  *this = value() + 1; return ret; }
-		ITHARE_OBF_FORCEINLINE ObfVar operator--(int) { ObfVar ret = ObfVar(value());  *this = value() + 1; return ret; }
+		ITHARE_OBF_FORCEINLINE constexpr ObfVar& operator --() { *this = value() - 1; return *this; }
+		ITHARE_OBF_FORCEINLINE constexpr ObfVar operator++(int) { ObfVar ret = ObfVar(value());  *this = value() + 1; return ret; }
+		ITHARE_OBF_FORCEINLINE constexpr ObfVar operator--(int) { ObfVar ret = ObfVar(value());  *this = value() + 1; return ret; }
 
 		template<class T2>
-		ITHARE_OBF_FORCEINLINE bool operator <(T2 t) { return value() < t; }
+		ITHARE_OBF_FORCEINLINE constexpr bool operator <(T2 t) { return value() < t; }
 		template<class T2>
-		ITHARE_OBF_FORCEINLINE bool operator >(T2 t) { return value() > t; }
+		ITHARE_OBF_FORCEINLINE constexpr bool operator >(T2 t) { return value() > t; }
 		template<class T2>
-		ITHARE_OBF_FORCEINLINE bool operator ==(T2 t) { return value() == t; }
+		ITHARE_OBF_FORCEINLINE constexpr bool operator ==(T2 t) { return value() == t; }
 		template<class T2>
-		ITHARE_OBF_FORCEINLINE bool operator !=(T2 t) { return value() != t; }
+		ITHARE_OBF_FORCEINLINE constexpr bool operator !=(T2 t) { return value() != t; }
 		template<class T2>
-		ITHARE_OBF_FORCEINLINE bool operator <=(T2 t) { return value() <= t; }
+		ITHARE_OBF_FORCEINLINE constexpr bool operator <=(T2 t) { return value() <= t; }
 		template<class T2>
-		ITHARE_OBF_FORCEINLINE bool operator >=(T2 t) { return value() >= t; }
+		ITHARE_OBF_FORCEINLINE constexpr bool operator >=(T2 t) { return value() >= t; }
 
 		template<class T2, ITHARE_OBF_SEEDTPARAM seed2, OBFCYCLES cycles2>
-		ITHARE_OBF_FORCEINLINE bool operator <(ObfVar<T2, seed2, cycles2> t) {
+		ITHARE_OBF_FORCEINLINE constexpr bool operator <(ObfVar<T2, seed2, cycles2> t) {
 			return value() < t.value();
 		}
 		template<class T2, ITHARE_OBF_SEEDTPARAM seed2, OBFCYCLES cycles2>
-		ITHARE_OBF_FORCEINLINE bool operator >(ObfVar<T2, seed2, cycles2> t) {
+		ITHARE_OBF_FORCEINLINE constexpr bool operator >(ObfVar<T2, seed2, cycles2> t) {
 			return value() > t.value();
 		}
 		template<class T2, ITHARE_OBF_SEEDTPARAM seed2, OBFCYCLES cycles2>
-		ITHARE_OBF_FORCEINLINE bool operator ==(ObfVar<T2, seed2, cycles2> t) {
+		ITHARE_OBF_FORCEINLINE constexpr bool operator ==(ObfVar<T2, seed2, cycles2> t) {
 			return value() == t.value();
 		}
 		template<class T2, ITHARE_OBF_SEEDTPARAM seed2, OBFCYCLES cycles2>
-		ITHARE_OBF_FORCEINLINE bool operator !=(ObfVar<T2, seed2, cycles2> t) {
+		ITHARE_OBF_FORCEINLINE constexpr bool operator !=(ObfVar<T2, seed2, cycles2> t) {
 			return value() != t.value();
 		}
 		template<class T2, ITHARE_OBF_SEEDTPARAM seed2, OBFCYCLES cycles2>
-		ITHARE_OBF_FORCEINLINE bool operator <=(ObfVar<T2, seed2, cycles2> t) {
+		ITHARE_OBF_FORCEINLINE constexpr bool operator <=(ObfVar<T2, seed2, cycles2> t) {
 			return value() <= t.value();
 		}
 		template<class T2, ITHARE_OBF_SEEDTPARAM seed2, OBFCYCLES cycles2>
-		ITHARE_OBF_FORCEINLINE bool operator >=(ObfVar<T2, seed2, cycles2> t) {
+		ITHARE_OBF_FORCEINLINE constexpr bool operator >=(ObfVar<T2, seed2, cycles2> t) {
 			return value() >= t.value();
 		}
 
 		template<class T2, T2 C2, ITHARE_OBF_SEEDTPARAM seed2, OBFCYCLES cycles2>
-		ITHARE_OBF_FORCEINLINE bool operator <(obf_literal<T2, C2, seed2, cycles2> t) {
+		ITHARE_OBF_FORCEINLINE constexpr bool operator <(obf_literal<T2, C2, seed2, cycles2> t) {
 			return value() < t.value();
 		}
 		template<class T2, T2 C2, ITHARE_OBF_SEEDTPARAM seed2, OBFCYCLES cycles2>
-		ITHARE_OBF_FORCEINLINE bool operator >(obf_literal<T2, C2, seed2, cycles2> t) {
+		ITHARE_OBF_FORCEINLINE constexpr bool operator >(obf_literal<T2, C2, seed2, cycles2> t) {
 			return value() > t.value();
 		}
 		template<class T2, T2 C2, ITHARE_OBF_SEEDTPARAM seed2, OBFCYCLES cycles2>
-		ITHARE_OBF_FORCEINLINE bool operator ==(obf_literal<T2, C2, seed2, cycles2> t) {
+		ITHARE_OBF_FORCEINLINE constexpr bool operator ==(obf_literal<T2, C2, seed2, cycles2> t) {
 			return value() == t.value();
 		}
 		template<class T2, T2 C2, ITHARE_OBF_SEEDTPARAM seed2, OBFCYCLES cycles2>
-		ITHARE_OBF_FORCEINLINE bool operator !=(obf_literal<T2, C2, seed2, cycles2> t) {
+		ITHARE_OBF_FORCEINLINE constexpr bool operator !=(obf_literal<T2, C2, seed2, cycles2> t) {
 			return value() != t.value();
 		}
 		template<class T2, T2 C2, ITHARE_OBF_SEEDTPARAM seed2, OBFCYCLES cycles2>
-		ITHARE_OBF_FORCEINLINE bool operator <=(obf_literal<T2, C2, seed2, cycles2> t) {
+		ITHARE_OBF_FORCEINLINE constexpr bool operator <=(obf_literal<T2, C2, seed2, cycles2> t) {
 			return value() <= t.value();
 		}
 		template<class T2, T2 C2, ITHARE_OBF_SEEDTPARAM seed2, OBFCYCLES cycles2>
-		ITHARE_OBF_FORCEINLINE bool operator >=(obf_literal<T2, C2, seed2, cycles2> t) {
+		ITHARE_OBF_FORCEINLINE constexpr bool operator >=(obf_literal<T2, C2, seed2, cycles2> t) {
 			return value() >= t.value();
 		}
 
 		template<class T2>
-		ITHARE_OBF_FORCEINLINE ObfVar& operator +=(T2 t) { *this = value() + t; return *this; }
+		ITHARE_OBF_FORCEINLINE constexpr ObfVar& operator +=(T2 t) { *this = value() + t; return *this; }
 		template<class T2>
-		ITHARE_OBF_FORCEINLINE ObfVar& operator -=(T2 t) { *this = value() - t; return *this; }
+		ITHARE_OBF_FORCEINLINE constexpr ObfVar& operator -=(T2 t) { *this = value() - t; return *this; }
 		template<class T2>
-		ITHARE_OBF_FORCEINLINE ObfVar& operator *=(T2 t) { *this = value() * t; return *this; }
+		ITHARE_OBF_FORCEINLINE constexpr ObfVar& operator *=(T2 t) { *this = value() * t; return *this; }
 		template<class T2>
-		ITHARE_OBF_FORCEINLINE ObfVar& operator /=(T2 t) { *this = value() / t; return *this; }
+		ITHARE_OBF_FORCEINLINE constexpr ObfVar& operator /=(T2 t) { *this = value() / t; return *this; }
 		template<class T2>
-		ITHARE_OBF_FORCEINLINE ObfVar& operator %=(T2 t) { *this = value() % t; return *this; }
+		ITHARE_OBF_FORCEINLINE constexpr ObfVar& operator %=(T2 t) { *this = value() % t; return *this; }
 
 		template<class T2, ITHARE_OBF_SEEDTPARAM seed2, OBFCYCLES cycles2>
-		ITHARE_OBF_FORCEINLINE ObfVar& operator +=(ObfVar<T2, seed2, cycles2> t) {
+		ITHARE_OBF_FORCEINLINE constexpr ObfVar& operator +=(ObfVar<T2, seed2, cycles2> t) {
 			return *this += t.value();
 		}
 		template<class T2, ITHARE_OBF_SEEDTPARAM seed2, OBFCYCLES cycles2>
-		ITHARE_OBF_FORCEINLINE ObfVar& operator -=(ObfVar<T2, seed2, cycles2> t) {
+		ITHARE_OBF_FORCEINLINE constexpr ObfVar& operator -=(ObfVar<T2, seed2, cycles2> t) {
 			return *this -= t.value();
 		}
 		template<class T2, ITHARE_OBF_SEEDTPARAM seed2, OBFCYCLES cycles2>
-		ITHARE_OBF_FORCEINLINE ObfVar& operator *=(ObfVar<T2, seed2, cycles2> t) {
+		ITHARE_OBF_FORCEINLINE constexpr ObfVar& operator *=(ObfVar<T2, seed2, cycles2> t) {
 			return *this *= t.value();
 		}
 		template<class T2, ITHARE_OBF_SEEDTPARAM seed2, OBFCYCLES cycles2>
-		ITHARE_OBF_FORCEINLINE ObfVar& operator /=(ObfVar<T2, seed2, cycles2> t) {
+		ITHARE_OBF_FORCEINLINE constexpr ObfVar& operator /=(ObfVar<T2, seed2, cycles2> t) {
 			return *this /= t.value();
 		}
 		template<class T2, ITHARE_OBF_SEEDTPARAM seed2, OBFCYCLES cycles2>
-		ITHARE_OBF_FORCEINLINE ObfVar& operator %=(ObfVar<T2, seed2, cycles2> t) {
+		ITHARE_OBF_FORCEINLINE constexpr ObfVar& operator %=(ObfVar<T2, seed2, cycles2> t) {
 			return *this %= t.value();
 		}
 
 		template<class T2, T2 C2, ITHARE_OBF_SEEDTPARAM seed2, OBFCYCLES cycles2>
-		ITHARE_OBF_FORCEINLINE ObfVar& operator +=(obf_literal<T2, C2, seed2, cycles2> t) {
+		ITHARE_OBF_FORCEINLINE constexpr ObfVar& operator +=(obf_literal<T2, C2, seed2, cycles2> t) {
 			return *this += t.value();
 		}
 		template<class T2, T2 C2, ITHARE_OBF_SEEDTPARAM seed2, OBFCYCLES cycles2>
-		ITHARE_OBF_FORCEINLINE ObfVar& operator -=(obf_literal<T2, C2, seed2, cycles2> t) {
+		ITHARE_OBF_FORCEINLINE constexpr ObfVar& operator -=(obf_literal<T2, C2, seed2, cycles2> t) {
 			return *this -= t.value();
 		}
 		template<class T2, T2 C2, ITHARE_OBF_SEEDTPARAM seed2, OBFCYCLES cycles2>
-		ITHARE_OBF_FORCEINLINE ObfVar& operator *=(obf_literal<T2, C2, seed2, cycles2> t) {
+		ITHARE_OBF_FORCEINLINE constexpr ObfVar& operator *=(obf_literal<T2, C2, seed2, cycles2> t) {
 			return *this *= t.value();
 		}
 		template<class T2, T2 C2, ITHARE_OBF_SEEDTPARAM seed2, OBFCYCLES cycles2>
-		ITHARE_OBF_FORCEINLINE ObfVar& operator /=(obf_literal<T2, C2, seed2, cycles2> t) {
+		ITHARE_OBF_FORCEINLINE constexpr ObfVar& operator /=(obf_literal<T2, C2, seed2, cycles2> t) {
 			return *this /= t.value();
 		}
 		template<class T2, T2 C2, ITHARE_OBF_SEEDTPARAM seed2, OBFCYCLES cycles2>
-		ITHARE_OBF_FORCEINLINE ObfVar& operator %=(obf_literal<T2, C2, seed2, cycles2> t) {
+		ITHARE_OBF_FORCEINLINE constexpr ObfVar& operator %=(obf_literal<T2, C2, seed2, cycles2> t) {
 			return *this %= t.value();
 		}
 
 		template<class T2>
-		ITHARE_OBF_FORCEINLINE ObfVar operator +(T2 t) { return ObfVar(value()+t); }
+		ITHARE_OBF_FORCEINLINE constexpr ObfVar operator +(T2 t) { return ObfVar(value()+t); }
 		template<class T2>
-		ITHARE_OBF_FORCEINLINE ObfVar operator -(T2 t) { return ObfVar(value() - t); }
+		ITHARE_OBF_FORCEINLINE constexpr ObfVar operator -(T2 t) { return ObfVar(value() - t); }
 		template<class T2>
-		ITHARE_OBF_FORCEINLINE ObfVar operator *(T2 t) { return ObfVar(value() * t); }
+		ITHARE_OBF_FORCEINLINE constexpr ObfVar operator *(T2 t) { return ObfVar(value() * t); }
 		template<class T2>
-		ITHARE_OBF_FORCEINLINE ObfVar operator /(T2 t) { return ObfVar(value() / t); }
+		ITHARE_OBF_FORCEINLINE constexpr ObfVar operator /(T2 t) { return ObfVar(value() / t); }
 		template<class T2>
-		ITHARE_OBF_FORCEINLINE ObfVar operator %(T2 t) { return ObfVar(value() % t); }
+		ITHARE_OBF_FORCEINLINE constexpr ObfVar operator %(T2 t) { return ObfVar(value() % t); }
 		
 		template<class T2, ITHARE_OBF_SEEDTPARAM seed2, OBFCYCLES cycles2>
-		ITHARE_OBF_FORCEINLINE ObfVar operator +(ObfVar<T2,seed2,cycles2> t) { return ObfVar(value() + t.value()); }
+		ITHARE_OBF_FORCEINLINE constexpr ObfVar operator +(ObfVar<T2,seed2,cycles2> t) { return ObfVar(value() + t.value()); }
 		template<class T2, ITHARE_OBF_SEEDTPARAM seed2, OBFCYCLES cycles2>
-		ITHARE_OBF_FORCEINLINE ObfVar operator -(ObfVar<T2, seed2, cycles2> t) { return ObfVar(value() - t.value()); }
+		ITHARE_OBF_FORCEINLINE constexpr ObfVar operator -(ObfVar<T2, seed2, cycles2> t) { return ObfVar(value() - t.value()); }
 		template<class T2, ITHARE_OBF_SEEDTPARAM seed2, OBFCYCLES cycles2>
-		ITHARE_OBF_FORCEINLINE ObfVar operator *(ObfVar<T2, seed2, cycles2> t) { return ObfVar(value() * t.value()); }
+		ITHARE_OBF_FORCEINLINE constexpr ObfVar operator *(ObfVar<T2, seed2, cycles2> t) { return ObfVar(value() * t.value()); }
 		template<class T2, ITHARE_OBF_SEEDTPARAM seed2, OBFCYCLES cycles2>
-		ITHARE_OBF_FORCEINLINE ObfVar operator /(ObfVar<T2, seed2, cycles2> t) { return ObfVar(value() / t.value()); }
+		ITHARE_OBF_FORCEINLINE constexpr ObfVar operator /(ObfVar<T2, seed2, cycles2> t) { return ObfVar(value() / t.value()); }
 		template<class T2, ITHARE_OBF_SEEDTPARAM seed2, OBFCYCLES cycles2>
-		ITHARE_OBF_FORCEINLINE ObfVar operator %(ObfVar<T2, seed2, cycles2> t) { return ObfVar(value() % t.value()); }
+		ITHARE_OBF_FORCEINLINE constexpr ObfVar operator %(ObfVar<T2, seed2, cycles2> t) { return ObfVar(value() % t.value()); }
 
 		template<class T2, T2 C2, ITHARE_OBF_SEEDTPARAM seed2, OBFCYCLES cycles2>
-		ITHARE_OBF_FORCEINLINE ObfVar operator +(obf_literal<T2, C2, seed2, cycles2> t) { return ObfVar(value() + t.value()); }
+		ITHARE_OBF_FORCEINLINE constexpr ObfVar operator +(obf_literal<T2, C2, seed2, cycles2> t) { return ObfVar(value() + t.value()); }
 		template<class T2, T2 C2, ITHARE_OBF_SEEDTPARAM seed2, OBFCYCLES cycles2>
-		ITHARE_OBF_FORCEINLINE ObfVar operator -(obf_literal<T2, C2, seed2, cycles2> t) { return ObfVar(value() - t.value()); }
+		ITHARE_OBF_FORCEINLINE constexpr ObfVar operator -(obf_literal<T2, C2, seed2, cycles2> t) { return ObfVar(value() - t.value()); }
 		template<class T2, T2 C2, ITHARE_OBF_SEEDTPARAM seed2, OBFCYCLES cycles2>
-		ITHARE_OBF_FORCEINLINE ObfVar operator *(obf_literal<T2, C2, seed2, cycles2> t) { return ObfVar(value() * t.value()); }
+		ITHARE_OBF_FORCEINLINE constexpr ObfVar operator *(obf_literal<T2, C2, seed2, cycles2> t) { return ObfVar(value() * t.value()); }
 		template<class T2, T2 C2, ITHARE_OBF_SEEDTPARAM seed2, OBFCYCLES cycles2>
-		ITHARE_OBF_FORCEINLINE ObfVar operator /(obf_literal<T2, C2, seed2, cycles2> t) { return ObfVar(value() / t.value()); }
+		ITHARE_OBF_FORCEINLINE constexpr ObfVar operator /(obf_literal<T2, C2, seed2, cycles2> t) { return ObfVar(value() / t.value()); }
 		template<class T2, T2 C2, ITHARE_OBF_SEEDTPARAM seed2, OBFCYCLES cycles2>
-		ITHARE_OBF_FORCEINLINE ObfVar operator %(obf_literal<T2, C2, seed2, cycles2> t) { return ObfVar(value() % t.value()); }
+		ITHARE_OBF_FORCEINLINE constexpr ObfVar operator %(obf_literal<T2, C2, seed2, cycles2> t) { return ObfVar(value() % t.value()); }
 
 		//TODO: bitwise
 
@@ -597,13 +626,13 @@ namespace ithare {
 #define ITHARE_OBF_CALLFROMLIBP2(fname) fname<ITHARE_OBF_COMBINED_PRNG(obfseed,ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__)),ithare::obf::obf_addlevel(obflevel,2),obfflags>
 #define ITHARE_OBF_CALLFROMLIBP3(fname) fname<ITHARE_OBF_COMBINED_PRNG(obfseed,ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__)),ithare::obf::obf_addlevel(obflevel,3),obfflags>
 
-#define ITHARE_OBFLIBM3(type) ithare::obf::ObfVar<type,ITHARE_OBF_COMBINED_PRNG(obfseed,ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__)),ithare::obf::obf_exp_cycles(ithare::obf::obf_addlevel(obflevel,-3))>
-#define ITHARE_OBFLIBM2(type) ithare::obf::ObfVar<type,ITHARE_OBF_COMBINED_PRNG(obfseed,ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__)),ithare::obf::obf_exp_cycles(ithare::obf::obf_addlevel(obflevel,-2))>
-#define ITHARE_OBFLIBM1(type) ithare::obf::ObfVar<type,ITHARE_OBF_COMBINED_PRNG(obfseed,ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__)),ithare::obf::obf_exp_cycles(ithare::obf::obf_addlevel(obflevel,-1))>
-#define ITHARE_OBFLIB(type) ithare::obf::ObfVar<type,ITHARE_OBF_COMBINED_PRNG(obfseed,ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__)),ithare::obf::obf_exp_cycles(obflevel)>
-#define ITHARE_OBFLIBP1(type) ithare::obf::ObfVar<type,ITHARE_OBF_COMBINED_PRNG(obfseed,ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__)),ithare::obf::obf_exp_cycles(ithare::obf::obf_addlevel(obflevel,1))>
-#define ITHARE_OBFLIBP2(type) ithare::obf::ObfVar<type,ITHARE_OBF_COMBINED_PRNG(obfseed,ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__)),ithare::obf::obf_exp_cycles(ithare::obf::obf_addlevel(obflevel,1))>
-#define ITHARE_OBFLIBP3(type) ithare::obf::ObfVar<type,ITHARE_OBF_COMBINED_PRNG(obfseed,ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__)),ithare::obf::obf_exp_cycles(ithare::obf::obf_addlevel(obflevel,1))>
+#define ITHARE_OBFLIBM3(type) ithare::obf::ObfVar<type,ITHARE_OBF_COMBINED_PRNG(obfseed,ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__)),ithare::obf::obf_exp_cycles(ithare::obf::obf_addlevel(obflevel,-3)),obfflags>
+#define ITHARE_OBFLIBM2(type) ithare::obf::ObfVar<type,ITHARE_OBF_COMBINED_PRNG(obfseed,ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__)),ithare::obf::obf_exp_cycles(ithare::obf::obf_addlevel(obflevel,-2)),obfflags>
+#define ITHARE_OBFLIBM1(type) ithare::obf::ObfVar<type,ITHARE_OBF_COMBINED_PRNG(obfseed,ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__)),ithare::obf::obf_exp_cycles(ithare::obf::obf_addlevel(obflevel,-1)),obfflags>
+#define ITHARE_OBFLIB(type) ithare::obf::ObfVar<type,ITHARE_OBF_COMBINED_PRNG(obfseed,ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__)),ithare::obf::obf_exp_cycles(obflevel),obfflags>
+#define ITHARE_OBFLIBP1(type) ithare::obf::ObfVar<type,ITHARE_OBF_COMBINED_PRNG(obfseed,ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__)),ithare::obf::obf_exp_cycles(ithare::obf::obf_addlevel(obflevel,1)),obfflags>
+#define ITHARE_OBFLIBP2(type) ithare::obf::ObfVar<type,ITHARE_OBF_COMBINED_PRNG(obfseed,ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__)),ithare::obf::obf_exp_cycles(ithare::obf::obf_addlevel(obflevel,1)),obfflags>
+#define ITHARE_OBFLIBP3(type) ithare::obf::ObfVar<type,ITHARE_OBF_COMBINED_PRNG(obfseed,ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__)),ithare::obf::obf_exp_cycles(ithare::obf::obf_addlevel(obflevel,1)),obfflags>
 
 #else//ITHARE_OBF_SEED
 namespace ithare {
