@@ -40,7 +40,7 @@ public:
 			//RECOMMENDED to do as shown above; an alternative is size_t(-1), but in some cases it can cause strange results 
 	};
 
-	using RecursiveInjection = obf_injection<T, Context, ITHARE_OBF_NEW_PRNG(seed, 1), availCycles+Context::context_cycles,RecursiveInjectionRequirements>;
+	using RecursiveInjection = obf_injection<T, Context, RecursiveInjectionRequirements,ITHARE_OBF_NEW_PRNG(seed, 1), availCycles+Context::context_cycles>;
 		//generating RecursiveInjection - what do we want to use after our code itself is done
 		//availCycles+Context::context_cycles - magical formula to be followed, as long as you're only using one dependent injection/literal 
 		//  for examples for other scenarios - see impl/obf_injection.h
