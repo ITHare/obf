@@ -40,16 +40,30 @@ ITHARE_OBF_NOINLINE OBF6(int64_t) factorial(OBF6(int64_t) x) {
 }
 
 const lest::test spec[] = {
-	CASE("factorial(18)") {
+	CASE("types") {
+		//well, at least for common 32/64-bit platforms is should stand
+		using TT1 = typename ITOBF obf_integral_operator_promoconv<int8_t,unsigned short>::type;
+		static_assert(std::is_same<TT1,int>::value);
+		
+		using TT2 = typename ITOBF obf_integral_operator_promoconv<int8_t,uint64_t>::type;
+		static_assert(std::is_same<TT2,uint64_t>::value);
+		EXPECT((ITOBF obf_integral_operator_literal_cast_is_safe<TT2,int,123>()==true));
+
+		using TT3 = typename ITOBF obf_integral_operator_promoconv<int16_t,unsigned int>::type;
+		static_assert(std::is_same<TT3,unsigned int>::value);
+		EXPECT((ITOBF obf_integral_operator_literal_cast_is_safe<TT3,unsigned int,0x7fff'ffffU>()==true));
+		EXPECT((ITOBF obf_integral_operator_literal_cast_is_safe<TT3,unsigned int,0x8000'0000U>()==true));
+
+		using TT4 = typename ITOBF obf_integral_operator_promoconv<unsigned int,int>::type;
+		static_assert(std::is_same<TT4,unsigned>::value);
+		EXPECT((ITOBF obf_integral_operator_literal_cast_is_safe<TT4,int,-1>()==false));
+		EXPECT((ITOBF obf_integral_operator_literal_cast_is_safe<TT4,int,0>()==true));
+		EXPECT((ITOBF obf_integral_operator_literal_cast_is_safe<TT4,int,0x7fff'ffff>()==true));
+	},
+	CASE("factorial()") {
 		EXPECT( factorial(18) == UINT64_C(6402373705728000));
-	},
-	CASE("factorial(19)") {
 		EXPECT( factorial(19) == UINT64_C(121645100408832000));
-	},
-	CASE("factorial(20)") {
 		EXPECT( factorial(20) == UINT64_C(2432902008176640000));
-	},
-	CASE("factorial(21)") {
 		EXPECT( factorial(21) == UINT64_C(14197454024290336768));//with wrap-around(!)
 	},
 	CASE("chacha20(key=0...0,nonce=0...0)") {

@@ -103,7 +103,7 @@ namespace ithare {
 	private:
 		typename Injection::return_type val;
 	};
-
+	
 	//ObfVarContext
 	template<class T, ITHARE_OBF_SEEDTPARAM seed,OBFCYCLES cycles>
 	struct ObfVarContext {
@@ -256,43 +256,49 @@ namespace ithare {
 
 		template<class T2, T2 C2, ITHARE_OBF_SEEDTPARAM seed2, OBFCYCLES cycles2>
 		ITHARE_OBF_FORCEINLINE constexpr bool operator <(obf_literal<T2, C2, seed2, cycles2> t) {
-			if constexpr(T(C2) == C2)//safe to cast, avoiding spurious signed/unsigned mismatch warning
-				return value() < T(t.value());
+			using TT = typename obf_integral_operator_promoconv<T,T2>::type;
+			if constexpr(obf_integral_operator_literal_cast_is_safe<TT,T2,C2>())//safe to cast, avoiding spurious signed/unsigned mismatch warning
+				return value() < TT(t.value());
 			else
 				return value() < t.value();
 		}
 		template<class T2, T2 C2, ITHARE_OBF_SEEDTPARAM seed2, OBFCYCLES cycles2>
 		ITHARE_OBF_FORCEINLINE constexpr bool operator >(obf_literal<T2, C2, seed2, cycles2> t) {
-			if constexpr(T(C2) == C2)//safe to cast, avoiding spurious signed/unsigned mismatch warning
-				return value() > T(t.value());
+			using TT = typename obf_integral_operator_promoconv<T,T2>::type;
+			if constexpr(obf_integral_operator_literal_cast_is_safe<TT,T2,C2>())//safe to cast, avoiding spurious signed/unsigned mismatch warning
+				return value() > TT(t.value());
 			else
 				return value() > t.value();
 		}
 		template<class T2, T2 C2, ITHARE_OBF_SEEDTPARAM seed2, OBFCYCLES cycles2>
 		ITHARE_OBF_FORCEINLINE constexpr bool operator ==(obf_literal<T2, C2, seed2, cycles2> t) {
-			if constexpr(T(C2) == C2)//safe to cast, avoiding spurious signed/unsigned mismatch warning
-				return value() == T(t.value());
+			using TT = typename obf_integral_operator_promoconv<T,T2>::type;
+			if constexpr(obf_integral_operator_literal_cast_is_safe<TT,T2,C2>())//safe to cast, avoiding spurious signed/unsigned mismatch warning
+				return value() == TT(t.value());
 			else
 				return value() == t.value();
 		}
 		template<class T2, T2 C2, ITHARE_OBF_SEEDTPARAM seed2, OBFCYCLES cycles2>
 		ITHARE_OBF_FORCEINLINE constexpr bool operator !=(obf_literal<T2, C2, seed2, cycles2> t) {
-			if constexpr(T(C2) == C2)//safe to cast, avoiding spurious signed/unsigned mismatch warning
-				return value() != T(t.value());
+			using TT = typename obf_integral_operator_promoconv<T,T2>::type;
+			if constexpr(obf_integral_operator_literal_cast_is_safe<TT,T2,C2>())//safe to cast, avoiding spurious signed/unsigned mismatch warning
+				return value() != TT(t.value());
 			else
 				return value() != t.value();
 		}
 		template<class T2, T2 C2, ITHARE_OBF_SEEDTPARAM seed2, OBFCYCLES cycles2>
 		ITHARE_OBF_FORCEINLINE constexpr bool operator <=(obf_literal<T2, C2, seed2, cycles2> t) {
-			if constexpr(T(C2) == C2)//safe to cast, avoiding spurious signed/unsigned mismatch warning
-				return value() <= T(t.value());
+			using TT = typename obf_integral_operator_promoconv<T,T2>::type;
+			if constexpr(obf_integral_operator_literal_cast_is_safe<TT,T2,C2>())//safe to cast, avoiding spurious signed/unsigned mismatch warning
+				return value() <= TT(t.value());
 			else
 				return value() <= t.value();
 		}
 		template<class T2, T2 C2, ITHARE_OBF_SEEDTPARAM seed2, OBFCYCLES cycles2>
 		ITHARE_OBF_FORCEINLINE constexpr bool operator >=(obf_literal<T2, C2, seed2, cycles2> t) {
-			if constexpr(T(C2) == C2)//safe to cast, avoiding spurious signed/unsigned mismatch warning
-				return value() >= T(t.value());
+			using TT = typename obf_integral_operator_promoconv<T,T2>::type;
+			if constexpr(obf_integral_operator_literal_cast_is_safe<TT,T2,C2>())//safe to cast, avoiding spurious signed/unsigned mismatch warning
+				return value() >= TT(t.value());
 			else
 				return value() >= t.value();
 		}
@@ -780,43 +786,49 @@ namespace ithare {
 
 			template<class T2, T2 C2>
 			constexpr bool operator <(obf_literal_dbg<T2, C2> t) {
-				if constexpr(T(C2) == C2)//safe to cast, avoiding spurious signed/unsigned mismatch warning
-					return value() < T(t.value());
+				using TT = typename obf_integral_operator_promoconv<T,T2>::type;
+				if constexpr(obf_integral_operator_literal_cast_is_safe<TT,T2,C2>())//safe to cast, avoiding spurious signed/unsigned mismatch warning
+					return value() < TT(t.value());
 				else
 					return value() < t.value();
 			}
 			template<class T2, T2 C2>
 			constexpr bool operator >(obf_literal_dbg<T2, C2> t) {
-				if constexpr(T(C2) == C2)//safe to cast, avoiding spurious signed/unsigned mismatch warning
-					return value() > T(t.value());
+				using TT = typename obf_integral_operator_promoconv<T,T2>::type;
+				if constexpr(obf_integral_operator_literal_cast_is_safe<TT,T2,C2>())//safe to cast, avoiding spurious signed/unsigned mismatch warning
+					return value() > TT(t.value());
 				else
 					return value() > t.value();
 			}
 			template<class T2, T2 C2>
 			constexpr bool operator ==(obf_literal_dbg<T2, C2> t) {
-				if constexpr(T(C2) == C2)//safe to cast, avoiding spurious signed/unsigned mismatch warning
-					return value() == T(t.value());
+				using TT = typename obf_integral_operator_promoconv<T,T2>::type;
+				if constexpr(obf_integral_operator_literal_cast_is_safe<TT,T2,C2>())//safe to cast, avoiding spurious signed/unsigned mismatch warning
+					return value() == TT(t.value());
 				else
 					return value() == t.value();
 			}
 			template<class T2, T2 C2>
 			constexpr bool operator !=(obf_literal_dbg<T2, C2> t) {
-				if constexpr(T(C2) == C2)//safe to cast, avoiding spurious signed/unsigned mismatch warning
-					return value() != T(t.value());
+				using TT = typename obf_integral_operator_promoconv<T,T2>::type;
+				if constexpr(obf_integral_operator_literal_cast_is_safe<TT,T2,C2>())//safe to cast, avoiding spurious signed/unsigned mismatch warning
+					return value() != TT(t.value());
 				else
 					return value() != t.value();
 			}
 			template<class T2, T2 C2>
 			constexpr bool operator <=(obf_literal_dbg<T2, C2> t) {
-				if constexpr(T(C2) == C2)//safe to cast, avoiding spurious signed/unsigned mismatch warning
-					return value() <= T(t.value());
+				using TT = typename obf_integral_operator_promoconv<T,T2>::type;
+				if constexpr(obf_integral_operator_literal_cast_is_safe<TT,T2,C2>())//safe to cast, avoiding spurious signed/unsigned mismatch warning
+					return value() <= TT(t.value());
 				else
 					return value() <= t.value();
 			}
 			template<class T2, T2 C2>
 			constexpr bool operator >=(obf_literal_dbg<T2, C2> t) {
-				if constexpr(T(C2) == C2)//safe to cast, avoiding spurious signed/unsigned mismatch warning
-					return value() > T(t.value());
+				using TT = typename obf_integral_operator_promoconv<T,T2>::type;
+				if constexpr(obf_integral_operator_literal_cast_is_safe<TT,T2,C2>())//safe to cast, avoiding spurious signed/unsigned mismatch warning
+					return value() > TT(t.value());
 				else
 					return value() > t.value();
 			}

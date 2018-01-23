@@ -201,22 +201,6 @@ namespace ithare {
 			return ret;
 		}
 
-		//type helpers
-		template<bool which, class T, class T2> struct obf_select_type;
-		template<class T, class T2>
-		struct obf_select_type<true, T, T2> {
-			using type = T;
-		};
-		template<class T, class T2>
-		struct obf_select_type<false, T, T2> {
-			using type = T2;
-		};
-
-		template<class T, class T2> struct obf_larger_type {
-			constexpr static bool which = sizeof(T) > sizeof(T2);
-			using type = typename obf_select_type<which, T, T2>::type;
-		};
-
 		//ObfTraits<>
 		template<class T>
 		struct ObfTraits;

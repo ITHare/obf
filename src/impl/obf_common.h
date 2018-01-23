@@ -6,6 +6,7 @@
 
 #include <stdint.h>
 #include <inttypes.h>
+#include <limits>
 #include <array>
 #include <assert.h>
 #include <type_traits>
@@ -97,11 +98,80 @@ namespace ithare {
 #endif
 		};
 
+		using OBFMAXUINT = uint64_t;
 		using OBFFLAGS = uint64_t;
 		constexpr OBFFLAGS obf_flag_is_constexpr = 0x01;
 		
 		struct obf_private_constructor_tag {
 		};
+		
+		//type helpers
+		template<bool which, class T, class T2> struct obf_select_type;
+		template<class T, class T2>
+		struct obf_select_type<true, T, T2> {
+			using type = T;
+		};
+		template<class T, class T2>
+		struct obf_select_type<false, T, T2> {
+			using type = T2;
+		};
+
+		template<class T, class T2> struct obf_larger_type {
+			static_assert(std::is_integral<T>::value);
+			static_assert(std::is_integral<T2>::value);
+			constexpr static bool which = sizeof(T) > sizeof(T2);
+			using type = typename obf_select_type<which, T, T2>::type;
+
+			static_assert(sizeof(type) >= sizeof(T));
+			static_assert(sizeof(type) >= sizeof(T2));
+		};
+
+		static_assert(sizeof(int)==sizeof(unsigned));
+		template<class T>
+		struct obf_integral_promotion {//see issue #2 for description of the approximation of C++ promotion rules
+			static_assert(std::is_integral<T>::value);
+			using type = typename obf_select_type< (sizeof(T) < sizeof(int)), int, T >::type;
+
+			static_assert(sizeof(type) >= sizeof(T));
+			static_assert(sizeof(type) >= sizeof(int));
+		};
+
+		template<class T, class T2>
+		struct obf_integral_operator_promoconv {//see issue #2 for description of the approximation of C++ promotion/operator conversion rules
+			using TPROMOTED = typename obf_integral_promotion<T>::type;
+			using T2PROMOTED = typename obf_integral_promotion<T2>::type;
+			static_assert(sizeof(TPROMOTED) >= sizeof(T));
+			static_assert(sizeof(T2PROMOTED) >= sizeof(T2));
+			static constexpr bool ts = std::is_signed<TPROMOTED>::value;
+			static constexpr bool t2s = std::is_signed<T2PROMOTED>::value;
+			
+			using type = typename obf_select_type< ts == t2s, 
+										  typename obf_larger_type<TPROMOTED,T2PROMOTED>::type,
+										  typename obf_select_type< ts ,
+														   typename obf_select_type< (sizeof(TPROMOTED) > sizeof(T2PROMOTED)), TPROMOTED, T2PROMOTED >::type,
+														   typename obf_select_type< (sizeof(T2PROMOTED) > sizeof(TPROMOTED)), T2PROMOTED, TPROMOTED >::type
+														 >::type
+										>::type;
+			
+			static_assert(sizeof(type) >= sizeof(TPROMOTED));
+			static_assert(sizeof(type) >= sizeof(T2PROMOTED));
+		};
+
+		template<class TT, class TC, TC C>
+		constexpr bool obf_integral_operator_literal_cast_is_safe() {//TT MUST be a valid promotion+conversion returned by obf_integral_operator_promoconv<some_type,TC>
+			static_assert(sizeof(TT)>=sizeof(TC));
+			static_assert(sizeof(TT)<=sizeof(OBFMAXUINT));
+			
+			using SINT = std::make_signed<OBFMAXUINT>::type;
+			
+			if( std::is_signed<TT>::value )
+				return SINT(C) <= SINT(std::numeric_limits<TT>::max()) && 
+					   SINT(C) >= SINT(std::numeric_limits<TT>::min());//should be ok like this, but shouldn't it always be true due to conversion rules?
+			else
+				return OBFMAXUINT(C) <= OBFMAXUINT(std::numeric_limits<TT>::max())
+						&& OBFMAXUINT(C) >= OBFMAXUINT(std::numeric_limits<TT>::min());
+		}
+		
 	}//namespace obf
 }//namespace ithare
 
