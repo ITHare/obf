@@ -52,16 +52,16 @@
 namespace ithare {
 	namespace obf {		
 		template<class T,size_t N>
-		constexpr size_t obf_arraysz(T(&)[N]) { return N; }
+		ITHARE_OBF_FORCEINLINE constexpr size_t obf_arraysz(T(&)[N]) { return N; }
 
 		template<class T,size_t N>
-		constexpr void obf_copyarray(T(&to)[N], const T from[]) {
+		ITHARE_OBF_FORCEINLINE constexpr void obf_copyarray(T(&to)[N], const T from[]) {
 			for(size_t i=0; i < N; ++i ) {
 				to[i] = from[i];
 			}
 		}
 		template<class T,size_t N>
-		constexpr void obf_zeroarray(T(&to)[N]) {
+		ITHARE_OBF_FORCEINLINE constexpr void obf_zeroarray(T(&to)[N]) {
 			for(size_t i=0; i < N; ++i ) {
 				to[i] = 0;
 			}
