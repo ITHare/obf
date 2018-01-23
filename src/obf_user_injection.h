@@ -12,8 +12,8 @@
 template<class T, class Context>
 struct obf_injection_1st_user_version_descr {
 	using Traits = ObfTraits<T>;
-	static constexpr OBFCYCLES own_min_injection_cycles = 3;//estimate of the CPU cycles for injection
-	static constexpr OBFCYCLES own_min_surjection_cycles = 4;//estimate of the CPU cycles for surjection
+	static constexpr OBFCYCLES own_min_injection_cycles = 3;//estimate of the CPU cycles for injection; make sure to adjust according to the appetites of your injection
+	static constexpr OBFCYCLES own_min_surjection_cycles = 4;//estimate of the CPU cycles for surjection; make sure to adjust according to the appetites of your injection
 	static constexpr OBFCYCLES own_min_cycles = Context::context_cycles + Context::calc_cycles(own_min_injection_cycles, own_min_surjection_cycles);//magical formula, to be used for pretty much all the versions
 	static constexpr ObfDescriptor descr = Traits::is_built_in ? // we want to deal with only uint8_t, uint16_t, uint32_t, and uint64_t
 			ObfDescriptor(true, own_min_cycles, 100)://100 is a 'relative probability to use corresponding obf_injection_version<> in the randomly generated code'. 
@@ -57,21 +57,18 @@ public:
 	static_assert(shift < Traits::nbits);
 	static constexpr T mask = (T(1) << shift) - T(1);
 
-	template<ITHARE_OBF_SEEDTPARAM seed2>
-		//seed2 allows to have DIFFERENT IMPLEMENTATIONS OF THE SAME INJECTION
-		//  DON'T use seed2 (except for passing down the road as shown below) unless you understand what you're doing. 
-		//  IF using seed2, make sure to create ITHARE_OBF_DECLAREPRNG_INFUNC seedc = ITHARE_OBF_COMBINED_PRNG(seed,seed2);
+	template<ITHARE_OBF_SEEDTPARAM seedc>
+		//seedc allows to have DIFFERENT IMPLEMENTATIONS OF THE SAME INJECTION
+		//    DON'T use it to produce different results! (different results are ok for seed, NOT for seed2/seedc)
 		//    See impl/obf_injection.h for examples
-	ITHARE_OBF_FORCEINLINE constexpr static return_type injection(T x) {
-			T y = x + ( x << shift );
-			return_type ret = RecursiveInjection::template injection<seed2>(y);
-			ITHARE_OBF_DBG_ASSERT_SURJECTION("<FIRST_USER_INJECTION>",x,ret);
-			return ret;			
+	ITHARE_OBF_FORCEINLINE constexpr static T local_injection(T x) {
+		T y = x + ( x << shift );
+		ITHARE_OBF_DBG_ASSERT_SURJECTION_LOCAL("<FIRST_USER_INJECTION>",x,y);
+		return y;
 	}
-	template<ITHARE_OBF_SEEDTPARAM seed2>
-	ITHARE_OBF_FORCEINLINE constexpr static T surjection(return_type y) {
-		T xx = RecursiveInjection::template surjection<seed2>(y);
-		return xx - (( xx & mask ) << shift);//xx& mask was left intact in injection
+	template<ITHARE_OBF_SEEDTPARAM seedc>
+	ITHARE_OBF_FORCEINLINE constexpr static T local_surjection(T y) {
+		return y - (( y & mask ) << shift);//xx& mask was left intact in injection
 	}
 
 	static constexpr OBFINJECTIONCAPS injection_caps = 0;
@@ -79,6 +76,20 @@ public:
 	// for examples of "shortcut" injected_* operations (which are HIGHLY RECOMMENDED but are not strictly required) - see impl/obf_injection.h
 
 	//} SPECIFIC to shift+add 
+
+	template<ITHARE_OBF_SEEDTPARAM seed2>
+	ITHARE_OBF_FORCEINLINE constexpr static return_type injection(T x) {
+		ITHARE_OBF_DECLAREPRNG_INFUNC seedc = ITHARE_OBF_COMBINED_PRNG(seed, seed2);
+		T y = local_injection<ITHARE_OBF_NEW_PRNG(seedc, 1)>(x);
+		ITHARE_OBF_DBG_ASSERT_SURJECTION_RECURSIVE("<FIRST_USER_INJECTION>", x, ret);//make sure to change string
+		return RecursiveInjection::template injection<ITHARE_OBF_NEW_PRNG(seedc, 2)>(y);
+	}
+	template<ITHARE_OBF_SEEDTPARAM seed2>
+	ITHARE_OBF_FORCEINLINE constexpr static T surjection(return_type y) {
+		ITHARE_OBF_DECLAREPRNG_INFUNC seedc = ITHARE_OBF_COMBINED_PRNG(seed, seed2);
+		T xx = RecursiveInjection::template surjection<ITHARE_OBF_NEW_PRNG(seedc,3)>(y);
+		return local_surjection<ITHARE_OBF_NEW_PRNG(seedc, 4)>(xx);
+	}
 
 #ifdef ITHARE_OBF_DBG_ENABLE_DBGPRINT
 	static void dbgPrint(size_t offset = 0, const char* prefix = "") {

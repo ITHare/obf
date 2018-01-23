@@ -21,9 +21,16 @@ namespace ithare {
 	namespace obf {
 
 #ifdef ITHARE_OBF_DBG_RUNTIME_CHECKS
-#define ITHARE_OBF_DBG_ASSERT_SURJECTION(where,x,y) do {\
+#define ITHARE_OBF_DBG_ASSERT_SURJECTION_RECURSIVE(where,x,y) do {\
 			if (surjection<seed>(y) != x) {\
-				std::cout << "DBG_ASSERT_SURJECTION FAILED @" << where << ": injection(" << x << ")=" << y << " but surjection(" << y << ") = " << surjection<seed>(y) << " != " << x << std::endl; \
+				std::cout << "DBG_ASSERT_SURJECTION_RECURSIVE FAILED @" << where << ": injection(" << x << ")=" << y << " but surjection(" << y << ") = " << surjection<seed>(y) << " != " << x << std::endl; \
+				dbgPrint(); \
+				abort(); \
+			}\
+		} while(false)
+#define ITHARE_OBF_DBG_ASSERT_SURJECTION_LOCAL(where,x,y) do {\
+			if (local_surjection<seed>(y) != x) {\
+				std::cout << "DBG_ASSERT_SURJECTION_LOCAL FAILED @" << where << ": local_injection(" << x << ")=" << y << " but local_surjection(" << y << ") = " << local_surjection<seed>(y) << " != " << x << std::endl; \
 				dbgPrint(); \
 				abort(); \
 			}\
@@ -45,7 +52,8 @@ namespace ithare {
 			}\
         }while(false)
 #else
-#define ITHARE_OBF_DBG_ASSERT_SURJECTION(where,x,y)
+#define ITHARE_OBF_DBG_ASSERT_SURJECTION_RECURSIVE(where,x,y)
+#define ITHARE_OBF_DBG_ASSERT_SURJECTION_LOCAL(where,x,y)
 #define ITHARE_OBF_DBG_CHECK_LITERAL(where, val, c)
 #define ITHARE_OBF_DBG_CHECK_SHORTCUT(where,shortcut,noshortcut_expr)
 #endif//ITHARE_OBF_DBG_RUNTIME_CHECKS
@@ -445,7 +453,7 @@ namespace ithare {
 		template<ITHARE_OBF_SEEDTPARAM seed2>
 		ITHARE_OBF_FORCEINLINE constexpr static return_type injection(T x) {
 			return_type ret = Context::template final_injection<seed2>(x);
-			ITHARE_OBF_DBG_ASSERT_SURJECTION("<0>", x, ret);
+			//ITHARE_OBF_DBG_ASSERT_SURJECTION_RECURSIVE("<0>", x, ret);
 			return ret;
 		}
 		template<ITHARE_OBF_SEEDTPARAM seed2>
@@ -490,29 +498,29 @@ namespace ithare {
 		static constexpr bool neg = C == 0 ? true : ITHARE_OBF_RANDOM(seed, 3, 2) == 0;
 		using ST = typename Traits::signed_type;
 
-		template<ITHARE_OBF_SEEDTPARAM seed2>
-		ITHARE_OBF_FORCEINLINE constexpr static return_type injection(T x) {
-			ITHARE_OBF_DECLAREPRNG_INFUNC seedc = ITHARE_OBF_COMBINED_PRNG(seed,seed2);
+		template<ITHARE_OBF_SEEDTPARAM seedc>
+		ITHARE_OBF_FORCEINLINE constexpr static T local_injection(T x) {
 			if constexpr(neg) {
 				ST sx = ST(x);
-				auto y = T(-sx) + C;
-				return_type ret = RecursiveInjection::template injection<seedc>(y);
-									//mutually exclusive with another call to injection<> => no need to randomize seedc further 
-				ITHARE_OBF_DBG_ASSERT_SURJECTION("<1>/a",x,ret);
-				return ret;
+				return T(-sx) + C;
 			}
 			else {
-				T y = x + C;
-				return_type ret = RecursiveInjection::template injection<seedc>(y);
-				ITHARE_OBF_DBG_ASSERT_SURJECTION("<1>/b", x, ret);
-				return ret;
+				return x + C;
 			}
 		}
 		template<ITHARE_OBF_SEEDTPARAM seed2>
-		ITHARE_OBF_FORCEINLINE constexpr static T surjection(return_type y) {
-			ITHARE_OBF_DECLAREPRNG_INFUNC seedc = ITHARE_OBF_COMBINED_PRNG(seed,seed2);
-			T yy0 = RecursiveInjection::template surjection<seedc>(y);
-			T yy = yy0-C;
+		ITHARE_OBF_FORCEINLINE constexpr static return_type injection(T x) {
+			ITHARE_OBF_DECLAREPRNG_INFUNC seedc = ITHARE_OBF_COMBINED_PRNG(seed, seed2);
+			T y = local_injection<seedc>(x);
+			ITHARE_OBF_DBG_ASSERT_SURJECTION_LOCAL("<1>", x, y);
+
+			return_type ret = RecursiveInjection::template injection<seedc>(y);
+			//ITHARE_OBF_DBG_ASSERT_SURJECTION_RECURSIVE("<1>/a", x, ret);
+			return ret;
+		}
+		template<ITHARE_OBF_SEEDTPARAM seedc>
+		ITHARE_OBF_FORCEINLINE constexpr static T local_surjection(T y) {
+			T yy = y - C;
 			if constexpr(neg) {
 				ST syy = ST(yy);
 				T ret = T(-syy);
@@ -521,6 +529,12 @@ namespace ithare {
 			else {
 				return yy;
 			}
+		}
+		template<ITHARE_OBF_SEEDTPARAM seed2>
+		ITHARE_OBF_FORCEINLINE constexpr static T surjection(return_type y) {
+			ITHARE_OBF_DECLAREPRNG_INFUNC seedc = ITHARE_OBF_COMBINED_PRNG(seed,seed2);
+			T yy0 = RecursiveInjection::template surjection<seedc>(y);
+			return local_surjection<seedc>(yy0);
 		}
 
 		static constexpr OBFINJECTIONCAPS injection_caps = obf_injection_has_add_mod_max_value_ex;
@@ -705,26 +719,37 @@ namespace ithare {
 		using FType = obf_randomized_non_reversible_function<halfT, ITHARE_OBF_NEW_PRNG(seed, 3), cycles_f>;
 
 		constexpr static int halfTBits = sizeof(halfT) * 8;
-		//constexpr static T mask = ((T)1 << halfTBits) - 1;
-		template<ITHARE_OBF_SEEDTPARAM seed2>
-		ITHARE_OBF_FORCEINLINE constexpr static return_type injection(T x) {
-			ITHARE_OBF_DECLAREPRNG_INFUNC seedc = ITHARE_OBF_COMBINED_PRNG(seed,seed2);
+
+		template<ITHARE_OBF_SEEDTPARAM seedc>
+		ITHARE_OBF_FORCEINLINE constexpr static T local_injection(T x) {
 			T lo = x >> halfTBits;
 			//T hi = (x & mask) + f((halfT)lo);
 			T hi = x + f((halfT)lo);
-			return_type ret = RecursiveInjection::template injection<seedc>((hi << halfTBits) + lo);
-			ITHARE_OBF_DBG_ASSERT_SURJECTION("<2>", x, ret);
-			return ret;
+			return (hi << halfTBits) + lo;
 		}
 		template<ITHARE_OBF_SEEDTPARAM seed2>
-		ITHARE_OBF_FORCEINLINE constexpr static T surjection(return_type y_) {
-			ITHARE_OBF_DECLAREPRNG_INFUNC seedc = ITHARE_OBF_COMBINED_PRNG(seed,seed2);
-			T y = RecursiveInjection::template surjection<seedc>(y_);
+		ITHARE_OBF_FORCEINLINE constexpr static return_type injection(T x) {
+			ITHARE_OBF_DECLAREPRNG_INFUNC seedc = ITHARE_OBF_COMBINED_PRNG(seed, seed2);
+			T y = local_injection<seedc>(x);
+			ITHARE_OBF_DBG_ASSERT_SURJECTION_LOCAL("<2>", x, y);
+			return_type ret = RecursiveInjection::template injection<seedc>(y);
+			//ITHARE_OBF_DBG_ASSERT_SURJECTION_RECURSIVE("<2>", x, ret);
+			return ret;
+		}
+
+		template<ITHARE_OBF_SEEDTPARAM seedc>
+		ITHARE_OBF_FORCEINLINE constexpr static T local_surjection(T y) {
 			halfT hi = y >> halfTBits;
 			T lo = y;
 			//T z = (hi - f((halfT)lo)) & mask;
 			halfT z = (hi - f((halfT)lo));
 			return z + (lo << halfTBits);
+		}
+		template<ITHARE_OBF_SEEDTPARAM seed2>
+		ITHARE_OBF_FORCEINLINE constexpr static T surjection(return_type y_) {
+			ITHARE_OBF_DECLAREPRNG_INFUNC seedc = ITHARE_OBF_COMBINED_PRNG(seed, seed2);
+			T y = RecursiveInjection::template surjection<seedc>(y_);
+			return local_surjection<seedc>(y);
 		}
 
 		static constexpr OBFINJECTIONCAPS injection_caps = 0;
@@ -817,28 +842,39 @@ namespace ithare {
 		using HiInjection = obf_injection<halfT, HiContext, LoHiInjectionRequirements,ITHARE_OBF_NEW_PRNG(seed, 7), cycles_hiInj+HiContext::context_cycles>;
 		static_assert(sizeof(typename HiInjection::return_type) == sizeof(halfT));//bijections ONLY
 
-		template<ITHARE_OBF_SEEDTPARAM seed2>
-		ITHARE_OBF_FORCEINLINE constexpr static return_type injection(T x) {
-			ITHARE_OBF_DECLAREPRNG_INFUNC seedc = ITHARE_OBF_COMBINED_PRNG(seed,seed2);
+		template<ITHARE_OBF_SEEDTPARAM seedc>
+		ITHARE_OBF_FORCEINLINE constexpr static T local_injection(T x) {
 			halfT lo = x >> halfTBits;
 			typename LoInjection::return_type lo1 = LoInjection::template injection<ITHARE_OBF_NEW_PRNG(seedc,1)>(lo);
 			lo = halfT(lo1);// *reinterpret_cast<halfT*>(&lo1);//relies on static_assert(sizeof(return_type)==sizeof(halfT)) above
 			halfT hi = (halfT)x;
 			typename HiInjection::return_type hi1 = HiInjection::template injection<ITHARE_OBF_NEW_PRNG(seedc,2)>(hi);
 			hi = halfT(hi1);// *reinterpret_cast<halfT*>(&hi1);//relies on static_assert(sizeof(return_type)==sizeof(halfT)) above
-			return_type ret = RecursiveInjection::template injection<ITHARE_OBF_NEW_PRNG(seedc,3)>((T(hi) << halfTBits) + T(lo));
-			ITHARE_OBF_DBG_ASSERT_SURJECTION("<3>", x, ret);
+			return (T(hi) << halfTBits) + T(lo);
+		}
+		template<ITHARE_OBF_SEEDTPARAM seed2>
+		ITHARE_OBF_FORCEINLINE constexpr static return_type injection(T x) {
+			ITHARE_OBF_DECLAREPRNG_INFUNC seedc = ITHARE_OBF_COMBINED_PRNG(seed, seed2);
+			T y = local_injection<seedc>(x);
+			ITHARE_OBF_DBG_ASSERT_SURJECTION_LOCAL("<3>", x, y);
+			return_type ret = RecursiveInjection::template injection<ITHARE_OBF_NEW_PRNG(seedc, 3)>(y);
+			//ITHARE_OBF_DBG_ASSERT_SURJECTION_RECURSIVE("<3>", x, ret);
 			return ret;
+		}
+
+		template<ITHARE_OBF_SEEDTPARAM seedc>
+		ITHARE_OBF_FORCEINLINE constexpr static T local_surjection(T y) {
+			halfT hi0 = y >> halfTBits;
+			halfT lo0 = (halfT)y;
+			halfT hi = HiInjection::template surjection<ITHARE_OBF_NEW_PRNG(seedc, 5)>(/* *reinterpret_cast<typename HiInjection::return_type*>(&hi0)*/typename HiInjection::return_type(hi0));//relies on static_assert(sizeof(return_type)==sizeof(halfT)) above
+			halfT lo = LoInjection::template surjection<ITHARE_OBF_NEW_PRNG(seedc, 6)>(/**reinterpret_cast<typename LoInjection::return_type*>(&lo0)*/ typename LoInjection::return_type(lo0));//relies on static_assert(sizeof(return_type)==sizeof(halfT)) above
+			return T(hi) + (T(lo) << halfTBits);
 		}
 		template<ITHARE_OBF_SEEDTPARAM seed2>
 		ITHARE_OBF_FORCEINLINE constexpr static T surjection(return_type y_) {
-			ITHARE_OBF_DECLAREPRNG_INFUNC seedc = ITHARE_OBF_COMBINED_PRNG(seed,seed2);
-			auto y = RecursiveInjection::template surjection<ITHARE_OBF_NEW_PRNG(seedc,4)>(y_);
-			halfT hi0 = y >> halfTBits;
-			halfT lo0 = (halfT)y;
-			halfT hi = HiInjection::template surjection<ITHARE_OBF_NEW_PRNG(seedc,5)>(/* *reinterpret_cast<typename HiInjection::return_type*>(&hi0)*/typename HiInjection::return_type(hi0));//relies on static_assert(sizeof(return_type)==sizeof(halfT)) above
-			halfT lo = LoInjection::template surjection<ITHARE_OBF_NEW_PRNG(seedc,6)>(/**reinterpret_cast<typename LoInjection::return_type*>(&lo0)*/ typename LoInjection::return_type(lo0));//relies on static_assert(sizeof(return_type)==sizeof(halfT)) above
-			return T(hi) + (T(lo) << halfTBits);
+			ITHARE_OBF_DECLAREPRNG_INFUNC seedc = ITHARE_OBF_COMBINED_PRNG(seed, seed2);
+			T y = RecursiveInjection::template surjection<ITHARE_OBF_NEW_PRNG(seedc, 4)>(y_);
+			return local_surjection<seedc>(y);
 		}
 
 		static constexpr OBFINJECTIONCAPS injection_caps = 0;
@@ -933,22 +969,32 @@ namespace ithare {
 		using literal = typename Context::template literal<typename Traits::literal_type, CINV, ITHARE_OBF_NEW_PRNG(seed, 3)>::type;
 			//using CINV in injection to hide literals a bit better...
 
+		template<ITHARE_OBF_SEEDTPARAM seedc>
+		ITHARE_OBF_FORCEINLINE constexpr static T local_injection(T x) {
+			auto lit = literal();
+			ITHARE_OBF_DBG_CHECK_LITERAL("<4>", lit, CINV0);
+			T y = typename Traits::UintT(x) * typename Traits::UintT(lit.value());
+			return y;
+		}
 		template<ITHARE_OBF_SEEDTPARAM seed2>
 		ITHARE_OBF_FORCEINLINE constexpr static return_type injection(T x) {
-			ITHARE_OBF_DECLAREPRNG_INFUNC seedc = ITHARE_OBF_COMBINED_PRNG(seed,seed2);
-			auto lit = literal();
-			ITHARE_OBF_DBG_CHECK_LITERAL("<4>",lit, CINV0);
-			auto y = typename Traits::UintT(x) * typename Traits::UintT(lit.value());
+			ITHARE_OBF_DECLAREPRNG_INFUNC seedc = ITHARE_OBF_COMBINED_PRNG(seed, seed2);
+			T y = local_injection<seedc>(x);
+			ITHARE_OBF_DBG_ASSERT_SURJECTION_LOCAL("<4>", x, y);
 			return_type ret = RecursiveInjection::template injection<seedc>(y);
-			ITHARE_OBF_DBG_ASSERT_SURJECTION("<4>", x, ret);
+			//ITHARE_OBF_DBG_ASSERT_SURJECTION_RECURSIVE("<4>", x, ret);
 			return ret;
+		}
+
+		template<ITHARE_OBF_SEEDTPARAM seedc>
+		ITHARE_OBF_FORCEINLINE constexpr static T local_surjection(T y) {
+			return y * C;
 		}
 		template<ITHARE_OBF_SEEDTPARAM seed2>
 		ITHARE_OBF_FORCEINLINE constexpr static T surjection(return_type y) {
-			ITHARE_OBF_DECLAREPRNG_INFUNC seedc = ITHARE_OBF_COMBINED_PRNG(seed,seed2);
+			ITHARE_OBF_DECLAREPRNG_INFUNC seedc = ITHARE_OBF_COMBINED_PRNG(seed, seed2);
 			T x = RecursiveInjection::template surjection<seedc>(y);
-			T ret = x * C;
-			return ret;
+			return local_surjection<seedc>(x);
 		}
 
 		static constexpr OBFINJECTIONCAPS injection_caps = obf_injection_has_add_mod_max_value_ex;
@@ -1062,7 +1108,7 @@ namespace ithare {
 		ITHARE_OBF_FORCEINLINE constexpr static return_type injection(T x) {
 			ITHARE_OBF_DECLAREPRNG_INFUNC seedc = ITHARE_OBF_COMBINED_PRNG(seed,seed2);
 			return_type ret{ RecursiveInjectionLo::template injection<ITHARE_OBF_NEW_PRNG(seedc,1)>((halfT)x), RecursiveInjectionHi::template injection<ITHARE_OBF_NEW_PRNG(seedc,2)>(x >> halfTBits) };
-			ITHARE_OBF_DBG_ASSERT_SURJECTION("<5>", x, ret);
+			ITHARE_OBF_DBG_ASSERT_SURJECTION_RECURSIVE("<5>", x, ret);//sic! - _ASSERTION_RECURSIVE for version<5,...> (moving to local_injection would be too cumbersome)
 			return ret;
 		}
 		template<ITHARE_OBF_SEEDTPARAM seed2>
@@ -1141,24 +1187,36 @@ namespace ithare {
 		using LoInjection = obf_injection<halfT, LoContext,  LoInjectionRequirements,ITHARE_OBF_NEW_PRNG(seed, 5), cycles_loInj + LoContext::context_cycles>;
 		static_assert(sizeof(typename LoInjection::return_type) == sizeof(halfT));//only_bijections
 
+		template<ITHARE_OBF_SEEDTPARAM seedc>
+		ITHARE_OBF_FORCEINLINE constexpr static T local_injection(T x) {
+			halfT lo0 = halfT(x);
+			typename LoInjection::return_type lo1 = LoInjection::template injection<ITHARE_OBF_NEW_PRNG(seedc, 1)>(lo0);
+			//halfT lo = *reinterpret_cast<halfT*>(&lo1);//relies on static_assert(sizeof(return_type)==sizeof(halfT)) above
+			halfT lo = halfT(lo1);
+			T y = x - T(lo0) + lo;
+			return y;
+		}
 		template<ITHARE_OBF_SEEDTPARAM seed2>
 		ITHARE_OBF_FORCEINLINE constexpr static return_type injection(T x) {
 			ITHARE_OBF_DECLAREPRNG_INFUNC seedc = ITHARE_OBF_COMBINED_PRNG(seed,seed2);
-			halfT lo0 = halfT(x);
-			typename LoInjection::return_type lo1 = LoInjection::template injection<ITHARE_OBF_NEW_PRNG(seedc,1)>(lo0);
-			//halfT lo = *reinterpret_cast<halfT*>(&lo1);//relies on static_assert(sizeof(return_type)==sizeof(halfT)) above
-			halfT lo = halfT(lo1);
-			return_type ret = RecursiveInjection::template injection<ITHARE_OBF_NEW_PRNG(seedc,2)>(x - T(lo0) + lo);
-			ITHARE_OBF_DBG_ASSERT_SURJECTION("<6>", x, ret);
+			T y = local_injection<seedc>(x);
+			ITHARE_OBF_DBG_ASSERT_SURJECTION_LOCAL("<6>", x, y);
+			return_type ret = RecursiveInjection::template injection<ITHARE_OBF_NEW_PRNG(seedc,2)>(y);
+			//ITHARE_OBF_DBG_ASSERT_SURJECTION_RECURSIVE("<6>", x, ret);
 			return ret;
 		}
-		template<ITHARE_OBF_SEEDTPARAM seed2>
-		ITHARE_OBF_FORCEINLINE constexpr static T surjection(return_type yy) {
-			ITHARE_OBF_DECLAREPRNG_INFUNC seedc = ITHARE_OBF_COMBINED_PRNG(seed,seed2);
-			T y = RecursiveInjection::template surjection<ITHARE_OBF_NEW_PRNG(seedc,3)>(yy);
+
+		template<ITHARE_OBF_SEEDTPARAM seedc>
+		ITHARE_OBF_FORCEINLINE constexpr static T local_surjection(T y) {
 			halfT lo0 = halfT(y);
 			halfT lo = LoInjection::template surjection<ITHARE_OBF_NEW_PRNG(seedc,4)>(/* *reinterpret_cast<typename LoInjection::return_type*>(&lo0)*/ typename LoInjection::return_type(lo0));//relies on static_assert(sizeof(return_type)==sizeof(halfT)) above
 			return y - T(lo0) + lo;
+		}
+		template<ITHARE_OBF_SEEDTPARAM seed2>
+		ITHARE_OBF_FORCEINLINE constexpr static T surjection(return_type yy) {
+			ITHARE_OBF_DECLAREPRNG_INFUNC seedc = ITHARE_OBF_COMBINED_PRNG(seed, seed2);
+			T y = RecursiveInjection::template surjection<ITHARE_OBF_NEW_PRNG(seedc, 3)>(yy);
+			return local_surjection<seedc>(y);
 		}
 
 		static constexpr OBFINJECTIONCAPS injection_caps = 0;
@@ -1259,7 +1317,7 @@ namespace ithare {
 			TypeHi hi = TypeHi(typename TypeHi::T(x >> loBits));
 			return_type ret{ RecursiveInjectionLo::template injection<ITHARE_OBF_NEW_PRNG(seedc,1)>(lo),
 				RecursiveInjectionHi::template injection<ITHARE_OBF_NEW_PRNG(seedc,2)>(hi) };
-			ITHARE_OBF_DBG_ASSERT_SURJECTION("<7>", x, ret);
+			ITHARE_OBF_DBG_ASSERT_SURJECTION_RECURSIVE("<7>", x, ret);//sic! - _ASSERTION_RECURSIVE for version<7,...> (moving to local_injection would be too cumbersome)
 			return ret;
 		}
 		template<ITHARE_OBF_SEEDTPARAM seed2>
