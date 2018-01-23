@@ -13,7 +13,6 @@
 #include <atomic>
 #include <string>//for dbgPrint() only
 #include <iostream>//for dbgPrint() only
-//---#include <map>//for dbg_map only
 
 #ifdef ITHARE_OBF_DBG_RUNTIME_CHECKS
 #define ITHARE_OBF_DBG_ENABLE_DBGPRINT//necessary for checks to work
@@ -236,10 +235,19 @@ namespace ithare {
 		using OBFINJECTIONCAPS = uint64_t;//injection capability flags
 		constexpr OBFINJECTIONCAPS obf_injection_has_add_mod_max_value_ex = 0x01;
 		
+		constexpr bool obf_avoid_memxxx = true;
 
 	}//namespace obf
 }//namespace ithare
 
+#else
+namespace ithare {
+	namespace obf {
+
+		constexpr bool obf_avoid_memxxx = false;
+
+	}//namespace obf
+}//namespace ithare
 #endif //ITHARE_OBF_SEED
 
 #endif //ithare_obf_common_h_included

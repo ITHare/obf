@@ -58,7 +58,7 @@ union chacha_buf {
     constexpr uint8_t get_byte_n( size_t idx) const {
 		assert(idx <= 63);
 		size_t uidx = idx / 4;
-		size_t intraidx = idx % 4;//TODO: test under big-endian
+		size_t intraidx = idx % 4;
 		return uint8_t(u[uidx] >> (8*intraidx));
 	}
 };
@@ -86,7 +86,7 @@ ITHARE_OBF_DECLARELIBFUNC
 void chacha20_core(chacha_buf *output, const uint32_t input[16])
 {
     uint32_t x[16] = {};
-    if constexpr(obfflags&obf_flag_is_constexpr) {
+    if constexpr((obfflags&obf_flag_is_constexpr)||obf_avoid_memxxx) {
 		obf_copyarray(x,input);
 	}
     else
@@ -103,14 +103,15 @@ void chacha20_core(chacha_buf *output, const uint32_t input[16])
         ITHARE_OBF_TLS_QUARTERROUND(3, 4, 9, 14);
     }
 
-	static_assert(obf_endian::native == obf_endian::little || obf_endian::native == obf_endian::big);
-    if constexpr (obf_endian::native == obf_endian::little || obfflags&obf_flag_is_constexpr) {
+	static_assert(obf_endian::native == obf_endian::little);
+    if constexpr (obf_endian::native == obf_endian::little) {
         for (int i = 0; i < 16; ++i)
             output->u[i] = x[i] + input[i];
-    } else {//TODO: test on big-endian platform
+	}
+    /* else big-endian: test
 			for (int i = 0; i < 16; ++i)
             		ITHARE_OBF_TLS_U32TO8_LITTLE(output->c + 4 * i, (x[i] + input[i]));
-    }
+    }*/
 }
 
 ITHARE_OBF_DECLARELIBFUNC
@@ -149,7 +150,7 @@ void ChaCha20_ctr32(unsigned char *out, const unsigned char *inp,
         ITHARE_OBF_CALLFROMLIB(chacha20_core)(&buf, input);
 
         for (size_t i = 0; i < todo; i++) {
-            if constexpr(obfflags&obf_flag_is_constexpr)
+            if constexpr(obfflags&obf_flag_is_constexpr)//potential big-endian issues?
 				out[i] = inp[i] ^ buf.get_byte_n(i);
 			else
 				out[i] = inp[i] ^ buf.c[i];
@@ -262,7 +263,7 @@ class EVP_CHACHA {
 		}
 
 		if (rem) {
-			if constexpr(obfflags&obf_flag_is_constexpr) {
+			if constexpr((obfflags&obf_flag_is_constexpr)||obf_avoid_memxxx) {
 				obf_zeroarray(key.buf);
 			}
 			else
