@@ -83,7 +83,7 @@ namespace ithare {
 			static constexpr bool no_substrate_size_increase = false;
 			static constexpr bool cross_platform_only = false;//currently there seems to be need to ensure cross-platform compatibility for literals
 		};
-		using Injection = obf_injection<T, Context, ITHARE_OBF_NEW_PRNG(seed, 2), cycles,InjectionRequirements>;
+		using Injection = obf_injection<T, Context, InjectionRequirements,ITHARE_OBF_NEW_PRNG(seed, 2), cycles>;
 	public:
 		ITHARE_OBF_FORCEINLINE constexpr obf_literal() : val(Injection::template injection<ITHARE_OBF_NEW_PRNG(seed, 3)>(C)) {
 		}
@@ -141,15 +141,15 @@ namespace ithare {
 		using intermediate_context_type = ObfVarContext<T,seed,cycles>;
 	};
 	
-	template<bool obfuscate, class T, class Context, ITHARE_OBF_SEEDTPARAM seed, OBFCYCLES cycles,class InjectionRequirements>
+	template<bool obfuscate, class T, class Context, class InjectionRequirements,ITHARE_OBF_SEEDTPARAM seed, OBFCYCLES cycles>
 	struct obf_var_injection;
 	
-	template<class T, class Context, ITHARE_OBF_SEEDTPARAM seed, OBFCYCLES cycles,class InjectionRequirements>
-	struct obf_var_injection<true,T,Context,seed,cycles,InjectionRequirements> {
-		using Injection = obf_injection<T, Context, seed, cycles, InjectionRequirements>;
+	template<class T, class Context, class InjectionRequirements,ITHARE_OBF_SEEDTPARAM seed, OBFCYCLES cycles>
+	struct obf_var_injection<true,T,Context,InjectionRequirements,seed,cycles> {
+		using Injection = obf_injection<T, Context, InjectionRequirements,seed, cycles>;
 	};
-	template<class T, class Context, ITHARE_OBF_SEEDTPARAM seed, OBFCYCLES cycles,class InjectionRequirements>
-	struct obf_var_injection<false,T,Context,seed,cycles,InjectionRequirements> {
+	template<class T, class Context, class InjectionRequirements,ITHARE_OBF_SEEDTPARAM seed, OBFCYCLES cycles>
+	struct obf_var_injection<false,T,Context,InjectionRequirements,seed,cycles> {
 		using Injection = obf_injection_version<0,T, Context, InjectionRequirements, seed, cycles>;
 	};
 
@@ -170,7 +170,7 @@ namespace ithare {
 			static constexpr bool cross_platform_only = flags & obf_flag_cross_platform_only;
 		};
 		static constexpr bool obfuscate = (flags&obf_flag_is_constexpr) == 0;
-		using Injection = typename obf_var_injection<obfuscate,T, Context, ITHARE_OBF_NEW_PRNG(seed, 2), cycles, InjectionRequirements>::Injection;
+		using Injection = typename obf_var_injection<obfuscate,T, Context, InjectionRequirements,ITHARE_OBF_NEW_PRNG(seed, 2), cycles>::Injection;
 
 	public:
 		ITHARE_OBF_FORCEINLINE constexpr ObfVar(T_ t) : val(Injection::template injection<ITHARE_OBF_NEW_PRNG(seed, 2)>(T(t))) {
@@ -421,21 +421,21 @@ namespace ithare {
 			static constexpr bool cross_platform_only = false;//currently there seems to be no need to ensure cross-platform compatibility for literals 
 		};
 
-		using Injection0 = obf_injection<uint32_t, ObfZeroLiteralContext<uint32_t>, ITHARE_OBF_NEW_PRNG(seed, 3), std::max(split0,2), InjectionRequirements>;
+		using Injection0 = obf_injection<uint32_t, ObfZeroLiteralContext<uint32_t>, InjectionRequirements, ITHARE_OBF_NEW_PRNG(seed, 3), std::max(split0,2)>;
 		static_assert(sizeof(typename Injection0::return_type) == sizeof(uint32_t));//only_bijections
-		using Injection1 = obf_injection<uint32_t, ObfZeroLiteralContext<uint32_t>, ITHARE_OBF_NEW_PRNG(seed, 4), std::max(split1,2), InjectionRequirements>;
+		using Injection1 = obf_injection<uint32_t, ObfZeroLiteralContext<uint32_t>, InjectionRequirements, ITHARE_OBF_NEW_PRNG(seed, 4), std::max(split1,2)>;
 		static_assert(sizeof(typename Injection1::return_type) == sizeof(uint32_t));//only_bijections
-		using Injection2 = obf_injection<uint32_t, ObfZeroLiteralContext<uint32_t>, ITHARE_OBF_NEW_PRNG(seed, 5), std::max(split2,2), InjectionRequirements>;
+		using Injection2 = obf_injection<uint32_t, ObfZeroLiteralContext<uint32_t>, InjectionRequirements, ITHARE_OBF_NEW_PRNG(seed, 5), std::max(split2,2)>;
 		static_assert(sizeof(typename Injection2::return_type) == sizeof(uint32_t));//only_bijections
-		using Injection3 = obf_injection<uint32_t, ObfZeroLiteralContext<uint32_t>, ITHARE_OBF_NEW_PRNG(seed, 6), std::max(split3,2), InjectionRequirements>;
+		using Injection3 = obf_injection<uint32_t, ObfZeroLiteralContext<uint32_t>, InjectionRequirements, ITHARE_OBF_NEW_PRNG(seed, 6), std::max(split3,2)>;
 		static_assert(sizeof(typename Injection3::return_type) == sizeof(uint32_t));//only_bijections
-		using Injection4 = obf_injection<uint32_t, ObfZeroLiteralContext<uint32_t>, ITHARE_OBF_NEW_PRNG(seed, 7), std::max(split4,2), InjectionRequirements>;
+		using Injection4 = obf_injection<uint32_t, ObfZeroLiteralContext<uint32_t>, InjectionRequirements, ITHARE_OBF_NEW_PRNG(seed, 7), std::max(split4,2)>;
 		static_assert(sizeof(typename Injection4::return_type) == sizeof(uint32_t));//only_bijections
-		using Injection5 = obf_injection<uint32_t, ObfZeroLiteralContext<uint32_t>, ITHARE_OBF_NEW_PRNG(seed, 8), std::max(split5,2), InjectionRequirements>;
+		using Injection5 = obf_injection<uint32_t, ObfZeroLiteralContext<uint32_t>, InjectionRequirements, ITHARE_OBF_NEW_PRNG(seed, 8), std::max(split5,2)>;
 		static_assert(sizeof(typename Injection5::return_type) == sizeof(uint32_t));//only_bijections
-		using Injection6 = obf_injection<uint32_t, ObfZeroLiteralContext<uint32_t>, ITHARE_OBF_NEW_PRNG(seed, 9), std::max(split6,2), InjectionRequirements>;
+		using Injection6 = obf_injection<uint32_t, ObfZeroLiteralContext<uint32_t>, InjectionRequirements, ITHARE_OBF_NEW_PRNG(seed, 9), std::max(split6,2)>;
 		static_assert(sizeof(typename Injection6::return_type) == sizeof(uint32_t));//only_bijections
-		using Injection7 = obf_injection<uint32_t, ObfZeroLiteralContext<uint32_t>, ITHARE_OBF_NEW_PRNG(seed, 10), std::max(split7,2), InjectionRequirements>;
+		using Injection7 = obf_injection<uint32_t, ObfZeroLiteralContext<uint32_t>, InjectionRequirements, ITHARE_OBF_NEW_PRNG(seed, 10), std::max(split7,2)>;
 		static_assert(sizeof(typename Injection7::return_type) == sizeof(uint32_t));//only_bijections
 
 		ITHARE_OBF_FORCEINLINE static constexpr uint32_t little_endian4(const char* str, size_t offset) {//TODO: BIG-ENDIAN

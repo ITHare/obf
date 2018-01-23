@@ -19,63 +19,6 @@
 
 namespace ithare {
 	namespace obf {
-/* - obsolete?
-#ifdef ITHARE_OBF_DBG_MAP
-#ifdef ITHARE_OBF_DBG_MAP_LOG
-#define ITHARE_OBF_DBG_MAP_ADD(where,dbg_map, from,to) 	do {\
-		if constexpr(!InjectionRequirements::is_constexpr)\
-			std::cout << "MAP_ADD @" << where << "(seed=" << obf_dbgPrintSeed<seed>() << "): " << from << "=>" << to << std::endl; \
-		} while(false)
-#define ITHARE_OBF_DBG_MAP_CHECK(where,dbg_map,from,to,whoToPrint) do {\
-			if constexpr(!InjectionRequirements::is_constexpr) {\
-				std::cout << "MAP_CHECK @" << where << "(seed=" << obf_dbgPrintSeed<seed>() << "): " << from << "=>" << to << std::endl; \
-			}\
-		} while(false)
-#define ITHARE_OBF_DBG_CHECK_LITERAL(where, val, c,whoToPrint) do {\
-			if constexpr(!InjectionRequirements::is_constexpr) {\
-				if (val != c) {\
-					std::cout << "DBG_CHECK_LITERAL ERROR @" << where << ": " << val << "!=" << c << std::endl; \
-					whoToPrint dbgPrint(); \
-					abort(); \
-				}\
-			}\
-		}while (false)
-#else
-#define ITHARE_OBF_DEFINE_DBG_MAP
-#define ITHARE_OBF_DBG_MAP_ADD(where,dbg_map, from,to) 	do {\
-		if constexpr(!InjectionRequirements::is_constexpr)\
-			dbg_map.insert(std::make_pair(from,to));\
-		} while(false)
-#define ITHARE_OBF_DBG_MAP_CHECK(where,dbg_map,from,to,whoToPrint) do {\
-			if constexpr(!InjectionRequirements::is_constexpr) {\
-				auto found = dbg_map.find(from); \
-				if (found == dbg_map.end() ) {\
-					std::cout << "DBG_MAP ERROR @" << where << ": " << from << " NOT FOUND" << std::endl;\
-					whoToPrint dbgPrint();\
-					abort();\
-				}\
-				auto dbgVal = (*found).second;\
-				if (dbgVal != to) {\
-					std::cout << "DBG_MAP ERROR @" << where << ": " << to << "!=" << dbgVal << std::endl; \
-				}\
-			}\
-		} while(false)
-#define ITHARE_OBF_DBG_CHECK_LITERAL(where, val, c,whoToPrint) do {\
-			if constexpr(!InjectionRequirements::is_constexpr) {\
-				if (val != c) {\
-					std::cout << "DBG_CHECK_LITERAL ERROR @" << where << ": " << val << "!=" << c << std::endl; \
-					whoToPrint dbgPrint(); \
-					abort(); \
-				}\
-			}\
-		}while (false)
-#endif//!_LOG
-#else
-#define ITHARE_OBF_DBG_MAP_ADD(where,dbg_map, from,to)
-#define ITHARE_OBF_DBG_MAP_CHECK(where,dbg_map,from,to,whoToPrint)
-//#define ITHARE_OBF_DBG_CHECK_LITERAL(where, val, c,whoToPrint)
-#endif
-*/
 
 #ifdef ITHARE_OBF_DBG_RUNTIME_CHECKS
 #define ITHARE_OBF_DBG_ASSERT_SURJECTION(where,x,y) do {\
@@ -480,7 +423,7 @@ namespace ithare {
 		};
 
 	//forward declarations
-	template<class T, class Context, ITHARE_OBF_SEEDTPARAM seed, OBFCYCLES cycles,class InjectionRequirements>
+	template<class T, class Context, class InjectionRequirements,ITHARE_OBF_SEEDTPARAM seed, OBFCYCLES cycles>
 	class obf_injection;//using function-like naming, as it is essentially a bunch-of-functions, not a real object-with-data
 	template<class T, T C, class Context, ITHARE_OBF_SEEDTPARAM seed, OBFCYCLES cycles>
 	class obf_literal_ctx;//using function-like naming, as logically it is a function-returning-constant, not a real object-with-data
@@ -556,17 +499,12 @@ namespace ithare {
 			static constexpr size_t exclude_version = 1;
 		};
 
-		using RecursiveInjection = obf_injection<T, Context, ITHARE_OBF_NEW_PRNG(seed, 1), availCycles+Context::context_cycles,RecursiveInjectionRequirements>;
+		using RecursiveInjection = obf_injection<T, Context, RecursiveInjectionRequirements,ITHARE_OBF_NEW_PRNG(seed, 1), availCycles+Context::context_cycles>;
 		using return_type = typename RecursiveInjection::return_type;
 		static constexpr std::array<T, 5> consts = { 0, 1, OBF_CONST_A, OBF_CONST_B, OBF_CONST_C };
 		constexpr static T C = obf_random_const<ITHARE_OBF_NEW_PRNG(seed, 2)>(consts);
 		static constexpr bool neg = C == 0 ? true : ITHARE_OBF_RANDOM(seed, 3, 2) == 0;
 		using ST = typename Traits::signed_type;
-
-//#ifdef ITHARE_OBF_DEFINE_DBG_MAP
-//		static std::map<T,T> dbg_map;
-//		static std::map<T,return_type> dbg_map_r;
-//#endif
 
 		template<ITHARE_OBF_SEEDTPARAM seed2>
 		ITHARE_OBF_FORCEINLINE constexpr static return_type injection(T x) {
@@ -574,18 +512,14 @@ namespace ithare {
 			if constexpr(neg) {
 				ST sx = ST(x);
 				auto y = T(-sx) + C;
-				//ITHARE_OBF_DBG_MAP_ADD("<1>/ret",dbg_map, x,y);
 				return_type ret = RecursiveInjection::template injection<seedc>(y);
 									//mutually exclusive with another call to injection<> => no need to randomize seedc further 
-				//ITHARE_OBF_DBG_MAP_ADD("<1>/r",dbg_map_r, y, ret);
 				ITHARE_OBF_DBG_ASSERT_SURJECTION("<1>/a",x,ret);
 				return ret;
 			}
 			else {
 				T y = x + C;
-				//ITHARE_OBF_DBG_MAP_ADD("<1>/ret",dbg_map, x,y);
 				return_type ret = RecursiveInjection::template injection<seedc>(y);
-				//ITHARE_OBF_DBG_MAP_ADD("<1>/r",dbg_map_r, y, ret);
 				ITHARE_OBF_DBG_ASSERT_SURJECTION("<1>/b", x, ret);
 				return ret;
 			}
@@ -594,16 +528,13 @@ namespace ithare {
 		ITHARE_OBF_FORCEINLINE constexpr static T surjection(return_type y) {
 			ITHARE_OBF_DECLAREPRNG_INFUNC seedc = ITHARE_OBF_COMBINED_PRNG(seed,seed2);
 			T yy0 = RecursiveInjection::template surjection<seedc>(y);
-			//ITHARE_OBF_DBG_MAP_CHECK("<1>/r", dbg_map_r, yy0,y,RecursiveInjection::);
 			T yy = yy0-C;
 			if constexpr(neg) {
 				ST syy = ST(yy);
 				T ret = T(-syy);
-				//ITHARE_OBF_DBG_MAP_CHECK("<1>/ret(a)", dbg_map, ret,yy0,);
 				return ret;
 			}
 			else {
-				//ITHARE_OBF_DBG_MAP_CHECK("<1>/ret(b)", dbg_map, yy,yy0,);
 				return yy;
 			}
 		}
@@ -650,13 +581,6 @@ namespace ithare {
 		}
 #endif
 	};
-
-//#ifdef ITHARE_OBF_DEFINE_DBG_MAP
-//	template <class T, class Context, class InjectionRequirements, ITHARE_OBF_SEEDTPARAM seed, OBFCYCLES cycles>
-//	std::map<T, T> obf_injection_version<1, T, Context, InjectionRequirements, seed, cycles>::dbg_map = {};
-//	template <class T, class Context, class InjectionRequirements, ITHARE_OBF_SEEDTPARAM seed, OBFCYCLES cycles>
-//	std::map<T, typename obf_injection_version<1, T, Context, InjectionRequirements, seed, cycles>::return_type> obf_injection_version<1, T, Context, InjectionRequirements, seed, cycles>::dbg_map_r = {};
-//#endif
 
 	//helper for Feistel-like: randomized_non_reversible_function 
 	template<size_t which, class T, ITHARE_OBF_SEEDTPARAM seed, OBFCYCLES cycles>
@@ -790,7 +714,7 @@ namespace ithare {
 			static constexpr size_t exclude_version = size_t(-1);
 		};
 
-		using RecursiveInjection = obf_injection<T, Context, ITHARE_OBF_NEW_PRNG(seed, 2), cycles_rInj+ Context::context_cycles,RecursiveInjectionRequirements>;
+		using RecursiveInjection = obf_injection<T, Context, RecursiveInjectionRequirements,ITHARE_OBF_NEW_PRNG(seed, 2), cycles_rInj+ Context::context_cycles>;
 		using return_type = typename RecursiveInjection::return_type;
 
 		using halfT = typename ObfTraits<T>::HalfT;
@@ -877,7 +801,7 @@ namespace ithare {
 		struct RecursiveInjectionRequirements : public InjectionRequirements {
 			static constexpr size_t exclude_version = size_t(-1);
 		};
-		using RecursiveInjection = obf_injection<T, Context, ITHARE_OBF_NEW_PRNG(seed, 2), cycles_rInj+ Context::context_cycles, RecursiveInjectionRequirements>;
+		using RecursiveInjection = obf_injection<T, Context, RecursiveInjectionRequirements,ITHARE_OBF_NEW_PRNG(seed, 2), cycles_rInj+ Context::context_cycles>;
 		using return_type = typename RecursiveInjection::return_type;
 
 		struct LoHiInjectionRequirements : public InjectionRequirements {
@@ -894,7 +818,7 @@ namespace ithare {
 		static constexpr OBFCYCLES cycles_loInj = splitCyclesLo[1];
 		static_assert(cycles_loCtx + cycles_loInj <= cycles_lo);
 		using LoContext = typename ObfRecursiveContext < halfT, Context, ITHARE_OBF_NEW_PRNG(seed, 3), cycles_loCtx>::intermediate_context_type;
-		using LoInjection = obf_injection<halfT, LoContext, ITHARE_OBF_NEW_PRNG(seed, 4), cycles_loInj+LoContext::context_cycles, LoHiInjectionRequirements>;
+		using LoInjection = obf_injection<halfT, LoContext, LoHiInjectionRequirements,ITHARE_OBF_NEW_PRNG(seed, 4), cycles_loInj+LoContext::context_cycles>;
 		static_assert(sizeof(typename LoInjection::return_type) == sizeof(halfT));//bijections ONLY
 
 		constexpr static std::array<ObfDescriptor, 2> splitHi{
@@ -906,7 +830,7 @@ namespace ithare {
 		static constexpr OBFCYCLES cycles_hiInj = splitCyclesHi[1];
 		static_assert(cycles_hiCtx + cycles_hiInj <= cycles_hi);
 		using HiContext = typename ObfRecursiveContext<halfT, Context, ITHARE_OBF_NEW_PRNG(seed, 6), cycles_hiCtx>::intermediate_context_type;
-		using HiInjection = obf_injection<halfT, HiContext, ITHARE_OBF_NEW_PRNG(seed, 7), cycles_hiInj+HiContext::context_cycles, LoHiInjectionRequirements>;
+		using HiInjection = obf_injection<halfT, HiContext, LoHiInjectionRequirements,ITHARE_OBF_NEW_PRNG(seed, 7), cycles_hiInj+HiContext::context_cycles>;
 		static_assert(sizeof(typename HiInjection::return_type) == sizeof(halfT));//bijections ONLY
 
 		template<ITHARE_OBF_SEEDTPARAM seed2>
@@ -1012,7 +936,7 @@ namespace ithare {
 		};
 
 	public:
-		using RecursiveInjection = obf_injection<T, Context, ITHARE_OBF_NEW_PRNG(seed, 1), availCycles+Context::context_cycles,RecursiveInjectionRequirements>;
+		using RecursiveInjection = obf_injection<T, Context, RecursiveInjectionRequirements,ITHARE_OBF_NEW_PRNG(seed, 1), availCycles+Context::context_cycles>;
 		using return_type = typename RecursiveInjection::return_type;
 		//constexpr static T C = (T)(obf_gen_const<T>(obf_compile_time_prng(seed, 2)) | 1);
 		static constexpr std::array<T, 3> consts = { OBF_CONST_A,OBF_CONST_B,OBF_CONST_C };
@@ -1025,20 +949,13 @@ namespace ithare {
 		using literal = typename Context::template literal<typename Traits::literal_type, CINV, ITHARE_OBF_NEW_PRNG(seed, 3)>::type;
 			//using CINV in injection to hide literals a bit better...
 
-//#ifdef ITHARE_OBF_DEFINE_DBG_MAP
-//		static std::map<T,T> dbg_map;
-//		static std::map<T,return_type> dbg_map_r;
-//#endif
-
 		template<ITHARE_OBF_SEEDTPARAM seed2>
 		ITHARE_OBF_FORCEINLINE constexpr static return_type injection(T x) {
 			ITHARE_OBF_DECLAREPRNG_INFUNC seedc = ITHARE_OBF_COMBINED_PRNG(seed,seed2);
 			auto lit = literal();
 			ITHARE_OBF_DBG_CHECK_LITERAL("<4>",lit, CINV0);
 			auto y = typename Traits::UintT(x) * typename Traits::UintT(lit.value());
-			//ITHARE_OBF_DBG_MAP_ADD("<4>/ret",dbg_map, x,y);
 			return_type ret = RecursiveInjection::template injection<seedc>(y);
-			//ITHARE_OBF_DBG_MAP_ADD("<4>/r",dbg_map_r, y, ret);
 			ITHARE_OBF_DBG_ASSERT_SURJECTION("<4>", x, ret);
 			return ret;
 		}
@@ -1046,9 +963,7 @@ namespace ithare {
 		ITHARE_OBF_FORCEINLINE constexpr static T surjection(return_type y) {
 			ITHARE_OBF_DECLAREPRNG_INFUNC seedc = ITHARE_OBF_COMBINED_PRNG(seed,seed2);
 			T x = RecursiveInjection::template surjection<seedc>(y);
-			//ITHARE_OBF_DBG_MAP_CHECK("<4>/r", dbg_map_r, x, y,RecursiveInjection::);
 			T ret = x * C;
-			//ITHARE_OBF_DBG_MAP_CHECK("<4>/ret", dbg_map, ret,x, );
 			return ret;
 		}
 
@@ -1084,13 +999,6 @@ namespace ithare {
 		}
 #endif
 	};
-
-//#ifdef ITHARE_OBF_DEFINE_DBG_MAP
-//	template <class T, class Context, class InjectionRequirements, ITHARE_OBF_SEEDTPARAM seed, OBFCYCLES cycles>
-//	std::map<T, T> obf_injection_version<4, T, Context, InjectionRequirements, seed, cycles>::dbg_map = {};
-//	template <class T, class Context, class InjectionRequirements, ITHARE_OBF_SEEDTPARAM seed, OBFCYCLES cycles>
-//	std::map<T, typename obf_injection_version<4, T, Context, InjectionRequirements, seed, cycles>::return_type> obf_injection_version<4, T, Context, InjectionRequirements, seed, cycles>::dbg_map_r = {};
-//#endif
 
 	//version 5: split (w/o join)
 	template<class T, class Context>
@@ -1137,7 +1045,7 @@ namespace ithare {
 		static constexpr OBFCYCLES cycles_loInj = splitCyclesLo[1];
 		static_assert(cycles_loCtx + cycles_loInj <= cycles_lo);
 		using RecursiveLoContext = typename ObfRecursiveContext<halfT, Context, ITHARE_OBF_NEW_PRNG(seed, 3), cycles_loCtx+Context::context_cycles>::recursive_context_type;
-		using RecursiveInjectionLo = obf_injection<halfT, RecursiveLoContext, ITHARE_OBF_NEW_PRNG(seed, 4), cycles_loInj+ RecursiveLoContext::context_cycles,RecursiveInjectionRequirements>;
+		using RecursiveInjectionLo = obf_injection<halfT, RecursiveLoContext, RecursiveInjectionRequirements,ITHARE_OBF_NEW_PRNG(seed, 4), cycles_loInj+ RecursiveLoContext::context_cycles>;
 
 		constexpr static std::array<ObfDescriptor, 2> splitHi{
 			ObfDescriptor(true,0,100),//Context
@@ -1148,7 +1056,7 @@ namespace ithare {
 		static constexpr OBFCYCLES cycles_hiInj = splitCyclesHi[1];
 		static_assert(cycles_hiCtx + cycles_hiInj <= cycles_hi);
 		using RecursiveHiContext = typename ObfRecursiveContext<halfT, Context, ITHARE_OBF_NEW_PRNG(seed, 6), cycles_hiCtx+Context::context_cycles>::recursive_context_type;
-		using RecursiveInjectionHi = obf_injection < halfT, RecursiveHiContext, ITHARE_OBF_NEW_PRNG(seed, 7), cycles_hiInj+ RecursiveHiContext::context_cycles,RecursiveInjectionRequirements > ;
+		using RecursiveInjectionHi = obf_injection < halfT, RecursiveHiContext, RecursiveInjectionRequirements,ITHARE_OBF_NEW_PRNG(seed, 7), cycles_hiInj+ RecursiveHiContext::context_cycles> ;
 
 		struct return_type {
 			typename RecursiveInjectionLo::return_type lo;
@@ -1228,7 +1136,7 @@ namespace ithare {
 		static constexpr OBFCYCLES cycles_lo = splitCycles[1];
 		static_assert(cycles_rInj + cycles_lo <= availCycles);
 
-		using RecursiveInjection = obf_injection<T, Context, ITHARE_OBF_NEW_PRNG(seed, 2), cycles_rInj + Context::context_cycles, RecursiveInjectionRequirements>;
+		using RecursiveInjection = obf_injection<T, Context, RecursiveInjectionRequirements,ITHARE_OBF_NEW_PRNG(seed, 2), cycles_rInj + Context::context_cycles>;
 		using return_type = typename RecursiveInjection::return_type;
 
 	public:
@@ -1246,7 +1154,7 @@ namespace ithare {
 		static constexpr OBFCYCLES cycles_loInj = splitCyclesLo[1];
 		static_assert(cycles_loCtx + cycles_loInj <= cycles_lo);
 		using LoContext = typename ObfRecursiveContext < halfT, Context, ITHARE_OBF_NEW_PRNG(seed, 4), cycles_loCtx>::intermediate_context_type;
-		using LoInjection = obf_injection<halfT, LoContext, ITHARE_OBF_NEW_PRNG(seed, 5), cycles_loInj + LoContext::context_cycles, LoInjectionRequirements>;
+		using LoInjection = obf_injection<halfT, LoContext,  LoInjectionRequirements,ITHARE_OBF_NEW_PRNG(seed, 5), cycles_loInj + LoContext::context_cycles>;
 		static_assert(sizeof(typename LoInjection::return_type) == sizeof(halfT));//only_bijections
 
 		template<ITHARE_OBF_SEEDTPARAM seed2>
@@ -1330,7 +1238,7 @@ namespace ithare {
 		static constexpr OBFCYCLES cycles_loInj = splitCyclesLo[1];
 		static_assert(cycles_loCtx + cycles_loInj <= cycles_lo);
 		using RecursiveLoContext = typename ObfRecursiveContext<TypeLo, Context, ITHARE_OBF_NEW_PRNG(seed, 3), cycles_loCtx + Context::context_cycles>::recursive_context_type;
-		using RecursiveInjectionLo = obf_injection<TypeLo, RecursiveLoContext, ITHARE_OBF_NEW_PRNG(seed, 4), cycles_loInj + RecursiveLoContext::context_cycles, RecursiveInjectionRequirements>;
+		using RecursiveInjectionLo = obf_injection<TypeLo, RecursiveLoContext, RecursiveInjectionRequirements,ITHARE_OBF_NEW_PRNG(seed, 4), cycles_loInj + RecursiveLoContext::context_cycles>;
 
 		constexpr static std::array<ObfDescriptor, 2> splitHi{
 			ObfDescriptor(true,0,100),//Context
@@ -1341,7 +1249,7 @@ namespace ithare {
 		static constexpr OBFCYCLES cycles_hiInj = splitCyclesHi[1];
 		static_assert(cycles_hiCtx + cycles_hiInj <= cycles_hi);
 		using RecursiveHiContext = typename ObfRecursiveContext<TypeHi, Context, ITHARE_OBF_NEW_PRNG(seed, 6), cycles_hiCtx + Context::context_cycles>::recursive_context_type;
-		using RecursiveInjectionHi = obf_injection <TypeHi, RecursiveHiContext, ITHARE_OBF_NEW_PRNG(seed, 7), cycles_hiInj + RecursiveHiContext::context_cycles, RecursiveInjectionRequirements >;
+		using RecursiveInjectionHi = obf_injection <TypeHi, RecursiveHiContext, RecursiveInjectionRequirements,ITHARE_OBF_NEW_PRNG(seed, 7), cycles_hiInj + RecursiveHiContext::context_cycles >;
 
 		struct return_type {
 			typename RecursiveInjectionLo::return_type lo;
@@ -1360,24 +1268,13 @@ namespace ithare {
 			}
 		};
 
-//#ifdef ITHARE_OBF_DEFINE_DBG_MAP
-//		inline static std::map<T, TypeLo> dbg_map_lo = {};
-//		inline static std::map<T, TypeHi> dbg_map_hi = {};
-//		inline static std::map<TypeLo,typename RecursiveInjectionLo::return_type> dbg_map_rlo = {};
-//		inline static std::map<TypeHi, typename RecursiveInjectionHi::return_type> dbg_map_rhi = {};
-//#endif
-
 		template<ITHARE_OBF_SEEDTPARAM seed2>
 		ITHARE_OBF_FORCEINLINE constexpr static return_type injection(T x) {
 			ITHARE_OBF_DECLAREPRNG_INFUNC seedc = ITHARE_OBF_COMBINED_PRNG(seed,seed2);
 			TypeLo lo = TypeLo(typename TypeLo::T(x));
 			TypeHi hi = TypeHi(typename TypeHi::T(x >> loBits));
-			//ITHARE_OBF_DBG_MAP_ADD("<7>/lo",dbg_map_lo, x, lo);
-			//ITHARE_OBF_DBG_MAP_ADD("<7>/hi",dbg_map_hi, x, hi);
 			return_type ret{ RecursiveInjectionLo::template injection<ITHARE_OBF_NEW_PRNG(seedc,1)>(lo),
 				RecursiveInjectionHi::template injection<ITHARE_OBF_NEW_PRNG(seedc,2)>(hi) };
-			//ITHARE_OBF_DBG_MAP_ADD("<7>/rlo",dbg_map_rlo, lo, ret.lo);
-			//ITHARE_OBF_DBG_MAP_ADD("<7>/rhi",dbg_map_rhi, hi, ret.hi);
 			ITHARE_OBF_DBG_ASSERT_SURJECTION("<7>", x, ret);
 			return ret;
 		}
@@ -1385,13 +1282,9 @@ namespace ithare {
 		ITHARE_OBF_FORCEINLINE constexpr static T surjection(return_type y_) {
 			ITHARE_OBF_DECLAREPRNG_INFUNC seedc = ITHARE_OBF_COMBINED_PRNG(seed,seed2);
 			TypeHi hi = RecursiveInjectionHi::template surjection<ITHARE_OBF_NEW_PRNG(seedc,3)>(y_.hi);
-			//ITHARE_OBF_DBG_MAP_CHECK("<7>/rhi",dbg_map_rhi, hi, y_.hi, RecursiveInjectionHi::);
 			TypeLo lo = RecursiveInjectionLo::template surjection<ITHARE_OBF_NEW_PRNG(seedc,4)>(y_.lo);
-			//ITHARE_OBF_DBG_MAP_CHECK("<7>/rlo", dbg_map_rlo, lo , y_.lo, RecursiveInjectionLo::);
 
 			T ret = T(lo) + T(T(hi) << loBits);
-			//ITHARE_OBF_DBG_MAP_CHECK("<7>/hi", dbg_map_hi, ret, T(hi), );
-			//ITHARE_OBF_DBG_MAP_CHECK("<7>/lo", dbg_map_lo, ret, T(lo), );
 			return ret;
 		}
 
@@ -1429,7 +1322,7 @@ namespace ithare {
 		static constexpr OBFCYCLES availCycles = cycles - obf_injection_version7_descr<Context>::own_min_cycles;
 		static_assert(availCycles >= 0);
 
-		using RecursiveInjection = obf_injection<T, Context, ITHARE_OBF_NEW_PRNG(seed, 1), availCycles + Context::context_cycles, RecursiveInjectionRequirements>;
+		using RecursiveInjection = obf_injection<T, Context, RecursiveInjectionRequirements,ITHARE_OBF_NEW_PRNG(seed, 1), availCycles + Context::context_cycles>;
 		using return_type = typename RecursiveInjection::return_type;
 		using ST = typename std::make_signed<T>::type;
 		static constexpr T highbit = T(1) << (ObfTraits<T>::nbits - 1);
@@ -1469,7 +1362,7 @@ namespace ithare {
 #endif
 
 	//obf_injection: choosing one of obf_injection_version<which,...>
-	template<class T, class Context, ITHARE_OBF_SEEDTPARAM seed, OBFCYCLES cycles,class InjectionRequirements>
+	template<class T, class Context, class InjectionRequirements,ITHARE_OBF_SEEDTPARAM seed, OBFCYCLES cycles>
 	class obf_injection {
 		static_assert(std::is_same<T, typename Context::Type>::value);
 		using Traits = ObfTraits<T>;

@@ -373,7 +373,7 @@ namespace ithare {
 			static constexpr bool only_bijections = false;
 			static constexpr bool no_substrate_size_increase = false;
 		};
-		using Injection = obf_injection<T, Context, ITHARE_OBF_NEW_PRNG(seed, 1), cycles,InjectionRequirements>;
+		using Injection = obf_injection<T, Context, InjectionRequirements,ITHARE_OBF_NEW_PRNG(seed, 1), cycles>;
 	public:
 		ITHARE_OBF_FORCEINLINE constexpr obf_literal_ctx() : val(Injection::template injection<ITHARE_OBF_NEW_PRNG(seed, 2)>(C)) {
 		}
