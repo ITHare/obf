@@ -118,6 +118,9 @@ namespace ithare {
 		template<class T, class T2> struct obf_larger_type {
 			static_assert(std::is_integral<T>::value);
 			static_assert(std::is_integral<T2>::value);
+			constexpr static bool ts = std::is_signed<T>::value;
+			constexpr static bool t2s = std::is_signed<T2>::value;
+			static_assert(ts == t2s);//'larger_type' is undefined for different sign-ness
 			constexpr static bool which = sizeof(T) > sizeof(T2);
 			using type = typename obf_select_type<which, T, T2>::type;
 
