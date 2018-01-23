@@ -210,7 +210,7 @@ class EVP_CHACHA {
 	{
 		ITHARE_OBFLIB(unsigned int) n = key.partial_len;
 		if (n) {
-			while (len && n < CHACHA_BLK_SIZE) {
+			while (len && n < ITHARE_OBFILIB(CHACHA_BLK_SIZE)) {
 				*out++ = *inp++ ^ key.buf[n++];
 				len--;
 			}
@@ -291,7 +291,7 @@ class EVP_CHACHA {
 	ITHARE_OBF_DECLARELIBFUNC
 	void cipher(unsigned char *out,
 			    const unsigned char *inp, size_t len) {
-		cipher(key,out,inp,len);
+		ITHARE_OBF_CALLFROMLIB(cipher)(key, out, inp, len);
 	}
 	
 	ITHARE_OBF_DECLARELIBFUNC_WITHEXTRA(size_t N)
