@@ -148,7 +148,7 @@ namespace ithare {
 			static constexpr bool t2s = std::is_signed<T2PROMOTED>::value;
 			
 			using type = typename obf_select_type< ts == t2s, 
-										  typename obf_larger_type<TPROMOTED,T2PROMOTED>::type,
+										  typename obf_select_type< (sizeof(TPROMOTED) >= sizeof(T2PROMOTED)), TPROMOTED,T2PROMOTED>::type,
 										  typename obf_select_type< ts ,
 														   typename obf_select_type< (sizeof(TPROMOTED) > sizeof(T2PROMOTED)), TPROMOTED, T2PROMOTED >::type,
 														   typename obf_select_type< (sizeof(T2PROMOTED) > sizeof(TPROMOTED)), T2PROMOTED, TPROMOTED >::type

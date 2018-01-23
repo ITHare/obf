@@ -81,7 +81,6 @@ public:
 	ITHARE_OBF_FORCEINLINE constexpr static return_type injection(T x) {
 		ITHARE_OBF_DECLAREPRNG_INFUNC seedc = ITHARE_OBF_COMBINED_PRNG(seed, seed2);
 		T y = local_injection<ITHARE_OBF_NEW_PRNG(seedc, 1)>(x);
-		ITHARE_OBF_DBG_ASSERT_SURJECTION_RECURSIVE("<FIRST_USER_INJECTION>", x, ret);//make sure to change string
 		return RecursiveInjection::template injection<ITHARE_OBF_NEW_PRNG(seedc, 2)>(y);
 	}
 	template<ITHARE_OBF_SEEDTPARAM seed2>

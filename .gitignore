@@ -26,4 +26,5 @@
 /test/Clang/obftemptest.sh
 /test/Clang/ConsoleApplication1.log
 /test/Clang/failed.sh
+test/Clang/obftemp.dSYM/
 /test/MSVC/MSVC-linker-MT-bug
