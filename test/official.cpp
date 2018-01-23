@@ -44,15 +44,19 @@ const lest::test spec[] = {
 		//well, at least for common 32/64-bit platforms is should stand
 		using TT1 = typename ITOBF obf_integral_operator_promoconv<int8_t,unsigned short>::type;
 		static_assert(std::is_same<TT1,int>::value);
+
+		using TT1A = typename ITOBF obf_integral_operator_promoconv<unsigned short,unsigned short>::type;
+		static_assert(std::is_same<TT1A,int>::value);
 		
 		using TT2 = typename ITOBF obf_integral_operator_promoconv<int8_t,uint64_t>::type;
 		static_assert(std::is_same<TT2,uint64_t>::value);
-		EXPECT((ITOBF obf_integral_operator_literal_cast_is_safe<TT2,int,123>()==true));
+		EXPECT((ITOBF obf_integral_operator_literal_cast_is_safe<int8_t,int,123>()==true));
+		EXPECT((ITOBF obf_integral_operator_literal_cast_is_safe<int8_t,int,129>()==false));
 
 		using TT3 = typename ITOBF obf_integral_operator_promoconv<int16_t,unsigned int>::type;
 		static_assert(std::is_same<TT3,unsigned int>::value);
-		EXPECT((ITOBF obf_integral_operator_literal_cast_is_safe<TT3,unsigned int,0x7fff'ffffU>()==true));
-		EXPECT((ITOBF obf_integral_operator_literal_cast_is_safe<TT3,unsigned int,0x8000'0000U>()==true));
+		EXPECT((ITOBF obf_integral_operator_literal_cast_is_safe<int32_t,unsigned int,0x7fff'ffffU>()==true));
+		EXPECT((ITOBF obf_integral_operator_literal_cast_is_safe<int32_t,unsigned int,0x8000'0000U>()==false));
 
 		using TT4 = typename ITOBF obf_integral_operator_promoconv<unsigned int,int>::type;
 		static_assert(std::is_same<TT4,unsigned>::value);

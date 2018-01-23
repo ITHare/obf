@@ -98,7 +98,6 @@ namespace ithare {
 #endif
 		};
 
-		using OBFMAXUINT = uint64_t;
 		using OBFFLAGS = uint64_t;
 		constexpr OBFFLAGS obf_flag_is_constexpr = 0x01;
 		
@@ -156,20 +155,56 @@ namespace ithare {
 			static_assert(sizeof(type) >= sizeof(TPROMOTED));
 			static_assert(sizeof(type) >= sizeof(T2PROMOTED));
 		};
+		
+		class ObfSint128 {//larger than the largest
+			int64_t hi;
+			uint64_t lo;
+			
+			public:
+			constexpr ObfSint128(uint64_t x) : hi(0), lo(x) {
+			}
+			constexpr ObfSint128(int64_t x) : hi(x<0?int64_t(-1):0), lo(x) {
+			}
+			constexpr ObfSint128(uint32_t x) : ObfSint128(uint64_t(x)) {
+			}
+			constexpr ObfSint128(int32_t x) : ObfSint128(int64_t(x)) {
+			}
+			constexpr ObfSint128(uint16_t x) : ObfSint128(uint64_t(x)) {
+			}
+			constexpr ObfSint128(int16_t x) : ObfSint128(int64_t(x)) {
+			}
+			constexpr ObfSint128(uint8_t x) : ObfSint128(uint64_t(x)) {
+			}
+			constexpr ObfSint128(int8_t x) : ObfSint128(int64_t(x)) {
+			}
+			
+			constexpr bool operator <=(const ObfSint128& other) const {
+				return cmp(other) <= 0;
+			}
+			constexpr bool operator >=(const ObfSint128& other) const {
+				return cmp(other) >= 0;
+			}
+			
+			private:
+			constexpr int cmp(const ObfSint128& other) const {
+				if( hi < other.hi )
+					return -1;
+				if( hi > other.hi )
+					return 1;
+					
+				int ret = 0;
+				if( lo < other.lo )
+					ret = -1;
+				if( lo > other.lo )
+					ret = 1;
+				return hi >= 0 ? ret : -ret;
+			}
+		};
 
-		template<class TT, class TC, TC C>
-		constexpr bool obf_integral_operator_literal_cast_is_safe() {//TT MUST be a valid promotion+conversion returned by obf_integral_operator_promoconv<some_type,TC>
-			static_assert(sizeof(TT)>=sizeof(TC));
-			static_assert(sizeof(TT)<=sizeof(OBFMAXUINT));
-			
-			using SINT = std::make_signed<OBFMAXUINT>::type;
-			
-			if( std::is_signed<TT>::value )
-				return SINT(C) <= SINT(std::numeric_limits<TT>::max()) && 
-					   SINT(C) >= SINT(std::numeric_limits<TT>::min());//should be ok like this, but shouldn't it always be true due to conversion rules?
-			else
-				return OBFMAXUINT(C) <= OBFMAXUINT(std::numeric_limits<TT>::max())
-						&& OBFMAXUINT(C) >= OBFMAXUINT(std::numeric_limits<TT>::min());
+		template<class T, class TC, TC C>
+		constexpr bool obf_integral_operator_literal_cast_is_safe() {
+			return ObfSint128(C) <= ObfSint128(std::numeric_limits<T>::max()) && 
+					   ObfSint128(C) >= ObfSint128(std::numeric_limits<T>::min());
 		}
 		
 	}//namespace obf
