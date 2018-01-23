@@ -34,11 +34,11 @@ std::string genRandom64() {
 	}
 	return std::string(buf2);
 }
-std::string exitCheck(bool expectok = true) {
+std::string exitCheck(std::string cmd, bool expectok = true) {
 	if( expectok )
-		return std::string("if [ ! $? -eq 0 ]; then\n  exit 1\nfi");
+		return std::string("if [ ! $? -eq 0 ]; then\n  echo ") + cmd + ( ">failed.sh\n  exit 1\nfi");
 	else
-		return std::string("if [ ! $? -ne 0 ]; then\n  exit 1\nfi");
+		return std::string("if [ ! $? -ne 0 ]; then\n  echo ") + cmd + ( ">failed.sh\n  exit 1\nfi");
 }
 std::string echo(std::string s) {
 	return std::string("echo " + s);
@@ -48,7 +48,7 @@ std::string run() {
 }
 std::string checkObfuscation(bool obfuscated) {//very weak heuristics, but still better than nothing
 	std::string ret = std::string("strings obftemp | grep Negative");//referring to string "Negative value of factorial()"
-	return ret + "\n" + exitCheck(!obfuscated);
+	return ret + "\n" + exitCheck(ret,!obfuscated);
 }
 std::string setup() {
 	return std::string("#!/bin/sh");
@@ -101,16 +101,18 @@ std::string genRandom64() {
 	}
 	return std::string(buf2);
 }
-std::string exitCheck(bool expectok = true) {
+std::string exitCheck(std::string cmd,bool expectok = true) {
 	static int nextlabel = 1;
 	if (expectok) {
 		auto ret = std::string("IF NOT ERRORLEVEL 1 GOTO LABEL") + std::to_string(nextlabel)
+		    + "\nECHO " + cmd + ">failed.bat"
 			+ "\nEXIT /B\n:LABEL" + std::to_string(nextlabel);
 		nextlabel++;
 		return ret;
 	}
 	else {
 		auto ret = std::string("IF ERRORLEVEL 1 GOTO LABEL") + std::to_string(nextlabel)
+		    + "\nECHO " + cmd + ">failed.bat"
 			+ "\nEXIT /B\n:LABEL" + std::to_string(nextlabel);
 		nextlabel++;
 		return ret;
@@ -156,10 +158,11 @@ void issueCommand(std::string cmd) {
 
 void buildCheckRunCheck(std::string cmd,bool obfuscated=true) {
 	issueCommand(cmd);
-	std::cout << exitCheck() << std::endl;
+	std::cout << exitCheck(cmd) << std::endl;
 	std::cout << checkObfuscation(obfuscated) << std::endl;
-	issueCommand(run());
-	std::cout << exitCheck() << std::endl;
+	std::string cmdrun = run();
+	issueCommand(cmdrun);
+	std::cout << exitCheck(cmdrun) << std::endl;
 }
 
 std::string seedsByNum(int nseeds) {
