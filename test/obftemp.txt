@@ -1,4 +1,3 @@
-# sizeof(void*) == 8
 
 ===== f(@../official.cpp @68) =====
  ObfVar<uint64_t,4375095991340960950,1000>

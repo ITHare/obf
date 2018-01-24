@@ -124,7 +124,10 @@ const lest::test spec[] = {
 };
 
 int main(int argc, char** argv) {
-	std::cout << "# sizeof(void*) == " << sizeof(void*) << std::endl;
+#ifndef ITHARE_OBF_ENABLE_AUTO_DBGPRINT //excluding platform-specific stuff to avoid spurious changes to obftemp.txt 
+		std::cout << "sizeof(void*) == " << sizeof(void*) << std::endl;
+#endif
+
 	ITOBF obf_init();
 	{
 		ITOBF ObfNonBlockingCode obf_nb_guard;	

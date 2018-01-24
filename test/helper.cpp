@@ -10,6 +10,8 @@
 std::string srcDirPrefix = "";
 
 #if defined(__APPLE_CC__) || defined(__linux__)
+std::string rootTestFolder() { return  srcDirPrefix + "../"; }
+
 std::string buildRelease(std::string defines) {
 	return std::string("gcc -O3 -DNDEBUG ") + defines + " -o obftemp -std=c++1z -lstdc++ -Werror -g " + srcDirPrefix + "../official.cpp";
 }
@@ -48,8 +50,8 @@ std::string exitCheck(std::string cmd, bool expectok = true) {
 std::string echo(std::string s) {
 	return std::string("echo \"" + s +"\"");
 }
-std::string run(const char* redirect) {
-	if(redirect)
+std::string run(std::string redirect) {
+	if(redirect!="")
 		return std::string("./obftemp >")+redirect;
 	else
 		return std::string("./obftemp");
@@ -72,6 +74,7 @@ std::string cleanup() {
 }
 #elif defined(_WIN32)
 #include <windows.h>
+std::string rootTestFolder() { return  srcDirPrefix + "..\\"; }
 
 std::string replace_string(std::string subject, std::string search,//adapted from https://stackoverflow.com/a/14678964
 	std::string replace) {
@@ -140,8 +143,8 @@ std::string exitCheck(std::string cmd,bool expectok = true) {
 std::string echo(std::string s) {
 	return std::string("ECHO \"" + s +"\"");
 }
-std::string run(const char* redirect) {
-	if(redirect)
+std::string run(std::string redirect) {
+	if(redirect!="")
 		return std::string("official.exe >")+redirect;
 	else
 		return std::string("official.exe");
@@ -194,8 +197,8 @@ void buildCheckRunCheck(std::string cmd,bool obfuscated,bool write_output) {
 	issueCommand(cmd);
 	std::cout << exitCheck(cmd) << std::endl;
 	std::cout << checkObfuscation(obfuscated) << std::endl;
-	
-	const char* tofile = write_output ? "obftemp.txt" : nullptr;
+
+	std::string tofile = write_output ? rootTestFolder() + "obftemp.txt" : "";
 	
 	std::string cmdrun = run(tofile);
 	issueCommand(cmdrun);
