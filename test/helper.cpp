@@ -14,6 +14,9 @@ std::string buildRelease(std::string defines) {
 std::string buildDebug(std::string defines) {
 	return std::string("gcc ") + defines + " -o obftemp -std=c++1z -lstdc++ -Werror -g ../official.cpp";
 }
+std::string build32option() {
+	return " -m32";
+}
 std::string genRandom64() {
 	static FILE* frnd = fopen("/dev/urandom","rb");
 	if(frnd==0) {
@@ -78,6 +81,11 @@ std::string buildDebug(std::string defines_) {
 	return std::string("cl /permissive- /GS /W3 /Zc:wchar_t /ZI /Gm /Od /sdl /Zc:inline /fp:precise /D_DEBUG /D_CONSOLE /D_UNICODE /DUNICODE /errorReport:prompt /WX /Zc:forScope /RTC1 /Gd /MDd /EHsc /nologo /diagnostics:classic /std:c++17 /cgthreads1") + defines + " ..\\official.cpp";
 		//string is copy-pasted from Debug config
 }
+std::string build32option() {
+	std::cout << "no option to run both 32-bit and 64-bit testing for MSVC now, run testing without -add32tests in two different 'Tools command prompts' instead" << std::endl;
+	abort();
+}
+
 std::string genRandom64() {
 	static HCRYPTPROV prov = NULL;
 	if (!prov) {
@@ -137,6 +145,8 @@ std::string setup() {
 #error "Unrecognized platform for randomized testing"
 #endif 
 
+bool add32tests = false;
+
 std::string genSeed() {
 	return std::string(" -DITHARE_OBF_SEED=0x") + genRandom64();
 }
@@ -192,6 +202,14 @@ void buildCheckRunCheckx2(config cfg,std::string defs,int nseeds, bool obfuscate
 	buildCheckRunCheck(cmd1,obfuscated);
 	std::string cmd2 = buildCmd(cfg, defs + seedsByNum(nseeds) + " -DITHARE_OBF_TEST_NO_NAMESPACE");
 	buildCheckRunCheck(cmd2,obfuscated);
+	
+	if(add32tests) {
+		std::string m32 = build32option();
+		std::string cmd1 = buildCmd(cfg, defs + m32 + seedsByNum(nseeds));
+		buildCheckRunCheck(cmd1,obfuscated);
+		std::string cmd2 = buildCmd(cfg, defs + m32 + seedsByNum(nseeds) + " -DITHARE_OBF_TEST_NO_NAMESPACE");
+		buildCheckRunCheck(cmd2,obfuscated);	
+	}
 }
 
 void genDefineTests() {
@@ -222,6 +240,8 @@ void genRandomTests(size_t n) {
 		std::string extra;
 		if( i%3 == 0 )//every third, non-exclusive
 			extra += " -DITHARE_OBF_DBG_RUNTIME_CHECKS";
+		if(add32tests && i%5 <=1)
+			extra += build32option();
 		std::cout << echo( std::string("=== Random Test ") + std::to_string(i+1) + "/" + std::to_string(n) + " ===" ) << std::endl;
 		std::string defines = genSeeds()+" -DITHARE_OBF_INIT -DITHARE_OBF_CONSISTENT_XPLATFORM_IMPLICIT_SEEDS"+extra;
 		if( i%4 == 0 ) 
@@ -246,6 +266,10 @@ int main(int argc, char** argv) {
 	while(argcc<argc) {
 		if(strcmp(argv[argcc],"-nodefinetests") == 0) {
 			nodefinetests = true;
+			argcc++;
+		}
+		else if(strcmp(argv[argcc],"-add32tests") == 0) {
+			add32tests = true;
 			argcc++;
 		}
 		//other options go here

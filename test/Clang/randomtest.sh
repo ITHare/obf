@@ -10,7 +10,7 @@ if [ ! $? -eq 0 ]; then
   exit 1
 fi
 
-./helper $nn >obftemptest.sh
+./helper -add32tests $nn >obftemptest.sh
 if [ ! $? -eq 0 ]; then
   exit 1
 fi

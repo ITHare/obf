@@ -122,6 +122,7 @@ const lest::test spec[] = {
 };
 
 int main(int argc, char** argv) {
+	std::cout << "sizeof(void*) == " << sizeof(void*) << std::endl;
 	ITOBF obf_init();
 	{
 		ITOBF ObfNonBlockingCode obf_nb_guard;	
