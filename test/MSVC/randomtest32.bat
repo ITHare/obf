@@ -11,7 +11,7 @@ IF NOT ERRORLEVEL 1 GOTO LABEL1
 EXIT /B
 :LABEL1
 
-helper.exe -srcdirprefix ..\\ %NN% >obftemp.bat
+helper.exe -srcdirprefix ..\ %NN% >obftemp.bat
 IF NOT ERRORLEVEL 1 GOTO LABEL1
 EXIT /B
 :LABEL1
