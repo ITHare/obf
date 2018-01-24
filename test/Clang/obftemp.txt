@@ -1,0 +1,730 @@
+# sizeof(void*) == 8
+
+===== f(@../official.cpp @68) =====
+ ObfVar<uint64_t,4375095991340960950,1000>
+  obf_injection<uint64_t,9106867412021147863,1000>: which=2 dbgWhich=2
+   Context:ObfVarContext<uint64_t>
+   obf_injection_version<2/*kinda-Feistel*/,uint64_t,9106867412021147863,1000>: availCycles=986 cycles_f=7 cycles_rInj=978
+    f():obf_randomized_non_reversible_function<uint32_t,8039453817857586362,7>: which=2
+     obf_randomized_non_reversible_function<2/*abs*/,uint32_t,8039453817857586362,7>
+    Recursive:obf_injection<uint64_t,6983396852748973741,978>: which=7 dbgWhich=7
+     Context:ObfVarContext<uint64_t>
+     obf_injection_version<7/*split into ObfBitUint<>*/,uint64_t, Context, InjectionRequirements, 6983396852748973741,978>
+      Context:ObfVarContext<uint64_t>
+      TypeLo:ObfBitUint<23>: mask =8388607
+      Lo:obf_injection<ObfBitUint<23>,15609918723353471755,220>: which=1 dbgWhich=1
+       Context:ObfVarContext<ObfBitUint<23>>
+       obf_injection_version<1/*add mod 2^N*/,ObfBitUint<23>,15609918723353471755,220>: C=5 neg=0
+        obf_injection<ObfBitUint<23>,5589267720721250721,218>: which=4 dbgWhich=4
+         Context:ObfVarContext<ObfBitUint<23>>
+         obf_injection_version<4/*mul odd mod 2^N*/,ObfBitUint<23>,5589267720721250721,218>: C=3 CINV=2796203
+          literal:obf_literal_ctx<uint32_t,2796203,1837314935348464914,50>
+           obf_injection<uint32_t,17970160662479549180,50>: which=2 dbgWhich=2
+            Context:ObfLiteralContext<uint32_t,146858982888355813,50>: which=1 dbgWhich=1
+             ObfLiteralContext_version<1/*global volatile*/,uint32_t,146858982888355813>: CC=3
+            obf_injection_version<2/*kinda-Feistel*/,uint32_t,17970160662479549180,50>: availCycles=37 cycles_f=7 cycles_rInj=29
+             f():obf_randomized_non_reversible_function<uint16_t,11388334970590202589,7>: which=2
+              obf_randomized_non_reversible_function<2/*abs*/,uint16_t,11388334970590202589,7>
+             Recursive:obf_injection<uint32_t,8078168863860362764,35>: which=1 dbgWhich=1
+              Context:ObfLiteralContext<uint32_t,146858982888355813,50>: which=1 dbgWhich=1
+               ObfLiteralContext_version<1/*global volatile*/,uint32_t,146858982888355813>: CC=3
+              obf_injection_version<1/*add mod 2^N*/,uint32_t,8078168863860362764,35>: C=5 neg=0
+               obf_injection<uint32_t,3495417078079686068,34>: which=2 dbgWhich=2
+                Context:ObfLiteralContext<uint32_t,146858982888355813,50>: which=1 dbgWhich=1
+                 ObfLiteralContext_version<1/*global volatile*/,uint32_t,146858982888355813>: CC=3
+                obf_injection_version<2/*kinda-Feistel*/,uint32_t,3495417078079686068,34>: availCycles=21 cycles_f=4 cycles_rInj=16
+                 f():obf_randomized_non_reversible_function<uint16_t,16606499164264285835,4>: which=1
+                  obf_randomized_non_reversible_function<1/*x^2*/,uint16_t,16606499164264285835,4>
+                 Recursive:obf_injection<uint32_t,7123250775697581976,22>: which=4 dbgWhich=4
+                  Context:ObfLiteralContext<uint32_t,146858982888355813,50>: which=1 dbgWhich=1
+                   ObfLiteralContext_version<1/*global volatile*/,uint32_t,146858982888355813>: CC=3
+                  obf_injection_version<4/*mul odd mod 2^N*/,uint32_t,7123250775697581976,22>: C=3 CINV=2863311531
+                   literal:obf_literal_ctx<uint32_t,2863311531,10560601777870436679,0>
+                    obf_injection<uint32_t,14403745907956008076,0>: which=0 dbgWhich=0
+                     Context:ObfZeroContext<uint32_t>
+                     obf_injection_version<0/*identity*/,uint32_t,14403745907956008076,0>: availCycles=0
+                      ObfZeroContext<uint32_t>
+                   Recursive:obf_injection<uint32_t,5775424293507607354,19>: which=1 dbgWhich=1
+                    Context:ObfLiteralContext<uint32_t,146858982888355813,50>: which=1 dbgWhich=1
+                     ObfLiteralContext_version<1/*global volatile*/,uint32_t,146858982888355813>: CC=3
+                    obf_injection_version<1/*add mod 2^N*/,uint32_t,5775424293507607354,19>: C=0 neg=1
+                     obf_injection<uint32_t,15834006660350615158,18>: which=6 dbgWhich=6
+                      Context:ObfLiteralContext<uint32_t,146858982888355813,50>: which=1 dbgWhich=1
+                       ObfLiteralContext_version<1/*global volatile*/,uint32_t,146858982888355813>: CC=3
+                      obf_injection_version<6/*injection(halfT)*/,uint32_t,15834006660350615158,18>
+                       Lo:obf_injection<uint16_t,360299298460020996,1>: which=1 dbgWhich=1
+                        Context:ObfLiteralContext<uint16_t,15975833344142358185,2>: which=0 dbgWhich=0
+                         ObfLiteralContext_version<0/*identity*/,uint16_t>
+                        obf_injection_version<1/*add mod 2^N*/,uint16_t,360299298460020996,1>: C=1 neg=0
+                         obf_injection<uint16_t,15187601788646612917,0>: which=0 dbgWhich=0
+                          Context:ObfLiteralContext<uint16_t,15975833344142358185,2>: which=0 dbgWhich=0
+                           ObfLiteralContext_version<0/*identity*/,uint16_t>
+                          obf_injection_version<0/*identity*/,uint16_t,15187601788646612917,0>: availCycles=0
+                           ObfLiteralContext<uint16_t,15975833344142358185,2>: which=0 dbgWhich=0
+                            ObfLiteralContext_version<0/*identity*/,uint16_t>
+                       Recursive:obf_injection<uint32_t,11884788039088563000,10>: which=1 dbgWhich=1
+                        Context:ObfLiteralContext<uint32_t,146858982888355813,50>: which=1 dbgWhich=1
+                         ObfLiteralContext_version<1/*global volatile*/,uint32_t,146858982888355813>: CC=3
+                        obf_injection_version<1/*add mod 2^N*/,uint32_t,11884788039088563000,10>: C=5 neg=1
+                         obf_injection<uint32_t,1851083620994126879,9>: which=4 dbgWhich=4
+                          Context:ObfLiteralContext<uint32_t,146858982888355813,50>: which=1 dbgWhich=1
+                           ObfLiteralContext_version<1/*global volatile*/,uint32_t,146858982888355813>: CC=3
+                          obf_injection_version<4/*mul odd mod 2^N*/,uint32_t,1851083620994126879,9>: C=3 CINV=2863311531
+                           literal:obf_literal_ctx<uint32_t,2863311531,3564658468376559232,0>
+                            obf_injection<uint32_t,8639137314354677086,0>: which=0 dbgWhich=0
+                             Context:ObfZeroContext<uint32_t>
+                             obf_injection_version<0/*identity*/,uint32_t,8639137314354677086,0>: availCycles=0
+                              ObfZeroContext<uint32_t>
+                           Recursive:obf_injection<uint32_t,8383706190927192937,6>: which=0 dbgWhich=0
+                            Context:ObfLiteralContext<uint32_t,146858982888355813,50>: which=1 dbgWhich=1
+                             ObfLiteralContext_version<1/*global volatile*/,uint32_t,146858982888355813>: CC=3
+                            obf_injection_version<0/*identity*/,uint32_t,8383706190927192937,6>: availCycles=0
+                             ObfLiteralContext<uint32_t,146858982888355813,50>: which=1 dbgWhich=1
+                              ObfLiteralContext_version<1/*global volatile*/,uint32_t,146858982888355813>: CC=3
+          Recursive:obf_injection<ObfBitUint<23>,9691945102581793210,162>: which=1 dbgWhich=1
+           Context:ObfVarContext<ObfBitUint<23>>
+           obf_injection_version<1/*add mod 2^N*/,ObfBitUint<23>,9691945102581793210,162>: C=0 neg=1
+            obf_injection<ObfBitUint<23>,9537223879719846557,160>: which=4 dbgWhich=4
+             Context:ObfVarContext<ObfBitUint<23>>
+             obf_injection_version<4/*mul odd mod 2^N*/,ObfBitUint<23>,9537223879719846557,160>: C=5 CINV=5033165
+              literal:obf_literal_ctx<uint32_t,5033165,14571123693304550906,50>
+               obf_injection<uint32_t,5282866756971310813,50>: which=1 dbgWhich=1
+                Context:ObfLiteralContext<uint32_t,146858982888355813,50>: which=1 dbgWhich=1
+                 ObfLiteralContext_version<1/*global volatile*/,uint32_t,146858982888355813>: CC=3
+                obf_injection_version<1/*add mod 2^N*/,uint32_t,5282866756971310813,50>: C=5 neg=1
+                 obf_injection<uint32_t,3206229639046842147,49>: which=7 dbgWhich=7
+                  Context:ObfLiteralContext<uint32_t,146858982888355813,50>: which=1 dbgWhich=1
+                   ObfLiteralContext_version<1/*global volatile*/,uint32_t,146858982888355813>: CC=3
+                  obf_injection_version<7/*split into ObfBitUint<>*/,uint32_t, Context, InjectionRequirements, 3206229639046842147,49>
+                   Context:ObfLiteralContext<uint32_t,146858982888355813,50>: which=1 dbgWhich=1
+                    ObfLiteralContext_version<1/*global volatile*/,uint32_t,146858982888355813>: CC=3
+                   TypeLo:ObfBitUint<25>: mask =33554431
+                   Lo:obf_injection<ObfBitUint<25>,11437522560462697384,22>: which=1 dbgWhich=1
+                    Context:ObfLiteralContext<ObfBitUint<25>,14244643589484630552,22>: which=2 dbgWhich=2
+                     ObfLiteralContext_version<2/*func with aliased pointers*/,ObfBitUint<25>,14244643589484630552>:
+                    obf_injection_version<1/*add mod 2^N*/,ObfBitUint<25>,11437522560462697384,22>: C=31 neg=1
+                     obf_injection<ObfBitUint<25>,18184533612622379376,21>: which=0 dbgWhich=0
+                      Context:ObfLiteralContext<ObfBitUint<25>,14244643589484630552,22>: which=2 dbgWhich=2
+                       ObfLiteralContext_version<2/*func with aliased pointers*/,ObfBitUint<25>,14244643589484630552>:
+                      obf_injection_version<0/*identity*/,ObfBitUint<25>,18184533612622379376,21>: availCycles=1
+                       ObfLiteralContext<ObfBitUint<25>,14244643589484630552,22>: which=2 dbgWhich=2
+                        ObfLiteralContext_version<2/*func with aliased pointers*/,ObfBitUint<25>,14244643589484630552>:
+                   TypeHi:ObfBitUint<7>: mask =127
+                   Hi:obf_injection<ObfBitUint<7>,2400928016990394098,6>: which=0 dbgWhich=0
+                    Context:ObfLiteralContext<ObfBitUint<7>,5941178697488686447,7>: which=1 dbgWhich=1
+                     ObfLiteralContext_version<1/*global volatile*/,ObfBitUint<7>,5941178697488686447>: CC=5
+                    obf_injection_version<0/*identity*/,ObfBitUint<7>,2400928016990394098,6>: availCycles=0
+                     ObfLiteralContext<ObfBitUint<7>,5941178697488686447,7>: which=1 dbgWhich=1
+                      ObfLiteralContext_version<1/*global volatile*/,ObfBitUint<7>,5941178697488686447>: CC=5
+              Recursive:obf_injection<ObfBitUint<23>,4830237836672762480,104>: which=1 dbgWhich=1
+               Context:ObfVarContext<ObfBitUint<23>>
+               obf_injection_version<1/*add mod 2^N*/,ObfBitUint<23>,4830237836672762480,104>: C=5 neg=1
+                obf_injection<ObfBitUint<23>,4161503322245199419,102>: which=4 dbgWhich=4
+                 Context:ObfVarContext<ObfBitUint<23>>
+                 obf_injection_version<4/*mul odd mod 2^N*/,ObfBitUint<23>,4161503322245199419,102>: C=31 CINV=7306207
+                  literal:obf_literal_ctx<uint32_t,7306207,6575536515947618354,50>
+                   obf_injection<uint32_t,4868574475638505649,50>: which=6 dbgWhich=6
+                    Context:ObfLiteralContext<uint32_t,146858982888355813,50>: which=1 dbgWhich=1
+                     ObfLiteralContext_version<1/*global volatile*/,uint32_t,146858982888355813>: CC=3
+                    obf_injection_version<6/*injection(halfT)*/,uint32_t,4868574475638505649,50>
+                     Lo:obf_injection<uint16_t,15062768969738066961,4>: which=1 dbgWhich=1
+                      Context:ObfLiteralContext<uint16_t,8138577944904559978,1>: which=0 dbgWhich=0
+                       ObfLiteralContext_version<0/*identity*/,uint16_t>
+                      obf_injection_version<1/*add mod 2^N*/,uint16_t,15062768969738066961,4>: C=31 neg=1
+                       obf_injection<uint16_t,218585119367718914,3>: which=5 dbgWhich=5
+                        Context:ObfLiteralContext<uint16_t,8138577944904559978,1>: which=0 dbgWhich=0
+                         ObfLiteralContext_version<0/*identity*/,uint16_t>
+                        obf_injection_version<5/*split*/,uint16_t,218585119367718914,3>
+                         Lo:obf_injection<uint8_t,5696780551057173530,0>: which=0 dbgWhich=0
+                          Context:ObfLiteralContext<uint8_t,15724083491640932732,0>: which=0 dbgWhich=0
+                           ObfLiteralContext_version<0/*identity*/,uint8_t>
+                          obf_injection_version<0/*identity*/,uint8_t,5696780551057173530,0>: availCycles=0
+                           ObfLiteralContext<uint8_t,15724083491640932732,0>: which=0 dbgWhich=0
+                            ObfLiteralContext_version<0/*identity*/,uint8_t>
+                         Hi:obf_injection<uint8_t,2822287431756093461,0>: which=0 dbgWhich=0
+                          Context:ObfLiteralContext<uint8_t,2420741372731314947,0>: which=0 dbgWhich=0
+                           ObfLiteralContext_version<0/*identity*/,uint8_t>
+                          obf_injection_version<0/*identity*/,uint8_t,2822287431756093461,0>: availCycles=0
+                           ObfLiteralContext<uint8_t,2420741372731314947,0>: which=0 dbgWhich=0
+                            ObfLiteralContext_version<0/*identity*/,uint8_t>
+                     Recursive:obf_injection<uint32_t,5242295209422708839,40>: which=3 dbgWhich=3
+                      Context:ObfLiteralContext<uint32_t,146858982888355813,50>: which=1 dbgWhich=1
+                       ObfLiteralContext_version<1/*global volatile*/,uint32_t,146858982888355813>: CC=3
+                      obf_injection_version<3/*split-join*/,uint32_t,5242295209422708839,40>
+                       Lo:obf_injection<uint16_t,3223266105068456832,5>: which=5 dbgWhich=5
+                        Context:ObfLiteralContext<uint16_t,2859369311069691655,4>: which=0 dbgWhich=0
+                         ObfLiteralContext_version<0/*identity*/,uint16_t>
+                        obf_injection_version<5/*split*/,uint16_t,3223266105068456832,5>
+                         Lo:obf_injection<uint8_t,1216926153413476969,0>: which=0 dbgWhich=0
+                          Context:ObfLiteralContext<uint8_t,7060760040954553661,0>: which=0 dbgWhich=0
+                           ObfLiteralContext_version<0/*identity*/,uint8_t>
+                          obf_injection_version<0/*identity*/,uint8_t,1216926153413476969,0>: availCycles=0
+                           ObfLiteralContext<uint8_t,7060760040954553661,0>: which=0 dbgWhich=0
+                            ObfLiteralContext_version<0/*identity*/,uint8_t>
+                         Hi:obf_injection<uint8_t,5668030294544237185,0>: which=0 dbgWhich=0
+                          Context:ObfLiteralContext<uint8_t,8205695548651403023,0>: which=0 dbgWhich=0
+                           ObfLiteralContext_version<0/*identity*/,uint8_t>
+                          obf_injection_version<0/*identity*/,uint8_t,5668030294544237185,0>: availCycles=0
+                           ObfLiteralContext<uint8_t,8205695548651403023,0>: which=0 dbgWhich=0
+                            ObfLiteralContext_version<0/*identity*/,uint8_t>
+                       Hi:obf_injection<uint16_t,12596345896233264409,7>: which=1 dbgWhich=1
+                        Context:ObfLiteralContext<uint16_t,12652447905286460182,13>: which=1 dbgWhich=1
+                         ObfLiteralContext_version<1/*global volatile*/,uint16_t,12652447905286460182>: CC=3
+                        obf_injection_version<1/*add mod 2^N*/,uint16_t,12596345896233264409,7>: C=1 neg=0
+                         obf_injection<uint16_t,10510517539355856358,6>: which=0 dbgWhich=0
+                          Context:ObfLiteralContext<uint16_t,12652447905286460182,13>: which=1 dbgWhich=1
+                           ObfLiteralContext_version<1/*global volatile*/,uint16_t,12652447905286460182>: CC=3
+                          obf_injection_version<0/*identity*/,uint16_t,10510517539355856358,6>: availCycles=0
+                           ObfLiteralContext<uint16_t,12652447905286460182,13>: which=1 dbgWhich=1
+                            ObfLiteralContext_version<1/*global volatile*/,uint16_t,12652447905286460182>: CC=3
+                       Recursive:obf_injection<uint32_t,9485508419585587384,6>: which=0 dbgWhich=0
+                        Context:ObfLiteralContext<uint32_t,146858982888355813,50>: which=1 dbgWhich=1
+                         ObfLiteralContext_version<1/*global volatile*/,uint32_t,146858982888355813>: CC=3
+                        obf_injection_version<0/*identity*/,uint32_t,9485508419585587384,6>: availCycles=0
+                         ObfLiteralContext<uint32_t,146858982888355813,50>: which=1 dbgWhich=1
+                          ObfLiteralContext_version<1/*global volatile*/,uint32_t,146858982888355813>: CC=3
+                  Recursive:obf_injection<ObfBitUint<23>,7342024554098469647,46>: which=1 dbgWhich=1
+                   Context:ObfVarContext<ObfBitUint<23>>
+                   obf_injection_version<1/*add mod 2^N*/,ObfBitUint<23>,7342024554098469647,46>: C=3 neg=1
+                    obf_injection<ObfBitUint<23>,13882172852981660003,44>: which=0 dbgWhich=0
+                     Context:ObfVarContext<ObfBitUint<23>>
+                     obf_injection_version<0/*identity*/,ObfBitUint<23>,13882172852981660003,44>: availCycles=44
+                      ObfVarContext<ObfBitUint<23>>
+      TypeHi:ObfBitUint<41>: mask =2199023255551
+      Hi:obf_injection<ObfBitUint<41>,3871744786122055028,472>: which=4 dbgWhich=4
+       Context:ObfVarContext<ObfBitUint<41>>
+       obf_injection_version<4/*mul odd mod 2^N*/,ObfBitUint<41>,3871744786122055028,472>: C=31 CINV=1064043510751
+        literal:obf_literal_ctx<uint64_t,1064043510751,5698912775661628037,50>
+         obf_injection<uint64_t,15085390028853579775,50>: which=4 dbgWhich=4
+          Context:ObfLiteralContext<uint64_t,1227884187441783248,50>: which=1 dbgWhich=1
+           ObfLiteralContext_version<1/*global volatile*/,uint64_t,1227884187441783248>: CC=3
+          obf_injection_version<4/*mul odd mod 2^N*/,uint64_t,15085390028853579775,50>: C=31 CINV=17256631552825064415
+           literal:obf_literal_ctx<uint64_t,17256631552825064415,7593784411275461424,0>
+            obf_injection<uint64_t,15440918592492987459,0>: which=0 dbgWhich=0
+             Context:ObfZeroContext<uint64_t>
+             obf_injection_version<0/*identity*/,uint64_t,15440918592492987459,0>: availCycles=0
+              ObfZeroContext<uint64_t>
+           Recursive:obf_injection<uint64_t,10897861506636320029,47>: which=7 dbgWhich=7
+            Context:ObfLiteralContext<uint64_t,1227884187441783248,50>: which=1 dbgWhich=1
+             ObfLiteralContext_version<1/*global volatile*/,uint64_t,1227884187441783248>: CC=3
+            obf_injection_version<7/*split into ObfBitUint<>*/,uint64_t, Context, InjectionRequirements, 10897861506636320029,47>
+             Context:ObfLiteralContext<uint64_t,1227884187441783248,50>: which=1 dbgWhich=1
+              ObfLiteralContext_version<1/*global volatile*/,uint64_t,1227884187441783248>: CC=3
+             TypeLo:ObfBitUint<38>: mask =274877906943
+             Lo:obf_injection<ObfBitUint<38>,15100759888985438975,21>: which=1 dbgWhich=1
+              Context:ObfLiteralContext<ObfBitUint<38>,12447535035217203233,21>: which=2 dbgWhich=2
+               ObfLiteralContext_version<2/*func with aliased pointers*/,ObfBitUint<38>,12447535035217203233>:
+              obf_injection_version<1/*add mod 2^N*/,ObfBitUint<38>,15100759888985438975,21>: C=31 neg=1
+               obf_injection<ObfBitUint<38>,14570796197435479541,20>: which=0 dbgWhich=0
+                Context:ObfLiteralContext<ObfBitUint<38>,12447535035217203233,21>: which=2 dbgWhich=2
+                 ObfLiteralContext_version<2/*func with aliased pointers*/,ObfBitUint<38>,12447535035217203233>:
+                obf_injection_version<0/*identity*/,ObfBitUint<38>,14570796197435479541,20>: availCycles=0
+                 ObfLiteralContext<ObfBitUint<38>,12447535035217203233,21>: which=2 dbgWhich=2
+                  ObfLiteralContext_version<2/*func with aliased pointers*/,ObfBitUint<38>,12447535035217203233>:
+             TypeHi:ObfBitUint<26>: mask =67108863
+             Hi:obf_injection<ObfBitUint<26>,9808297957927806801,7>: which=1 dbgWhich=1
+              Context:ObfLiteralContext<ObfBitUint<26>,10825619373078941412,6>: which=1 dbgWhich=1
+               ObfLiteralContext_version<1/*global volatile*/,ObfBitUint<26>,10825619373078941412>: CC=31
+              obf_injection_version<1/*add mod 2^N*/,ObfBitUint<26>,9808297957927806801,7>: C=1 neg=1
+               obf_injection<ObfBitUint<26>,15086662377614214135,6>: which=0 dbgWhich=0
+                Context:ObfLiteralContext<ObfBitUint<26>,10825619373078941412,6>: which=1 dbgWhich=1
+                 ObfLiteralContext_version<1/*global volatile*/,ObfBitUint<26>,10825619373078941412>: CC=31
+                obf_injection_version<0/*identity*/,ObfBitUint<26>,15086662377614214135,6>: availCycles=0
+                 ObfLiteralContext<ObfBitUint<26>,10825619373078941412,6>: which=1 dbgWhich=1
+                  ObfLiteralContext_version<1/*global volatile*/,ObfBitUint<26>,10825619373078941412>: CC=31
+        Recursive:obf_injection<ObfBitUint<41>,4069114434505843183,416>: which=1 dbgWhich=1
+         Context:ObfVarContext<ObfBitUint<41>>
+         obf_injection_version<1/*add mod 2^N*/,ObfBitUint<41>,4069114434505843183,416>: C=5 neg=0
+          obf_injection<ObfBitUint<41>,13587472696607803727,414>: which=4 dbgWhich=4
+           Context:ObfVarContext<ObfBitUint<41>>
+           obf_injection_version<4/*mul odd mod 2^N*/,ObfBitUint<41>,13587472696607803727,414>: C=3 CINV=733007751851
+            literal:obf_literal_ctx<uint64_t,733007751851,6769303762800105265,50>
+             obf_injection<uint64_t,16749949709701004837,50>: which=3 dbgWhich=3
+              Context:ObfLiteralContext<uint64_t,1227884187441783248,50>: which=1 dbgWhich=1
+               ObfLiteralContext_version<1/*global volatile*/,uint64_t,1227884187441783248>: CC=3
+              obf_injection_version<3/*split-join*/,uint64_t,16749949709701004837,50>
+               Lo:obf_injection<uint32_t,11491127030680054199,18>: which=5 dbgWhich=5
+                Context:ObfLiteralContext<uint32_t,15589056654005777046,0>: which=0 dbgWhich=0
+                 ObfLiteralContext_version<0/*identity*/,uint32_t>
+                obf_injection_version<5/*split*/,uint32_t,11491127030680054199,18>
+                 Lo:obf_injection<uint16_t,15922589232081036120,3>: which=1 dbgWhich=1
+                  Context:ObfLiteralContext<uint16_t,12355806240600017119,4>: which=0 dbgWhich=0
+                   ObfLiteralContext_version<0/*identity*/,uint16_t>
+                  obf_injection_version<1/*add mod 2^N*/,uint16_t,15922589232081036120,3>: C=5 neg=0
+                   obf_injection<uint16_t,9913742059270615755,2>: which=0 dbgWhich=0
+                    Context:ObfLiteralContext<uint16_t,12355806240600017119,4>: which=0 dbgWhich=0
+                     ObfLiteralContext_version<0/*identity*/,uint16_t>
+                    obf_injection_version<0/*identity*/,uint16_t,9913742059270615755,2>: availCycles=2
+                     ObfLiteralContext<uint16_t,12355806240600017119,4>: which=0 dbgWhich=0
+                      ObfLiteralContext_version<0/*identity*/,uint16_t>
+                 Hi:obf_injection<uint16_t,4339260434058131389,3>: which=5 dbgWhich=5
+                  Context:ObfLiteralContext<uint16_t,13135517361842527612,2>: which=0 dbgWhich=0
+                   ObfLiteralContext_version<0/*identity*/,uint16_t>
+                  obf_injection_version<5/*split*/,uint16_t,4339260434058131389,3>
+                   Lo:obf_injection<uint8_t,819804902009459500,0>: which=0 dbgWhich=0
+                    Context:ObfLiteralContext<uint8_t,2397097542198728470,0>: which=0 dbgWhich=0
+                     ObfLiteralContext_version<0/*identity*/,uint8_t>
+                    obf_injection_version<0/*identity*/,uint8_t,819804902009459500,0>: availCycles=0
+                     ObfLiteralContext<uint8_t,2397097542198728470,0>: which=0 dbgWhich=0
+                      ObfLiteralContext_version<0/*identity*/,uint8_t>
+                   Hi:obf_injection<uint8_t,5125832179926532015,0>: which=0 dbgWhich=0
+                    Context:ObfLiteralContext<uint8_t,17006762562805697720,0>: which=0 dbgWhich=0
+                     ObfLiteralContext_version<0/*identity*/,uint8_t>
+                    obf_injection_version<0/*identity*/,uint8_t,5125832179926532015,0>: availCycles=0
+                     ObfLiteralContext<uint8_t,17006762562805697720,0>: which=0 dbgWhich=0
+                      ObfLiteralContext_version<0/*identity*/,uint8_t>
+               Hi:obf_injection<uint32_t,1347510649365556403,4>: which=1 dbgWhich=1
+                Context:ObfLiteralContext<uint32_t,4059465359276627370,3>: which=0 dbgWhich=0
+                 ObfLiteralContext_version<0/*identity*/,uint32_t>
+                obf_injection_version<1/*add mod 2^N*/,uint32_t,1347510649365556403,4>: C=1 neg=0
+                 obf_injection<uint32_t,2376829382241665789,3>: which=4 dbgWhich=4
+                  Context:ObfLiteralContext<uint32_t,4059465359276627370,3>: which=0 dbgWhich=0
+                   ObfLiteralContext_version<0/*identity*/,uint32_t>
+                  obf_injection_version<4/*mul odd mod 2^N*/,uint32_t,2376829382241665789,3>: C=3 CINV=2863311531
+                   literal:obf_literal_ctx<uint32_t,2863311531,7948879944839536942,0>
+                    obf_injection<uint32_t,44603835645667787,0>: which=0 dbgWhich=0
+                     Context:ObfZeroContext<uint32_t>
+                     obf_injection_version<0/*identity*/,uint32_t,44603835645667787,0>: availCycles=0
+                      ObfZeroContext<uint32_t>
+                   Recursive:obf_injection<uint32_t,6844019893274688646,0>: which=0 dbgWhich=0
+                    Context:ObfLiteralContext<uint32_t,4059465359276627370,3>: which=0 dbgWhich=0
+                     ObfLiteralContext_version<0/*identity*/,uint32_t>
+                    obf_injection_version<0/*identity*/,uint32_t,6844019893274688646,0>: availCycles=0
+                     ObfLiteralContext<uint32_t,4059465359276627370,3>: which=0 dbgWhich=0
+                      ObfLiteralContext_version<0/*identity*/,uint32_t>
+               Recursive:obf_injection<uint64_t,14007935091825272075,14>: which=2 dbgWhich=2
+                Context:ObfLiteralContext<uint64_t,1227884187441783248,50>: which=1 dbgWhich=1
+                 ObfLiteralContext_version<1/*global volatile*/,uint64_t,1227884187441783248>: CC=3
+                obf_injection_version<2/*kinda-Feistel*/,uint64_t,14007935091825272075,14>: availCycles=1 cycles_f=0 cycles_rInj=0
+                 f():obf_randomized_non_reversible_function<uint32_t,16380848015910580715,0>: which=0
+                  obf_randomized_non_reversible_function<0/*identity*/,uint32_t,16380848015910580715,0>
+                 Recursive:obf_injection<uint64_t,5399122860943145521,6>: which=0 dbgWhich=0
+                  Context:ObfLiteralContext<uint64_t,1227884187441783248,50>: which=1 dbgWhich=1
+                   ObfLiteralContext_version<1/*global volatile*/,uint64_t,1227884187441783248>: CC=3
+                  obf_injection_version<0/*identity*/,uint64_t,5399122860943145521,6>: availCycles=0
+                   ObfLiteralContext<uint64_t,1227884187441783248,50>: which=1 dbgWhich=1
+                    ObfLiteralContext_version<1/*global volatile*/,uint64_t,1227884187441783248>: CC=3
+            Recursive:obf_injection<ObfBitUint<41>,17031830442541200793,358>: which=1 dbgWhich=1
+             Context:ObfVarContext<ObfBitUint<41>>
+             obf_injection_version<1/*add mod 2^N*/,ObfBitUint<41>,17031830442541200793,358>: C=1 neg=1
+              obf_injection<ObfBitUint<41>,5248456132913659540,356>: which=4 dbgWhich=4
+               Context:ObfVarContext<ObfBitUint<41>>
+               obf_injection_version<4/*mul odd mod 2^N*/,ObfBitUint<41>,5248456132913659540,356>: C=31 CINV=1064043510751
+                literal:obf_literal_ctx<uint64_t,1064043510751,5119062477333241366,50>
+                 obf_injection<uint64_t,17151523924111160369,50>: which=4 dbgWhich=4
+                  Context:ObfLiteralContext<uint64_t,1227884187441783248,50>: which=1 dbgWhich=1
+                   ObfLiteralContext_version<1/*global volatile*/,uint64_t,1227884187441783248>: CC=3
+                  obf_injection_version<4/*mul odd mod 2^N*/,uint64_t,17151523924111160369,50>: C=3 CINV=12297829382473034411
+                   literal:obf_literal_ctx<uint64_t,12297829382473034411,7983784365667948292,0>
+                    obf_injection<uint64_t,15223914241799068959,0>: which=0 dbgWhich=0
+                     Context:ObfZeroContext<uint64_t>
+                     obf_injection_version<0/*identity*/,uint64_t,15223914241799068959,0>: availCycles=0
+                      ObfZeroContext<uint64_t>
+                   Recursive:obf_injection<uint64_t,12211945428626167846,47>: which=3 dbgWhich=3
+                    Context:ObfLiteralContext<uint64_t,1227884187441783248,50>: which=1 dbgWhich=1
+                     ObfLiteralContext_version<1/*global volatile*/,uint64_t,1227884187441783248>: CC=3
+                    obf_injection_version<3/*split-join*/,uint64_t,12211945428626167846,47>
+                     Lo:obf_injection<uint32_t,8559331760078449508,4>: which=1 dbgWhich=1
+                      Context:ObfLiteralContext<uint32_t,1686813726359900200,1>: which=0 dbgWhich=0
+                       ObfLiteralContext_version<0/*identity*/,uint32_t>
+                      obf_injection_version<1/*add mod 2^N*/,uint32_t,8559331760078449508,4>: C=0 neg=1
+                       obf_injection<uint32_t,1072369981846688173,3>: which=5 dbgWhich=5
+                        Context:ObfLiteralContext<uint32_t,1686813726359900200,1>: which=0 dbgWhich=0
+                         ObfLiteralContext_version<0/*identity*/,uint32_t>
+                        obf_injection_version<5/*split*/,uint32_t,1072369981846688173,3>
+                         Lo:obf_injection<uint16_t,13196820070085413657,0>: which=0 dbgWhich=0
+                          Context:ObfLiteralContext<uint16_t,11069740518127489865,0>: which=0 dbgWhich=0
+                           ObfLiteralContext_version<0/*identity*/,uint16_t>
+                          obf_injection_version<0/*identity*/,uint16_t,13196820070085413657,0>: availCycles=0
+                           ObfLiteralContext<uint16_t,11069740518127489865,0>: which=0 dbgWhich=0
+                            ObfLiteralContext_version<0/*identity*/,uint16_t>
+                         Hi:obf_injection<uint16_t,12751986914121868150,0>: which=0 dbgWhich=0
+                          Context:ObfLiteralContext<uint16_t,8962719523212838687,0>: which=0 dbgWhich=0
+                           ObfLiteralContext_version<0/*identity*/,uint16_t>
+                          obf_injection_version<0/*identity*/,uint16_t,12751986914121868150,0>: availCycles=0
+                           ObfLiteralContext<uint16_t,8962719523212838687,0>: which=0 dbgWhich=0
+                            ObfLiteralContext_version<0/*identity*/,uint16_t>
+                     Hi:obf_injection<uint32_t,17509172580997436180,3>: which=6 dbgWhich=6
+                      Context:ObfLiteralContext<uint32_t,4543834309577692943,5>: which=0 dbgWhich=0
+                       ObfLiteralContext_version<0/*identity*/,uint32_t>
+                      obf_injection_version<6/*injection(halfT)*/,uint32_t,17509172580997436180,3>
+                       Lo:obf_injection<uint16_t,11773230284024759454,0>: which=0 dbgWhich=0
+                        Context:ObfLiteralContext<uint16_t,3108571887279548275,0>: which=0 dbgWhich=0
+                         ObfLiteralContext_version<0/*identity*/,uint16_t>
+                        obf_injection_version<0/*identity*/,uint16_t,11773230284024759454,0>: availCycles=0
+                         ObfLiteralContext<uint16_t,3108571887279548275,0>: which=0 dbgWhich=0
+                          ObfLiteralContext_version<0/*identity*/,uint16_t>
+                       Recursive:obf_injection<uint32_t,15065170987730585277,0>: which=0 dbgWhich=0
+                        Context:ObfLiteralContext<uint32_t,4543834309577692943,5>: which=0 dbgWhich=0
+                         ObfLiteralContext_version<0/*identity*/,uint32_t>
+                        obf_injection_version<0/*identity*/,uint32_t,15065170987730585277,0>: availCycles=0
+                         ObfLiteralContext<uint32_t,4543834309577692943,5>: which=0 dbgWhich=0
+                          ObfLiteralContext_version<0/*identity*/,uint32_t>
+                     Recursive:obf_injection<uint64_t,9012504293770210815,24>: which=8 dbgWhich=8
+                      Context:ObfLiteralContext<uint64_t,1227884187441783248,50>: which=1 dbgWhich=1
+                       ObfLiteralContext_version<1/*global volatile*/,uint64_t,1227884187441783248>: CC=3
+                      obf_injection_version<FIRST_USER_INJECTION/*shift+add*/,uint64_t,9012504293770210815,24>: shift=32
+                       obf_injection<uint64_t,16498628206929969154,20>: which=6 dbgWhich=6
+                        Context:ObfLiteralContext<uint64_t,1227884187441783248,50>: which=1 dbgWhich=1
+                         ObfLiteralContext_version<1/*global volatile*/,uint64_t,1227884187441783248>: CC=3
+                        obf_injection_version<6/*injection(halfT)*/,uint64_t,16498628206929969154,20>
+                         Lo:obf_injection<uint32_t,5639371061614392964,1>: which=1 dbgWhich=1
+                          Context:ObfLiteralContext<uint32_t,12435394423635898007,2>: which=0 dbgWhich=0
+                           ObfLiteralContext_version<0/*identity*/,uint32_t>
+                          obf_injection_version<1/*add mod 2^N*/,uint32_t,5639371061614392964,1>: C=3 neg=0
+                           obf_injection<uint32_t,3411290988804929941,0>: which=0 dbgWhich=0
+                            Context:ObfLiteralContext<uint32_t,12435394423635898007,2>: which=0 dbgWhich=0
+                             ObfLiteralContext_version<0/*identity*/,uint32_t>
+                            obf_injection_version<0/*identity*/,uint32_t,3411290988804929941,0>: availCycles=0
+                             ObfLiteralContext<uint32_t,12435394423635898007,2>: which=0 dbgWhich=0
+                              ObfLiteralContext_version<0/*identity*/,uint32_t>
+                         Recursive:obf_injection<uint64_t,10982384014396073270,12>: which=4 dbgWhich=4
+                          Context:ObfLiteralContext<uint64_t,1227884187441783248,50>: which=1 dbgWhich=1
+                           ObfLiteralContext_version<1/*global volatile*/,uint64_t,1227884187441783248>: CC=3
+                          obf_injection_version<4/*mul odd mod 2^N*/,uint64_t,10982384014396073270,12>: C=31 CINV=17256631552825064415
+                           literal:obf_literal_ctx<uint64_t,17256631552825064415,13876634794860293785,0>
+                            obf_injection<uint64_t,15192746756879054006,0>: which=0 dbgWhich=0
+                             Context:ObfZeroContext<uint64_t>
+                             obf_injection_version<0/*identity*/,uint64_t,15192746756879054006,0>: availCycles=0
+                              ObfZeroContext<uint64_t>
+                           Recursive:obf_injection<uint64_t,18083291867410850766,9>: which=1 dbgWhich=1
+                            Context:ObfLiteralContext<uint64_t,1227884187441783248,50>: which=1 dbgWhich=1
+                             ObfLiteralContext_version<1/*global volatile*/,uint64_t,1227884187441783248>: CC=3
+                            obf_injection_version<1/*add mod 2^N*/,uint64_t,18083291867410850766,9>: C=5 neg=1
+                             obf_injection<uint64_t,12405044228990441139,8>: which=0 dbgWhich=0
+                              Context:ObfLiteralContext<uint64_t,1227884187441783248,50>: which=1 dbgWhich=1
+                               ObfLiteralContext_version<1/*global volatile*/,uint64_t,1227884187441783248>: CC=3
+                              obf_injection_version<0/*identity*/,uint64_t,12405044228990441139,8>: availCycles=2
+                               ObfLiteralContext<uint64_t,1227884187441783248,50>: which=1 dbgWhich=1
+                                ObfLiteralContext_version<1/*global volatile*/,uint64_t,1227884187441783248>: CC=3
+                Recursive:obf_injection<ObfBitUint<41>,13287274128701159958,300>: which=1 dbgWhich=1
+                 Context:ObfVarContext<ObfBitUint<41>>
+                 obf_injection_version<1/*add mod 2^N*/,ObfBitUint<41>,13287274128701159958,300>: C=3 neg=1
+                  obf_injection<ObfBitUint<41>,3082745339684549952,298>: which=4 dbgWhich=4
+                   Context:ObfVarContext<ObfBitUint<41>>
+                   obf_injection_version<4/*mul odd mod 2^N*/,ObfBitUint<41>,3082745339684549952,298>: C=3 CINV=733007751851
+                    literal:obf_literal_ctx<uint64_t,733007751851,10516027768149095471,50>
+                     obf_injection<uint64_t,17118925453014886369,50>: which=4 dbgWhich=4
+                      Context:ObfLiteralContext<uint64_t,1227884187441783248,50>: which=1 dbgWhich=1
+                       ObfLiteralContext_version<1/*global volatile*/,uint64_t,1227884187441783248>: CC=3
+                      obf_injection_version<4/*mul odd mod 2^N*/,uint64_t,17118925453014886369,50>: C=31 CINV=17256631552825064415
+                       literal:obf_literal_ctx<uint64_t,17256631552825064415,17800699188147071253,0>
+                        obf_injection<uint64_t,7482251550771120377,0>: which=0 dbgWhich=0
+                         Context:ObfZeroContext<uint64_t>
+                         obf_injection_version<0/*identity*/,uint64_t,7482251550771120377,0>: availCycles=0
+                          ObfZeroContext<uint64_t>
+                       Recursive:obf_injection<uint64_t,17585559589872734945,47>: which=8 dbgWhich=8
+                        Context:ObfLiteralContext<uint64_t,1227884187441783248,50>: which=1 dbgWhich=1
+                         ObfLiteralContext_version<1/*global volatile*/,uint64_t,1227884187441783248>: CC=3
+                        obf_injection_version<FIRST_USER_INJECTION/*shift+add*/,uint64_t,17585559589872734945,47>: shift=32
+                         obf_injection<uint64_t,6861091866323911908,43>: which=1 dbgWhich=1
+                          Context:ObfLiteralContext<uint64_t,1227884187441783248,50>: which=1 dbgWhich=1
+                           ObfLiteralContext_version<1/*global volatile*/,uint64_t,1227884187441783248>: CC=3
+                          obf_injection_version<1/*add mod 2^N*/,uint64_t,6861091866323911908,43>: C=1 neg=1
+                           obf_injection<uint64_t,8718522516530759386,42>: which=7 dbgWhich=7
+                            Context:ObfLiteralContext<uint64_t,1227884187441783248,50>: which=1 dbgWhich=1
+                             ObfLiteralContext_version<1/*global volatile*/,uint64_t,1227884187441783248>: CC=3
+                            obf_injection_version<7/*split into ObfBitUint<>*/,uint64_t, Context, InjectionRequirements, 8718522516530759386,42>
+                             Context:ObfLiteralContext<uint64_t,1227884187441783248,50>: which=1 dbgWhich=1
+                              ObfLiteralContext_version<1/*global volatile*/,uint64_t,1227884187441783248>: CC=3
+                             TypeLo:ObfBitUint<43>: mask =8796093022207
+                             Lo:obf_injection<ObfBitUint<43>,14770535603848786569,9>: which=1 dbgWhich=1
+                              Context:ObfLiteralContext<ObfBitUint<43>,10197253021625218178,10>: which=1 dbgWhich=1
+                               ObfLiteralContext_version<1/*global volatile*/,ObfBitUint<43>,10197253021625218178>: CC=31
+                              obf_injection_version<1/*add mod 2^N*/,ObfBitUint<43>,14770535603848786569,9>: C=5 neg=0
+                               obf_injection<ObfBitUint<43>,3948357832320187734,8>: which=0 dbgWhich=0
+                                Context:ObfLiteralContext<ObfBitUint<43>,10197253021625218178,10>: which=1 dbgWhich=1
+                                 ObfLiteralContext_version<1/*global volatile*/,ObfBitUint<43>,10197253021625218178>: CC=31
+                                obf_injection_version<0/*identity*/,ObfBitUint<43>,3948357832320187734,8>: availCycles=2
+                                 ObfLiteralContext<ObfBitUint<43>,10197253021625218178,10>: which=1 dbgWhich=1
+                                  ObfLiteralContext_version<1/*global volatile*/,ObfBitUint<43>,10197253021625218178>: CC=31
+                             TypeHi:ObfBitUint<21>: mask =2097151
+                             Hi:obf_injection<ObfBitUint<21>,6070308692339159654,7>: which=1 dbgWhich=1
+                              Context:ObfLiteralContext<ObfBitUint<21>,17570122096260503488,11>: which=1 dbgWhich=1
+                               ObfLiteralContext_version<1/*global volatile*/,ObfBitUint<21>,17570122096260503488>: CC=31
+                              obf_injection_version<1/*add mod 2^N*/,ObfBitUint<21>,6070308692339159654,7>: C=5 neg=1
+                               obf_injection<ObfBitUint<21>,16868265942725027295,6>: which=0 dbgWhich=0
+                                Context:ObfLiteralContext<ObfBitUint<21>,17570122096260503488,11>: which=1 dbgWhich=1
+                                 ObfLiteralContext_version<1/*global volatile*/,ObfBitUint<21>,17570122096260503488>: CC=31
+                                obf_injection_version<0/*identity*/,ObfBitUint<21>,16868265942725027295,6>: availCycles=0
+                                 ObfLiteralContext<ObfBitUint<21>,17570122096260503488,11>: which=1 dbgWhich=1
+                                  ObfLiteralContext_version<1/*global volatile*/,ObfBitUint<21>,17570122096260503488>: CC=31
+                    Recursive:obf_injection<ObfBitUint<41>,6157329489566734087,242>: which=1 dbgWhich=1
+                     Context:ObfVarContext<ObfBitUint<41>>
+                     obf_injection_version<1/*add mod 2^N*/,ObfBitUint<41>,6157329489566734087,242>: C=31 neg=1
+                      obf_injection<ObfBitUint<41>,14190557327390908291,240>: which=4 dbgWhich=4
+                       Context:ObfVarContext<ObfBitUint<41>>
+                       obf_injection_version<4/*mul odd mod 2^N*/,ObfBitUint<41>,14190557327390908291,240>: C=31 CINV=1064043510751
+                        literal:obf_literal_ctx<uint64_t,1064043510751,4865036059041891540,50>
+                         obf_injection<uint64_t,16643095811082105053,50>: which=8 dbgWhich=8
+                          Context:ObfLiteralContext<uint64_t,1227884187441783248,50>: which=1 dbgWhich=1
+                           ObfLiteralContext_version<1/*global volatile*/,uint64_t,1227884187441783248>: CC=3
+                          obf_injection_version<FIRST_USER_INJECTION/*shift+add*/,uint64_t,16643095811082105053,50>: shift=32
+                           obf_injection<uint64_t,1510292524224989456,46>: which=5 dbgWhich=5
+                            Context:ObfLiteralContext<uint64_t,1227884187441783248,50>: which=1 dbgWhich=1
+                             ObfLiteralContext_version<1/*global volatile*/,uint64_t,1227884187441783248>: CC=3
+                            obf_injection_version<5/*split*/,uint64_t,1510292524224989456,46>
+                             Lo:obf_injection<uint32_t,17110416387935938810,7>: which=1 dbgWhich=1
+                              Context:ObfLiteralContext<uint32_t,15976249972338836157,8>: which=1 dbgWhich=1
+                               ObfLiteralContext_version<1/*global volatile*/,uint32_t,15976249972338836157>: CC=31
+                              obf_injection_version<1/*add mod 2^N*/,uint32_t,17110416387935938810,7>: C=0 neg=1
+                               obf_injection<uint32_t,6359654819515829819,6>: which=0 dbgWhich=0
+                                Context:ObfLiteralContext<uint32_t,15976249972338836157,8>: which=1 dbgWhich=1
+                                 ObfLiteralContext_version<1/*global volatile*/,uint32_t,15976249972338836157>: CC=31
+                                obf_injection_version<0/*identity*/,uint32_t,6359654819515829819,6>: availCycles=0
+                                 ObfLiteralContext<uint32_t,15976249972338836157,8>: which=1 dbgWhich=1
+                                  ObfLiteralContext_version<1/*global volatile*/,uint32_t,15976249972338836157>: CC=31
+                             Hi:obf_injection<uint32_t,4489838600761490646,18>: which=4 dbgWhich=4
+                              Context:ObfLiteralContext<uint32_t,9055458169141541578,19>: which=1 dbgWhich=1
+                               ObfLiteralContext_version<1/*global volatile*/,uint32_t,9055458169141541578>: CC=31
+                              obf_injection_version<4/*mul odd mod 2^N*/,uint32_t,4489838600761490646,18>: C=31 CINV=3186588639
+                               literal:obf_literal_ctx<uint32_t,3186588639,1062134395337007597,0>
+                                obf_injection<uint32_t,1417729840121597293,0>: which=0 dbgWhich=0
+                                 Context:ObfZeroContext<uint32_t>
+                                 obf_injection_version<0/*identity*/,uint32_t,1417729840121597293,0>: availCycles=0
+                                  ObfZeroContext<uint32_t>
+                               Recursive:obf_injection<uint32_t,9721200305366515199,15>: which=5 dbgWhich=5
+                                Context:ObfLiteralContext<uint32_t,9055458169141541578,19>: which=1 dbgWhich=1
+                                 ObfLiteralContext_version<1/*global volatile*/,uint32_t,9055458169141541578>: CC=31
+                                obf_injection_version<5/*split*/,uint32_t,9721200305366515199,15>
+                                 Lo:obf_injection<uint16_t,9588061168442293003,6>: which=0 dbgWhich=0
+                                  Context:ObfLiteralContext<uint16_t,6026845569326790894,6>: which=1 dbgWhich=1
+                                   ObfLiteralContext_version<1/*global volatile*/,uint16_t,6026845569326790894>: CC=3
+                                  obf_injection_version<0/*identity*/,uint16_t,9588061168442293003,6>: availCycles=0
+                                   ObfLiteralContext<uint16_t,6026845569326790894,6>: which=1 dbgWhich=1
+                                    ObfLiteralContext_version<1/*global volatile*/,uint16_t,6026845569326790894>: CC=3
+                                 Hi:obf_injection<uint16_t,11326536255796890658,6>: which=0 dbgWhich=0
+                                  Context:ObfLiteralContext<uint16_t,11781826356177652383,6>: which=1 dbgWhich=1
+                                   ObfLiteralContext_version<1/*global volatile*/,uint16_t,11781826356177652383>: CC=31
+                                  obf_injection_version<0/*identity*/,uint16_t,11326536255796890658,6>: availCycles=0
+                                   ObfLiteralContext<uint16_t,11781826356177652383,6>: which=1 dbgWhich=1
+                                    ObfLiteralContext_version<1/*global volatile*/,uint16_t,11781826356177652383>: CC=31
+                        Recursive:obf_injection<ObfBitUint<41>,14702192903151838416,184>: which=1 dbgWhich=1
+                         Context:ObfVarContext<ObfBitUint<41>>
+                         obf_injection_version<1/*add mod 2^N*/,ObfBitUint<41>,14702192903151838416,184>: C=1 neg=0
+                          obf_injection<ObfBitUint<41>,9161286619941076746,182>: which=4 dbgWhich=4
+                           Context:ObfVarContext<ObfBitUint<41>>
+                           obf_injection_version<4/*mul odd mod 2^N*/,ObfBitUint<41>,9161286619941076746,182>: C=3 CINV=733007751851
+                            literal:obf_literal_ctx<uint64_t,733007751851,9690768175917275442,50>
+                             obf_injection<uint64_t,10912579345938403120,50>: which=6 dbgWhich=6
+                              Context:ObfLiteralContext<uint64_t,1227884187441783248,50>: which=1 dbgWhich=1
+                               ObfLiteralContext_version<1/*global volatile*/,uint64_t,1227884187441783248>: CC=3
+                              obf_injection_version<6/*injection(halfT)*/,uint64_t,10912579345938403120,50>
+                               Lo:obf_injection<uint32_t,8106879124869539911,9>: which=1 dbgWhich=1
+                                Context:ObfLiteralContext<uint32_t,13297580796230692292,10>: which=1 dbgWhich=1
+                                 ObfLiteralContext_version<1/*global volatile*/,uint32_t,13297580796230692292>: CC=5
+                                obf_injection_version<1/*add mod 2^N*/,uint32_t,8106879124869539911,9>: C=1 neg=1
+                                 obf_injection<uint32_t,15569136164256274121,8>: which=0 dbgWhich=0
+                                  Context:ObfLiteralContext<uint32_t,13297580796230692292,10>: which=1 dbgWhich=1
+                                   ObfLiteralContext_version<1/*global volatile*/,uint32_t,13297580796230692292>: CC=5
+                                  obf_injection_version<0/*identity*/,uint32_t,15569136164256274121,8>: availCycles=2
+                                   ObfLiteralContext<uint32_t,13297580796230692292,10>: which=1 dbgWhich=1
+                                    ObfLiteralContext_version<1/*global volatile*/,uint32_t,13297580796230692292>: CC=5
+                               Recursive:obf_injection<uint64_t,11169002825127719851,32>: which=2 dbgWhich=2
+                                Context:ObfLiteralContext<uint64_t,1227884187441783248,50>: which=1 dbgWhich=1
+                                 ObfLiteralContext_version<1/*global volatile*/,uint64_t,1227884187441783248>: CC=3
+                                obf_injection_version<2/*kinda-Feistel*/,uint64_t,11169002825127719851,32>: availCycles=19 cycles_f=6 cycles_rInj=12
+                                 f():obf_randomized_non_reversible_function<uint32_t,15571741765805117097,6>: which=1
+                                  obf_randomized_non_reversible_function<1/*x^2*/,uint32_t,15571741765805117097,6>
+                                 Recursive:obf_injection<uint64_t,11191295749123391145,18>: which=2 dbgWhich=2
+                                  Context:ObfLiteralContext<uint64_t,1227884187441783248,50>: which=1 dbgWhich=1
+                                   ObfLiteralContext_version<1/*global volatile*/,uint64_t,1227884187441783248>: CC=3
+                                  obf_injection_version<2/*kinda-Feistel*/,uint64_t,11191295749123391145,18>: availCycles=5 cycles_f=2 cycles_rInj=2
+                                   f():obf_randomized_non_reversible_function<uint32_t,8779025152202924203,2>: which=0
+                                    obf_randomized_non_reversible_function<0/*identity*/,uint32_t,8779025152202924203,2>
+                                   Recursive:obf_injection<uint64_t,927348255045196435,8>: which=1 dbgWhich=1
+                                    Context:ObfLiteralContext<uint64_t,1227884187441783248,50>: which=1 dbgWhich=1
+                                     ObfLiteralContext_version<1/*global volatile*/,uint64_t,1227884187441783248>: CC=3
+                                    obf_injection_version<1/*add mod 2^N*/,uint64_t,927348255045196435,8>: C=0 neg=1
+                                     obf_injection<uint64_t,2698029424531591207,7>: which=0 dbgWhich=0
+                                      Context:ObfLiteralContext<uint64_t,1227884187441783248,50>: which=1 dbgWhich=1
+                                       ObfLiteralContext_version<1/*global volatile*/,uint64_t,1227884187441783248>: CC=3
+                                      obf_injection_version<0/*identity*/,uint64_t,2698029424531591207,7>: availCycles=1
+                                       ObfLiteralContext<uint64_t,1227884187441783248,50>: which=1 dbgWhich=1
+                                        ObfLiteralContext_version<1/*global volatile*/,uint64_t,1227884187441783248>: CC=3
+                            Recursive:obf_injection<ObfBitUint<41>,14481644722362098302,126>: which=1 dbgWhich=1
+                             Context:ObfVarContext<ObfBitUint<41>>
+                             obf_injection_version<1/*add mod 2^N*/,ObfBitUint<41>,14481644722362098302,126>: C=31 neg=1
+                              obf_injection<ObfBitUint<41>,13138432859089388688,124>: which=4 dbgWhich=4
+                               Context:ObfVarContext<ObfBitUint<41>>
+                               obf_injection_version<4/*mul odd mod 2^N*/,ObfBitUint<41>,13138432859089388688,124>: C=31 CINV=1064043510751
+                                literal:obf_literal_ctx<uint64_t,1064043510751,12579647096829764996,50>
+                                 obf_injection<uint64_t,18368096632474980366,50>: which=6 dbgWhich=6
+                                  Context:ObfLiteralContext<uint64_t,1227884187441783248,50>: which=1 dbgWhich=1
+                                   ObfLiteralContext_version<1/*global volatile*/,uint64_t,1227884187441783248>: CC=3
+                                  obf_injection_version<6/*injection(halfT)*/,uint64_t,18368096632474980366,50>
+                                   Lo:obf_injection<uint32_t,17168034667004172814,0>: which=0 dbgWhich=0
+                                    Context:ObfLiteralContext<uint32_t,17618489116417581253,1>: which=0 dbgWhich=0
+                                     ObfLiteralContext_version<0/*identity*/,uint32_t>
+                                    obf_injection_version<0/*identity*/,uint32_t,17168034667004172814,0>: availCycles=0
+                                     ObfLiteralContext<uint32_t,17618489116417581253,1>: which=0 dbgWhich=0
+                                      ObfLiteralContext_version<0/*identity*/,uint32_t>
+                                   Recursive:obf_injection<uint64_t,16828824322159254437,44>: which=7 dbgWhich=7
+                                    Context:ObfLiteralContext<uint64_t,1227884187441783248,50>: which=1 dbgWhich=1
+                                     ObfLiteralContext_version<1/*global volatile*/,uint64_t,1227884187441783248>: CC=3
+                                    obf_injection_version<7/*split into ObfBitUint<>*/,uint64_t, Context, InjectionRequirements, 16828824322159254437,44>
+                                     Context:ObfLiteralContext<uint64_t,1227884187441783248,50>: which=1 dbgWhich=1
+                                      ObfLiteralContext_version<1/*global volatile*/,uint64_t,1227884187441783248>: CC=3
+                                     TypeLo:ObfBitUint<36>: mask =68719476735
+                                     Lo:obf_injection<ObfBitUint<36>,1444290985303610532,10>: which=1 dbgWhich=1
+                                      Context:ObfLiteralContext<ObfBitUint<36>,12432274193785994846,10>: which=1 dbgWhich=1
+                                       ObfLiteralContext_version<1/*global volatile*/,ObfBitUint<36>,12432274193785994846>: CC=31
+                                      obf_injection_version<1/*add mod 2^N*/,ObfBitUint<36>,1444290985303610532,10>: C=0 neg=1
+                                       obf_injection<ObfBitUint<36>,7328943366219678718,9>: which=4 dbgWhich=4
+                                        Context:ObfLiteralContext<ObfBitUint<36>,12432274193785994846,10>: which=1 dbgWhich=1
+                                         ObfLiteralContext_version<1/*global volatile*/,ObfBitUint<36>,12432274193785994846>: CC=31
+                                        obf_injection_version<4/*mul odd mod 2^N*/,ObfBitUint<36>,7328943366219678718,9>: C=5 CINV=54975581389
+                                         literal:obf_literal_ctx<uint64_t,54975581389,16490340748970392078,0>
+                                          obf_injection<uint64_t,10678109297164097311,0>: which=0 dbgWhich=0
+                                           Context:ObfZeroContext<uint64_t>
+                                           obf_injection_version<0/*identity*/,uint64_t,10678109297164097311,0>: availCycles=0
+                                            ObfZeroContext<uint64_t>
+                                         Recursive:obf_injection<ObfBitUint<36>,7567877040840474716,6>: which=0 dbgWhich=0
+                                          Context:ObfLiteralContext<ObfBitUint<36>,12432274193785994846,10>: which=1 dbgWhich=1
+                                           ObfLiteralContext_version<1/*global volatile*/,ObfBitUint<36>,12432274193785994846>: CC=31
+                                          obf_injection_version<0/*identity*/,ObfBitUint<36>,7567877040840474716,6>: availCycles=0
+                                           ObfLiteralContext<ObfBitUint<36>,12432274193785994846,10>: which=1 dbgWhich=1
+                                            ObfLiteralContext_version<1/*global volatile*/,ObfBitUint<36>,12432274193785994846>: CC=31
+                                     TypeHi:ObfBitUint<28>: mask =268435455
+                                     Hi:obf_injection<ObfBitUint<28>,1544093641721857072,7>: which=1 dbgWhich=1
+                                      Context:ObfLiteralContext<ObfBitUint<28>,3667544716386440600,11>: which=1 dbgWhich=1
+                                       ObfLiteralContext_version<1/*global volatile*/,ObfBitUint<28>,3667544716386440600>: CC=31
+                                      obf_injection_version<1/*add mod 2^N*/,ObfBitUint<28>,1544093641721857072,7>: C=5 neg=1
+                                       obf_injection<ObfBitUint<28>,4408694691552717607,6>: which=0 dbgWhich=0
+                                        Context:ObfLiteralContext<ObfBitUint<28>,3667544716386440600,11>: which=1 dbgWhich=1
+                                         ObfLiteralContext_version<1/*global volatile*/,ObfBitUint<28>,3667544716386440600>: CC=31
+                                        obf_injection_version<0/*identity*/,ObfBitUint<28>,4408694691552717607,6>: availCycles=0
+                                         ObfLiteralContext<ObfBitUint<28>,3667544716386440600,11>: which=1 dbgWhich=1
+                                          ObfLiteralContext_version<1/*global volatile*/,ObfBitUint<28>,3667544716386440600>: CC=31
+                                Recursive:obf_injection<ObfBitUint<41>,5875067251097667793,68>: which=1 dbgWhich=1
+                                 Context:ObfVarContext<ObfBitUint<41>>
+                                 obf_injection_version<1/*add mod 2^N*/,ObfBitUint<41>,5875067251097667793,68>: C=3 neg=1
+                                  obf_injection<ObfBitUint<41>,15940640660959793307,66>: which=4 dbgWhich=4
+                                   Context:ObfVarContext<ObfBitUint<41>>
+                                   obf_injection_version<4/*mul odd mod 2^N*/,ObfBitUint<41>,15940640660959793307,66>: C=3 CINV=733007751851
+                                    literal:obf_literal_ctx<uint64_t,733007751851,11121422844128094402,50>
+                                     obf_injection<uint64_t,784884930769632384,50>: which=1 dbgWhich=1
+                                      Context:ObfLiteralContext<uint64_t,1227884187441783248,50>: which=1 dbgWhich=1
+                                       ObfLiteralContext_version<1/*global volatile*/,uint64_t,1227884187441783248>: CC=3
+                                      obf_injection_version<1/*add mod 2^N*/,uint64_t,784884930769632384,50>: C=3 neg=0
+                                       obf_injection<uint64_t,4410967832221032949,49>: which=2 dbgWhich=2
+                                        Context:ObfLiteralContext<uint64_t,1227884187441783248,50>: which=1 dbgWhich=1
+                                         ObfLiteralContext_version<1/*global volatile*/,uint64_t,1227884187441783248>: CC=3
+                                        obf_injection_version<2/*kinda-Feistel*/,uint64_t,4410967832221032949,49>: availCycles=36 cycles_f=4 cycles_rInj=31
+                                         f():obf_randomized_non_reversible_function<uint32_t,16548554873353111653,4>: which=1
+                                          obf_randomized_non_reversible_function<1/*x^2*/,uint32_t,16548554873353111653,4>
+                                         Recursive:obf_injection<uint64_t,14924826856630699140,37>: which=2 dbgWhich=2
+                                          Context:ObfLiteralContext<uint64_t,1227884187441783248,50>: which=1 dbgWhich=1
+                                           ObfLiteralContext_version<1/*global volatile*/,uint64_t,1227884187441783248>: CC=3
+                                          obf_injection_version<2/*kinda-Feistel*/,uint64_t,14924826856630699140,37>: availCycles=24 cycles_f=7 cycles_rInj=16
+                                           f():obf_randomized_non_reversible_function<uint32_t,651747753951149430,7>: which=2
+                                            obf_randomized_non_reversible_function<2/*abs*/,uint32_t,651747753951149430,7>
+                                           Recursive:obf_injection<uint64_t,16388802287138809597,22>: which=6 dbgWhich=6
+                                            Context:ObfLiteralContext<uint64_t,1227884187441783248,50>: which=1 dbgWhich=1
+                                             ObfLiteralContext_version<1/*global volatile*/,uint64_t,1227884187441783248>: CC=3
+                                            obf_injection_version<6/*injection(halfT)*/,uint64_t,16388802287138809597,22>
+                                             Lo:obf_injection<uint32_t,5042484143280727985,4>: which=8 dbgWhich=8
+                                              Context:ObfLiteralContext<uint32_t,14828422334474007571,2>: which=0 dbgWhich=0
+                                               ObfLiteralContext_version<0/*identity*/,uint32_t>
+                                              obf_injection_version<FIRST_USER_INJECTION/*shift+add*/,uint32_t,5042484143280727985,4>: shift=16
+                                               obf_injection<uint32_t,16662725456851892628,0>: which=0 dbgWhich=0
+                                                Context:ObfLiteralContext<uint32_t,14828422334474007571,2>: which=0 dbgWhich=0
+                                                 ObfLiteralContext_version<0/*identity*/,uint32_t>
+                                                obf_injection_version<0/*identity*/,uint32_t,16662725456851892628,0>: availCycles=0
+                                                 ObfLiteralContext<uint32_t,14828422334474007571,2>: which=0 dbgWhich=0
+                                                  ObfLiteralContext_version<0/*identity*/,uint32_t>
+                                             Recursive:obf_injection<uint64_t,4219674375439772924,11>: which=8 dbgWhich=8
+                                              Context:ObfLiteralContext<uint64_t,1227884187441783248,50>: which=1 dbgWhich=1
+                                               ObfLiteralContext_version<1/*global volatile*/,uint64_t,1227884187441783248>: CC=3
+                                              obf_injection_version<FIRST_USER_INJECTION/*shift+add*/,uint64_t,4219674375439772924,11>: shift=32
+                                               obf_injection<uint64_t,9573611047859132843,7>: which=1 dbgWhich=1
+                                                Context:ObfLiteralContext<uint64_t,1227884187441783248,50>: which=1 dbgWhich=1
+                                                 ObfLiteralContext_version<1/*global volatile*/,uint64_t,1227884187441783248>: CC=3
+                                                obf_injection_version<1/*add mod 2^N*/,uint64_t,9573611047859132843,7>: C=1 neg=0
+                                                 obf_injection<uint64_t,3680687841151049364,6>: which=0 dbgWhich=0
+                                                  Context:ObfLiteralContext<uint64_t,1227884187441783248,50>: which=1 dbgWhich=1
+                                                   ObfLiteralContext_version<1/*global volatile*/,uint64_t,1227884187441783248>: CC=3
+                                                  obf_injection_version<0/*identity*/,uint64_t,3680687841151049364,6>: availCycles=0
+                                                   ObfLiteralContext<uint64_t,1227884187441783248,50>: which=1 dbgWhich=1
+                                                    ObfLiteralContext_version<1/*global volatile*/,uint64_t,1227884187441783248>: CC=3
+                                    Recursive:obf_injection<ObfBitUint<41>,8250856638998591118,10>: which=1 dbgWhich=1
+                                     Context:ObfVarContext<ObfBitUint<41>>
+                                     obf_injection_version<1/*add mod 2^N*/,ObfBitUint<41>,8250856638998591118,10>: C=3 neg=1
+                                      obf_injection<ObfBitUint<41>,4079741831765514755,8>: which=0 dbgWhich=0
+                                       Context:ObfVarContext<ObfBitUint<41>>
+                                       obf_injection_version<0/*identity*/,ObfBitUint<41>,4079741831765514755,8>: availCycles=8
+                                        ObfVarContext<ObfBitUint<41>>
+
+===== n(@../../no-longer-standard/tls/crypto/chacha.h @212) =====
+ ObfVar<uint32_t,6726938234484066124,0>
+  obf_injection<uint32_t,3854793391931241987,0>: which=0 dbgWhich=0
+   Context:ObfVarContext<uint32_t>
+   obf_injection_version<0/*identity*/,uint32_t,3854793391931241987,0>: availCycles=0
+    ObfVarContext<uint32_t>
+
+===== n(@../../no-longer-standard/tls/crypto/chacha.h @212) =====
+ ObfVar<uint32_t,2385139740085665080,30>
+  obf_injection<uint32_t,16270906557068236934,30>: which=5 dbgWhich=5
+   Context:ObfVarContext<uint32_t>
+   obf_injection_version<5/*split*/,uint32_t,16270906557068236934,30>
+    Lo:obf_injection<uint16_t,1109514010159913798,7>: which=1 dbgWhich=1
+     Context:ObfVarContext<uint16_t>
+     obf_injection_version<1/*add mod 2^N*/,uint16_t,1109514010159913798,7>: C=31 neg=0
+      obf_injection<uint16_t,8743367313050500361,5>: which=0 dbgWhich=0
+       Context:ObfVarContext<uint16_t>
+       obf_injection_version<0/*identity*/,uint16_t,8743367313050500361,5>: availCycles=5
+        ObfVarContext<uint16_t>
+    Hi:obf_injection<uint16_t,4739726820653465842,2>: which=1 dbgWhich=1
+     Context:ObfVarContext<uint16_t>
+     obf_injection_version<1/*add mod 2^N*/,uint16_t,4739726820653465842,2>: C=31 neg=0
+      obf_injection<uint16_t,4455073813256626517,0>: which=0 dbgWhich=0
+       Context:ObfVarContext<uint16_t>
+       obf_injection_version<0/*identity*/,uint16_t,4455073813256626517,0>: availCycles=0
+        ObfVarContext<uint16_t>
+
+===== n(@../../no-longer-standard/tls/crypto/chacha.h @212) =====
+ ObfVar<uint32_t,1479407451880014435,30>
+  obf_injection<uint32_t,555404379317571011,30>: which=1 dbgWhich=1
+   Context:ObfVarContext<uint32_t>
+   obf_injection_version<1/*add mod 2^N*/,uint32_t,555404379317571011,30>: C=31 neg=0
+    obf_injection<uint32_t,17847018440562015331,28>: which=4 dbgWhich=4
+     Context:ObfVarContext<uint32_t>
+     obf_injection_version<4/*mul odd mod 2^N*/,uint32_t,17847018440562015331,28>: C=31 CINV=3186588639
+      literal:obf_literal_ctx<uint32_t,3186588639,7623886589441209032,15>
+       obf_injection<uint32_t,8491982380633734890,15>: which=3 dbgWhich=3
+        Context:ObfLiteralContext<uint32_t,9623741164907154086,15>: which=1 dbgWhich=1
+         ObfLiteralContext_version<1/*global volatile*/,uint32_t,9623741164907154086>: CC=3
+        obf_injection_version<3/*split-join*/,uint32_t,8491982380633734890,15>
+         Lo:obf_injection<uint16_t,18245298019517593727,0>: which=0 dbgWhich=0
+          Context:ObfLiteralContext<uint16_t,909612241554742800,0>: which=0 dbgWhich=0
+           ObfLiteralContext_version<0/*identity*/,uint16_t>
+          obf_injection_version<0/*identity*/,uint16_t,18245298019517593727,0>: availCycles=0
+           ObfLiteralContext<uint16_t,909612241554742800,0>: which=0 dbgWhich=0
+            ObfLiteralContext_version<0/*identity*/,uint16_t>
+         Hi:obf_injection<uint16_t,6234799228748844368,0>: which=0 dbgWhich=0
+          Context:ObfLiteralContext<uint16_t,4129286219680842221,0>: which=0 dbgWhich=0
+           ObfLiteralContext_version<0/*identity*/,uint16_t>
+          obf_injection_version<0/*identity*/,uint16_t,6234799228748844368,0>: availCycles=0
+           ObfLiteralContext<uint16_t,4129286219680842221,0>: which=0 dbgWhich=0
+            ObfLiteralContext_version<0/*identity*/,uint16_t>
+         Recursive:obf_injection<uint32_t,2020890987730145512,7>: which=1 dbgWhich=1
+          Context:ObfLiteralContext<uint32_t,9623741164907154086,15>: which=1 dbgWhich=1
+           ObfLiteralContext_version<1/*global volatile*/,uint32_t,9623741164907154086>: CC=3
+          obf_injection_version<1/*add mod 2^N*/,uint32_t,2020890987730145512,7>: C=5 neg=0
+           obf_injection<uint32_t,257556973181435578,6>: which=0 dbgWhich=0
+            Context:ObfLiteralContext<uint32_t,9623741164907154086,15>: which=1 dbgWhich=1
+             ObfLiteralContext_version<1/*global volatile*/,uint32_t,9623741164907154086>: CC=3
+            obf_injection_version<0/*identity*/,uint32_t,257556973181435578,6>: availCycles=0
+             ObfLiteralContext<uint32_t,9623741164907154086,15>: which=1 dbgWhich=1
+              ObfLiteralContext_version<1/*global volatile*/,uint32_t,9623741164907154086>: CC=3
+      Recursive:obf_injection<uint32_t,2762786091800678762,7>: which=6 dbgWhich=6
+       Context:ObfVarContext<uint32_t>
+       obf_injection_version<6/*injection(halfT)*/,uint32_t,2762786091800678762,7>
+        Lo:obf_injection<uint16_t,1800076018609810349,0>: which=0 dbgWhich=0
+         Context:ObfVarContext<uint16_t>
+         obf_injection_version<0/*identity*/,uint16_t,1800076018609810349,0>: availCycles=0
+          ObfVarContext<uint16_t>
+        Recursive:obf_injection<uint32_t,9012126902046520511,0>: which=0 dbgWhich=0
+         Context:ObfVarContext<uint32_t>
+         obf_injection_version<0/*identity*/,uint32_t,9012126902046520511,0>: availCycles=0
+          ObfVarContext<uint32_t>

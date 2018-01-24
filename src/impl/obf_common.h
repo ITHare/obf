@@ -18,6 +18,10 @@
 #define ITHARE_OBF_DBG_ENABLE_DBGPRINT//necessary for checks to work
 #endif
 
+#ifdef ITHARE_OBF_ENABLE_AUTO_DBGPRINT
+#define ITHARE_OBF_DBG_ENABLE_DBGPRINT //prerequisite
+#endif
+
 #ifndef ITHARE_OBF_SEED2
 #define ITHARE_OBF_SEED2 0
 #endif
@@ -76,6 +80,14 @@ namespace ithare {
 				if (*s == 0)
 					return ret;
 		}
+
+		constexpr uint64_t obf_string_hash(const char* s) {
+			uint64_t u = 5381;
+			for (const char* p = s; *p; ++p)//djb2 by Dan Bernstein
+				u = ((u << 5) + u) + *p;
+			return u;
+		}
+
 		
 		enum class obf_endian//along the lines of p0463r1, to be replaced with std::endian
 		{

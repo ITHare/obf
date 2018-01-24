@@ -1012,6 +1012,32 @@ namespace ithare {
 
 #endif //ITHARE_OBF_SEED
 
+#ifdef ITHARE_OBF_ENABLE_AUTO_DBGPRINT
+namespace ithare { namespace obf {
+template<uint64_t filelinehash,uint64_t msghash,class T> //all but T just to ensure uniqueness
+void obf_auto_dbg_print(const T&,const char* what, const char* file, int line) {
+	static bool printed = false;
+	if(!printed) {
+		std::cout << "\n===== " << what << "(@" << file << " @" << line << ") =====" << std::endl;
+		T::dbgPrint(1);
+		printed = true;
+	}
+}
+}}//namespace ithare::obf
+
+#define ITHARE_OBF_DBGPRINT(x) do {\
+		ithare::obf::obf_auto_dbg_print<ithare::obf::obf_string_hash(ithare::obf::obf_normalize_fname(ITHARE_OBF_LOCATION)),ithare::obf::obf_string_hash(#x)>(x,#x,__FILE__,__LINE__);\
+	} while(false)
+#define ITHARE_OBF_DBGPRINTLIB(x) do {\
+		if constexpr(!(obfflags&obf_flag_is_constexpr)) {\
+			ithare::obf::obf_auto_dbg_print<ithare::obf::obf_string_hash(ithare::obf::obf_normalize_fname(ITHARE_OBF_LOCATION)),ithare::obf::obf_string_hash(#x)>(x,#x,__FILE__,__LINE__);\
+		}\
+	} while(false)
+#else
+#define ITHARE_OBF_DBGPRINT(x)
+#define ITHARE_OBF_DBGPRINTLIB(x)
+#endif
+
 #ifndef ITHARE_OBF_NO_SHORT_DEFINES//#define to avoid polluting global namespace w/o prefix
 #define OBF0 ITHARE_OBF0
 #define OBF1 ITHARE_OBF1
@@ -1046,6 +1072,8 @@ namespace ithare {
 #define OBF_CALL6 ITHARE_OBF_CALL6
 #define OBF_CALL_AS_CONSTEXPR ITHARE_OBF_CALL_AS_CONSTEXPR
 //no shortcut for ITHARE_OBF_CALLFROMLIB and ITHARE_OBFLIB - MUST use the full form as within libs we don't control NO_SHORT_DEFINES
+
+#define OBF_DBGPRINT ITHARE_OBF_DBGPRINT
 
 #endif //ITHARE_OBF_NO_SHORT_DEFINES
 

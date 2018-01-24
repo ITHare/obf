@@ -41,20 +41,29 @@ std::string genRandom64() {
 }
 std::string exitCheck(std::string cmd, bool expectok = true) {
 	if( expectok )
-		return std::string("if [ ! $? -eq 0 ]; then\n  echo ") + cmd + ( ">failed.sh\n  exit 1\nfi");
+		return std::string("if [ ! $? -eq 0 ]; then\n  echo \"") + cmd + ( "\">failed.sh\n  exit 1\nfi");
 	else
-		return std::string("if [ ! $? -ne 0 ]; then\n  echo ") + cmd + ( ">failed.sh\n  exit 1\nfi");
+		return std::string("if [ ! $? -ne 0 ]; then\n  echo \"") + cmd + ( "\">failed.sh\n  exit 1\nfi");
 }
 std::string echo(std::string s) {
-	return std::string("echo " + s);
+	return std::string("echo \"" + s +"\"");
 }
-std::string run() {
-	return std::string("./obftemp");
+std::string run(const char* redirect) {
+	if(redirect)
+		return std::string("./obftemp >")+redirect;
+	else
+		return std::string("./obftemp");
 }
 std::string checkObfuscation(bool obfuscated) {//very weak heuristics, but still better than nothing
 	std::string ret = std::string("strings obftemp | grep Negative");//referring to string "Negative value of factorial()" 
 	return ret + "\n" + exitCheck(ret,!obfuscated);
 }
+/*std::string moveFileRmOriginal(std::string from, std::string to) {
+	return std::string( "rm ")+to+"\nmv "+from+" "+to;
+}
+std::string cmpFile(std::string from, std::string to) {
+	return std::string( "diff ")+from+" "+to;
+}*/
 std::string setup() {
 	return std::string("#!/bin/sh");
 }
@@ -76,12 +85,12 @@ std::string replace_string(std::string subject, std::string search,//adapted fro
 std::string buildRelease(std::string defines_) {
 	std::string defines = replace_string(defines_, " -D", " /D");
 	return std::string("cl /permissive- /GS /GL /W3 /Gy /Zc:wchar_t /Gm- /O2 /sdl /Zc:inline /fp:precise /DNDEBUG /D_CONSOLE /D_UNICODE /DUNICODE /errorReport:prompt /WX /Zc:forScope /GR- /Gd /Oi /MT /EHsc /nologo /diagnostics:classic /std:c++17 /cgthreads1 /INCREMENTAL:NO") + defines + " " + srcDirPrefix + "..\\official.cpp";
-		//string is copy-pasted from Rel-NoPDB config
+		//string is copy-pasted from Rel-NoPDB config with manually-added /cgthreads1 /INCREMENTAL:NO 
 }
 std::string buildDebug(std::string defines_) {
 	std::string defines = replace_string(defines_, " -D", " /D");
 	return std::string("cl /permissive- /GS /W3 /Zc:wchar_t /ZI /Gm /Od /sdl /Zc:inline /fp:precise /D_DEBUG /D_CONSOLE /D_UNICODE /DUNICODE /errorReport:prompt /WX /Zc:forScope /RTC1 /Gd /MDd /EHsc /nologo /diagnostics:classic /std:c++17 /cgthreads1 /INCREMENTAL:NO") + defines + " " + srcDirPrefix + "..\\official.cpp";
-		//string is copy-pasted from Debug config
+		//string is copy-pasted from Debug config with manually-added /cgthreads1 /INCREMENTAL:NO
 }
 std::string build32option() {
 	std::cout << "no option to run both 32-bit and 64-bit testing for MSVC now, run testing without -add32tests in two different 'Tools command prompts' instead" << std::endl;
@@ -115,25 +124,34 @@ std::string exitCheck(std::string cmd,bool expectok = true) {
 	static int nextlabel = 1;
 	if (expectok) {
 		auto ret = std::string("IF NOT ERRORLEVEL 1 GOTO LABEL") + std::to_string(nextlabel)
-		    + "\nECHO " + cmd + ">failed.bat"
+		    + "\nECHO \"" + cmd + "\">failed.bat"
 			+ "\nEXIT /B\n:LABEL" + std::to_string(nextlabel);
 		nextlabel++;
 		return ret;
 	}
 	else {
 		auto ret = std::string("IF ERRORLEVEL 1 GOTO LABEL") + std::to_string(nextlabel)
-		    + "\nECHO " + cmd + ">failed.bat"
+		    + "\nECHO \"" + cmd + "\">failed.bat"
 			+ "\nEXIT /B\n:LABEL" + std::to_string(nextlabel);
 		nextlabel++;
 		return ret;
 	}
 }
 std::string echo(std::string s) {
-	return std::string("ECHO " + s);
+	return std::string("ECHO \"" + s +"\"");
 }
-std::string run() {
-	return std::string("official.exe");
+std::string run(const char* redirect) {
+	if(redirect)
+		return std::string("official.exe >")+redirect;
+	else
+		return std::string("official.exe");
 }
+/*std::string moveFileRmOriginal(std::string from, std::string to) {
+	return std::string( "del ") + to + "\nrename "+from+" "+to;
+}
+std::string cmpFile(std::string from, std::string to) {
+	return std::string( "fc ")+from+" "+to;
+}*/
 std::string checkObfuscation(bool obfuscated) {//very weak heuristics, but still better than nothing
 	return "";//sorry, nothing for now for Windows :-(
 }
@@ -148,6 +166,10 @@ std::string setup() {
 #endif 
 
 bool add32tests = false;
+
+std::string fixedSeeds() {
+	return std::string(" -DITHARE_OBF_SEED=0x4b295ebab3333abc -DITHAREOBF_SEED2=0x36e007a38ae8e0ea");//from random.org
+}
 
 std::string genSeed() {
 	return std::string(" -DITHARE_OBF_SEED=0x") + genRandom64();
@@ -168,21 +190,26 @@ void issueCommand(std::string cmd) {
 	std::cout << cmd << std::endl;
 }
 
-void buildCheckRunCheck(std::string cmd,bool obfuscated=true) {
+void buildCheckRunCheck(std::string cmd,bool obfuscated,bool write_output) {
 	issueCommand(cmd);
 	std::cout << exitCheck(cmd) << std::endl;
 	std::cout << checkObfuscation(obfuscated) << std::endl;
-	std::string cmdrun = run();
+	
+	const char* tofile = write_output ? "obftemp.txt" : nullptr;
+	
+	std::string cmdrun = run(tofile);
 	issueCommand(cmdrun);
 	std::cout << exitCheck(cmdrun) << std::endl;
 }
 
 std::string seedsByNum(int nseeds) {
-	assert(nseeds >= 0 && nseeds <= 2);
+	assert(nseeds >= -1 && nseeds <= 2);
 	if(nseeds==1)
 		return genSeed();
 	else if(nseeds==2)
 		return genSeeds();
+	else if(nseeds==-1)
+		return fixedSeeds();
 	assert(nseeds==0);
 	return "";
 }
@@ -198,42 +225,52 @@ std::string buildCmd(config cfg,std::string defs) {
 	}
 }
 
-void buildCheckRunCheckx2(config cfg,std::string defs,int nseeds, bool obfuscated=true) {
-	assert(nseeds >= 0 && nseeds <= 2);
+void buildCheckRunCheckx2(config cfg,std::string defs,int nseeds, bool obfuscated=true,bool write_output=false) {
+	assert(nseeds >= -1 && nseeds <= 2);
+	if(write_output){
+		assert(nseeds<0);
+	}
+	else
+	{
+		assert(nseeds>=0);
+	}
+	
 	std::string cmd1 = buildCmd(cfg, defs + seedsByNum(nseeds));
-	buildCheckRunCheck(cmd1,obfuscated);
+	buildCheckRunCheck(cmd1,obfuscated,write_output);
 	std::string cmd2 = buildCmd(cfg, defs + seedsByNum(nseeds) + " -DITHARE_OBF_TEST_NO_NAMESPACE");
-	buildCheckRunCheck(cmd2,obfuscated);
+	buildCheckRunCheck(cmd2,obfuscated,write_output);
 	
 	if(add32tests) {
 		std::string m32 = build32option();
 		std::string cmd1 = buildCmd(cfg, defs + m32 + seedsByNum(nseeds));
-		buildCheckRunCheck(cmd1,obfuscated);
+		buildCheckRunCheck(cmd1,obfuscated,write_output);
 		std::string cmd2 = buildCmd(cfg, defs + m32 + seedsByNum(nseeds) + " -DITHARE_OBF_TEST_NO_NAMESPACE");
-		buildCheckRunCheck(cmd2,obfuscated);	
+		buildCheckRunCheck(cmd2,obfuscated,write_output);
 	}
 }
 
 void genDefineTests() {
-	std::cout << echo( std::string("=== -Define Test 1/10 ===" ) ) << std::endl;
+	std::cout << echo( std::string("=== -Define Test 1/11 ===" ) ) << std::endl;
+	buildCheckRunCheckx2(config::release," -DITHARE_OBF_ENABLE_AUTO_DBGPRINT",-1,true,true);
+	std::cout << echo( std::string("=== -Define Test 2/11 ===" ) ) << std::endl;
 	buildCheckRunCheckx2(config::debug,"",0,false);
-	std::cout << echo( std::string("=== -Define Test 2/10 ===" ) ) << std::endl;
+	std::cout << echo( std::string("=== -Define Test 3/11 ===" ) ) << std::endl;
 	buildCheckRunCheckx2(config::release,"",0,false);
-	std::cout << echo( std::string("=== -Define Test 3/10 ===" ) ) << std::endl;
+	std::cout << echo( std::string("=== -Define Test 4/11 ===" ) ) << std::endl;
 	buildCheckRunCheckx2(config::debug,"",1);
-	std::cout << echo( std::string("=== -Define Test 4/10 ===" ) ) << std::endl;
+	std::cout << echo( std::string("=== -Define Test 5/11 ===" ) ) << std::endl;
 	buildCheckRunCheckx2(config::release,"",1);
-	std::cout << echo( std::string("=== -Define Test 5/10 ===" ) ) << std::endl;
+	std::cout << echo( std::string("=== -Define Test 6/11 ===" ) ) << std::endl;
 	buildCheckRunCheckx2(config::debug,"",2);
-	std::cout << echo( std::string("=== -Define Test 6/10 ===" ) ) << std::endl;
+	std::cout << echo( std::string("=== -Define Test 7/11 ===" ) ) << std::endl;
 	buildCheckRunCheckx2(config::release,"",2);
-	std::cout << echo( std::string("=== -Define Test 7/10 ===" ) ) << std::endl;
+	std::cout << echo( std::string("=== -Define Test 8/11 ===" ) ) << std::endl;
 	buildCheckRunCheckx2(config::debug," -DITHARE_OBF_DBG_RUNTIME_CHECKS",2);
-	std::cout << echo( std::string("=== -Define Test 8/10 ===" ) ) << std::endl;
+	std::cout << echo( std::string("=== -Define Test 9/11 ===" ) ) << std::endl;
 	buildCheckRunCheckx2(config::release, " -DITHARE_OBF_DBG_RUNTIME_CHECKS",2);
-	std::cout << echo( std::string("=== -Define Test 9/10 ===" ) ) << std::endl;
+	std::cout << echo( std::string("=== -Define Test 10/11 ===" ) ) << std::endl;
 	buildCheckRunCheckx2(config::debug," -DITHARE_OBF_CRYPTO_PRNG",2);
-	std::cout << echo( std::string("=== -Define Test 10/10 ===" ) ) << std::endl;
+	std::cout << echo( std::string("=== -Define Test 11/11 ===" ) ) << std::endl;
 	buildCheckRunCheckx2(config::release," -DITHARE_OBF_CRYPTO_PRNG",2);
 }
 
@@ -244,12 +281,14 @@ void genRandomTests(size_t n) {
 			extra += " -DITHARE_OBF_DBG_RUNTIME_CHECKS";
 		if(add32tests && i%5 <=1)
 			extra += build32option();
+		if(i%7==0)
+			extra += " -DITHARE_OBF_ENABLE_AUTO_DBGPRINT";
 		std::cout << echo( std::string("=== Random Test ") + std::to_string(i+1) + "/" + std::to_string(n) + " ===" ) << std::endl;
 		std::string defines = genSeeds()+" -DITHARE_OBF_INIT -DITHARE_OBF_CONSISTENT_XPLATFORM_IMPLICIT_SEEDS"+extra;
 		if( i%4 == 0 ) 
-			buildCheckRunCheck(buildDebug(defines));
+			buildCheckRunCheck(buildDebug(defines),true,false);
 		else
-			buildCheckRunCheck(buildRelease(defines));
+			buildCheckRunCheck(buildRelease(defines),true,false);
 	}
 }
 

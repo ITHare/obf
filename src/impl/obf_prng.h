@@ -235,9 +235,7 @@ namespace ithare {
 			v0 ^= counter;
 			const char* filename = file;
 #endif
-			uint64_t u = 5381;
-			for (const char* p = filename; *p; ++p)//djb2 by Dan Bernstein
-				u = ((u << 5) + u) + *p;
+			uint64_t u = obf_string_hash(filename);
 			std::pair<uint64_t, uint64_t> ctr_block = { u ^ obf_seed,v0 ^obf_seed2 };
 			std::array<uint32_t, 4> v = obf_xxtea_encipher(ctr_block, obf_prng_xxtea_key_for_init);
 			uint64_t rlo = (uint64_t(v[1]) << 32) | uint64_t(v[0]);

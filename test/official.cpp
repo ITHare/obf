@@ -65,6 +65,8 @@ const lest::test spec[] = {
 		EXPECT((ITOBF obf_integral_operator_literal_cast_is_safe<TT4,int,0x7fff'ffff>()==true));
 	},
 	CASE("factorial()") {
+		auto f = factorial(17); OBF_DBGPRINT(f);
+		EXPECT(f==UINT64_C(355687428096000));
 		EXPECT( factorial(18) == UINT64_C(6402373705728000));
 		EXPECT( factorial(19) == UINT64_C(121645100408832000));
 		EXPECT( factorial(20) == UINT64_C(2432902008176640000));
@@ -122,7 +124,7 @@ const lest::test spec[] = {
 };
 
 int main(int argc, char** argv) {
-	std::cout << "sizeof(void*) == " << sizeof(void*) << std::endl;
+	std::cout << "# sizeof(void*) == " << sizeof(void*) << std::endl;
 	ITOBF obf_init();
 	{
 		ITOBF ObfNonBlockingCode obf_nb_guard;	

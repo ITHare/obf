@@ -209,7 +209,7 @@ class EVP_CHACHA {
 	static void cipher( KEY& key, unsigned char *out,
 			    const unsigned char *inp, size_t len)
 	{
-		ITHARE_OBFLIB(unsigned int) n = key.partial_len;
+		ITHARE_OBFLIB(unsigned int) n = key.partial_len; ITHARE_OBF_DBGPRINTLIB(n);
 		if (n) {
 			while (len && n < ITHARE_OBFILIB(CHACHA_BLK_SIZE)) {
 				*out++ = *inp++ ^ key.buf[n++];
