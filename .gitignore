@@ -28,3 +28,4 @@
 /test/Clang/failed.sh
 test/Clang/obftemp.dSYM/
 /test/MSVC/MSVC-linker-MT-bug
+/test/MSVC/runtest32

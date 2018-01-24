@@ -7,6 +7,8 @@
 #include <stdio.h>
 #include <assert.h>
 
+std::string srcDirPrefix = "";
+
 #if defined(__APPLE_CC__) || defined(__linux__)
 std::string buildRelease(std::string defines) {
 	return std::string("gcc -O3 -DNDEBUG ") + defines + " -o obftemp -std=c++1z -lstdc++ -Werror -g ../official.cpp";
@@ -50,7 +52,7 @@ std::string run() {
 	return std::string("./obftemp");
 }
 std::string checkObfuscation(bool obfuscated) {//very weak heuristics, but still better than nothing
-	std::string ret = std::string("strings obftemp | grep Negative");//referring to string "Negative value of factorial()"
+	std::string ret = std::string("strings obftemp | grep Negative");//referring to string "Negative value of factorial()" 
 	return ret + "\n" + exitCheck(ret,!obfuscated);
 }
 std::string setup() {
@@ -73,12 +75,12 @@ std::string replace_string(std::string subject, std::string search,//adapted fro
 }
 std::string buildRelease(std::string defines_) {
 	std::string defines = replace_string(defines_, " -D", " /D");
-	return std::string("cl /permissive- /GS /GL /W3 /Gy /Zc:wchar_t /Gm- /O2 /sdl /Zc:inline /fp:precise /DNDEBUG /D_CONSOLE /D_UNICODE /DUNICODE /errorReport:prompt /WX /Zc:forScope /GR- /Gd /Oi /MT /EHsc /nologo /diagnostics:classic /std:c++17 /cgthreads1") + defines + " ..\\official.cpp";
+	return std::string("cl /permissive- /GS /GL /W3 /Gy /Zc:wchar_t /Gm- /O2 /sdl /Zc:inline /fp:precise /DNDEBUG /D_CONSOLE /D_UNICODE /DUNICODE /errorReport:prompt /WX /Zc:forScope /GR- /Gd /Oi /MT /EHsc /nologo /diagnostics:classic /std:c++17 /cgthreads1") + defines + " " + srcDirPrefix + "..\\official.cpp";
 		//string is copy-pasted from Rel-NoPDB config
 }
 std::string buildDebug(std::string defines_) {
 	std::string defines = replace_string(defines_, " -D", " /D");
-	return std::string("cl /permissive- /GS /W3 /Zc:wchar_t /ZI /Gm /Od /sdl /Zc:inline /fp:precise /D_DEBUG /D_CONSOLE /D_UNICODE /DUNICODE /errorReport:prompt /WX /Zc:forScope /RTC1 /Gd /MDd /EHsc /nologo /diagnostics:classic /std:c++17 /cgthreads1") + defines + " ..\\official.cpp";
+	return std::string("cl /permissive- /GS /W3 /Zc:wchar_t /ZI /Gm /Od /sdl /Zc:inline /fp:precise /D_DEBUG /D_CONSOLE /D_UNICODE /DUNICODE /errorReport:prompt /WX /Zc:forScope /RTC1 /Gd /MDd /EHsc /nologo /diagnostics:classic /std:c++17 /cgthreads1") + defines + " " + srcDirPrefix + "..\\official.cpp";
 		//string is copy-pasted from Debug config
 }
 std::string build32option() {
@@ -271,6 +273,11 @@ int main(int argc, char** argv) {
 		else if(strcmp(argv[argcc],"-add32tests") == 0) {
 			add32tests = true;
 			argcc++;
+		}
+		else if (strcmp(argv[argcc], "-srcdirprefix") == 0) {
+			assert(argcc +1 < argc);
+			srcDirPrefix = argv[argcc+1];
+			argcc+=2;
 		}
 		//other options go here
 		else
