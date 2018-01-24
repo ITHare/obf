@@ -1,5 +1,5 @@
 
-===== f(@../official.cpp @68) =====
+===== f(@official.cpp @68) =====
  ObfVar<uint64_t,11359461261653916713,1000>
   obf_injection<uint64_t,7689143483885128708,1000>: which=5 dbgWhich=5
    Context:ObfVarContext<uint64_t>
@@ -252,14 +252,14 @@
            obf_injection_version<0/*identity*/,uint32_t,14938220572845629907,0>: availCycles=0
             ObfVarContext<uint32_t>
 
-===== n(@../../no-longer-standard/tls/crypto/chacha.h @212) =====
+===== n(@chacha.h @212) =====
  ObfVar<uint32_t,4360798559189911628,0>
   obf_injection<uint32_t,131582903495694921,0>: which=0 dbgWhich=0
    Context:ObfVarContext<uint32_t>
    obf_injection_version<0/*identity*/,uint32_t,131582903495694921,0>: availCycles=0
     ObfVarContext<uint32_t>
 
-===== n(@../../no-longer-standard/tls/crypto/chacha.h @212) =====
+===== n(@chacha.h @212) =====
  ObfVar<uint32_t,7211191516058772664,30>
   obf_injection<uint32_t,14190331441744679304,30>: which=6 dbgWhich=6
    Context:ObfVarContext<uint32_t>
@@ -287,7 +287,7 @@
          obf_injection_version<0/*identity*/,uint32_t,14559903282950703711,2>: availCycles=2
           ObfVarContext<uint32_t>
 
-===== n(@../../no-longer-standard/tls/crypto/chacha.h @212) =====
+===== n(@chacha.h @212) =====
  ObfVar<uint32_t,10150353010722805321,30>
   obf_injection<uint32_t,10691475399053735046,30>: which=8 dbgWhich=8
    Context:ObfVarContext<uint32_t>

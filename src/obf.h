@@ -1018,7 +1018,7 @@ template<uint64_t filelinehash,uint64_t msghash,class T> //all but T just to ens
 void obf_auto_dbg_print(const T&,const char* what, const char* file, int line) {
 	static bool printed = false;
 	if(!printed) {
-		std::cout << "\n===== " << what << "(@" << file << " @" << line << ") =====" << std::endl;
+		std::cout << "\n===== " << what << "(@" << obf_normalize_fname(file) << " @" << line << ") =====" << std::endl;
 		T::dbgPrint(1);
 		printed = true;
 	}
