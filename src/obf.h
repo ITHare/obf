@@ -1023,8 +1023,8 @@ void obf_auto_dbg_print(const T&,const char* what, const char* file, int line) {
 		printed = true;
 	}
 }
-template<ITHARE_OBF_SEEDTPARAM seed,uint64_t filelinehash,uint64_t msghash,class T> //all but T just to ensure uniqueness
-void obf_auto_dbg_print_fromlib(const T&,const char* what, const char* file, int line,OBFLEVEL level, OBFFLAGS flags) {
+template<ITHARE_OBF_SEEDTPARAM seed,OBFLEVEL level,OBFFLAGS flags,uint64_t filelinehash,uint64_t msghash,class T> //all but T just to ensure uniqueness
+void obf_auto_dbg_print_fromlib(const T&,const char* what, const char* file, int line) {
 	static bool printed = false;
 	if(!printed) {
 		std::cout << "\n----- some_func<"<< obf_dbgPrintSeed<seed>()<< "," << int(level) << "," << flags << ">():" << what << "(@" << obf_normalize_fname(file) << " @" << line << ") -----" << std::endl;
@@ -1032,8 +1032,8 @@ void obf_auto_dbg_print_fromlib(const T&,const char* what, const char* file, int
 		printed = true;
 	}
 }
-template<ITHARE_OBF_SEEDTPARAM seed,uint64_t filelinehash,uint64_t msghash> //all but T just to ensure uniqueness
-void obf_auto_dbg_print_libfuncname(const char* fname, const char* file, int line,OBFLEVEL level,OBFFLAGS flags) {
+template<ITHARE_OBF_SEEDTPARAM seed,OBFLEVEL level,OBFFLAGS flags,uint64_t filelinehash,uint64_t msghash> //all but T just to ensure uniqueness
+void obf_auto_dbg_print_libfuncname(const char* fname, const char* file, int line) {
 	static bool printed = false;
 	if(!printed) {
 		std::cout << "\n===== " << fname <<"<"<< obf_dbgPrintSeed<seed>()<< "," << int(level) << "," << flags << ">() (@" << obf_normalize_fname(file) << " @" << line << ") =====" << std::endl;
@@ -1047,12 +1047,12 @@ void obf_auto_dbg_print_libfuncname(const char* fname, const char* file, int lin
 	} while(false)
 #define ITHARE_OBF_DBGPRINTLIB(x) do {\
 		if constexpr(!(obfflags&obf_flag_is_constexpr)) {\
-				ithare::obf::obf_auto_dbg_print_fromlib<obfseed,ithare::obf::obf_string_hash(ithare::obf::obf_normalize_fname(ITHARE_OBF_LOCATION)),ithare::obf::obf_string_hash(#x)>(x,#x,__FILE__,__LINE__,obflevel,obfflags);\
+				ithare::obf::obf_auto_dbg_print_fromlib<obfseed,obflevel,obfflags,ithare::obf::obf_string_hash(ithare::obf::obf_normalize_fname(ITHARE_OBF_LOCATION)),ithare::obf::obf_string_hash(#x)>(x,#x,__FILE__,__LINE__);\
 		}\
 	} while(false)
 #define ITHARE_OBF_DBGPRINTLIBFUNCNAME(fname) do {\
 		if constexpr(!(obfflags&obf_flag_is_constexpr)) {\
-			ithare::obf::obf_auto_dbg_print_libfuncname<obfseed,ithare::obf::obf_string_hash(ithare::obf::obf_normalize_fname(ITHARE_OBF_LOCATION)),ithare::obf::obf_string_hash(#fname)>(fname,__FILE__,__LINE__,obflevel,obfflags);\
+			ithare::obf::obf_auto_dbg_print_libfuncname<obfseed,obflevel,obfflags,ithare::obf::obf_string_hash(ithare::obf::obf_normalize_fname(ITHARE_OBF_LOCATION)),ithare::obf::obf_string_hash(#fname)>(fname,__FILE__,__LINE__);\
 		}\
 	} while(false)
 #else

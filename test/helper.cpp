@@ -284,8 +284,6 @@ void genRandomTests(size_t n) {
 			extra += " -DITHARE_OBF_DBG_RUNTIME_CHECKS";
 		if(add32tests && i%5 <=1)
 			extra += build32option();
-		if(i%7==0)
-			extra += " -DITHARE_OBF_ENABLE_AUTO_DBGPRINT";
 		std::cout << echo( std::string("=== Random Test ") + std::to_string(i+1) + "/" + std::to_string(n) + " ===" ) << std::endl;
 		std::string defines = genSeeds()+" -DITHARE_OBF_INIT -DITHARE_OBF_CONSISTENT_XPLATFORM_IMPLICIT_SEEDS"+extra;
 		if( i%4 == 0 ) 
