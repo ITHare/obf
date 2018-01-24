@@ -254,7 +254,7 @@ void buildCheckRunCheckx2(config cfg,std::string defs,int nseeds, bool obfuscate
 
 void genDefineTests() {
 	std::cout << echo( std::string("=== -Define Test 1/11 ===" ) ) << std::endl;
-	buildCheckRunCheckx2(config::release," -DITHARE_OBF_ENABLE_AUTO_DBGPRINT",-1,true,true);
+	buildCheckRunCheckx2(config::release," -DITHARE_OBF_INIT -DITHARE_OBF_CONSISTENT_XPLATFORM_IMPLICIT_SEEDS -DITHARE_OBF_ENABLE_AUTO_DBGPRINT",-1,true,true);
 	std::cout << echo( std::string("=== -Define Test 2/11 ===" ) ) << std::endl;
 	buildCheckRunCheckx2(config::debug,"",0,false);
 	std::cout << echo( std::string("=== -Define Test 3/11 ===" ) ) << std::endl;
