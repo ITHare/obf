@@ -183,12 +183,12 @@ class EVP_CHACHA {
 		KEY key = {};
 
 		if (user_key)
-			for (ITHARE_OBFLIB(unsigned int) i = 0; i < CHACHA_KEY_SIZE; i+=4) {
+			for (ITHARE_OBFLIB(unsigned int) i = 0; i < ITHARE_OBFILIB(CHACHA_KEY_SIZE); i+=4) {
 				key.key.d[i/4] = ITHARE_OBF_TLS_CHACHA_U8TOU32(user_key+i);
 			}
 
 		if (iv)
-			for (ITHARE_OBFLIB(unsigned int) i = 0; i < CHACHA_CTR_SIZE; i+=4) {
+			for (ITHARE_OBFLIB(unsigned int) i = 0; i < ITHARE_OBFILIB(CHACHA_CTR_SIZE); i+=4) {
 				key.counter[i/4] = ITHARE_OBF_TLS_CHACHA_U8TOU32(iv+i);
 			}
 
@@ -268,12 +268,12 @@ class EVP_CHACHA {
 							  //  use EVP_CHACHA::construct<...> defined below instead
 	EVP_CHACHA( const unsigned char user_key[CHACHA_KEY_SIZE],
 				const unsigned char iv[CHACHA_CTR_SIZE], int enc)
-				: key(init_key(user_key,iv,enc)) {
+				: key(ITHARE_OBF_CALLFROMLIB(init_key)(user_key,iv,enc)) {
 	}
 	ITHARE_OBF_DECLARELIBFUNC
 	static EVP_CHACHA construct(const unsigned char user_key[CHACHA_KEY_SIZE],
 				const unsigned char iv[CHACHA_CTR_SIZE], int enc){
-		return EVP_CHACHA(obf_private_constructor_tag(),std::move(init_key(user_key,iv,enc)));
+		return EVP_CHACHA(obf_private_constructor_tag(),std::move(ITHARE_OBF_CALLFROMLIB(init_key)(user_key,iv,enc)));
 	}
 
 	ITHARE_OBF_DECLARELIBFUNC
