@@ -163,7 +163,7 @@ namespace ithare {
 		};
 
 		template<class T>
-		struct obf_normalized_integral_type {
+		struct obf_normalized_integral_type {//to normalize things such as 'unsigned long' which MIGHT happen to be different from our standard set
 			static_assert(std::is_integral<T>::value);
 			using type = typename obf_select_type< std::is_signed<T>::value,
 								typename obf_normalized_signed_integral_type<T>::type,
@@ -171,6 +171,73 @@ namespace ithare {
 							>::type;
 			static_assert(sizeof(T)==sizeof(type));
 			static_assert(std::is_signed<type>::value == std::is_signed<T>::value);
+		};
+
+		//well-known shortcuts just to save a bit of compile time...
+		template<>
+		struct obf_normalized_integral_type<uint64_t> {
+			using type = uint64_t;
+		};
+		template<> 
+		struct obf_normalized_integral_type<uint32_t> {
+			using type = uint32_t;
+		};
+		template<> 
+		struct obf_normalized_integral_type<uint16_t> {
+			using type = uint16_t;
+		};
+		template<> 
+		struct obf_normalized_integral_type<uint8_t> {
+			using type = uint8_t;
+		};
+		template<>
+		struct obf_normalized_integral_type<int64_t> {
+			using type = int64_t;
+		};
+		template<> 
+		struct obf_normalized_integral_type<int32_t> {
+			using type = int32_t;
+		};
+		template<> 
+		struct obf_normalized_integral_type<int16_t> {
+			using type = int16_t;
+		};
+		template<> 
+		struct obf_normalized_integral_type<int8_t> {
+			using type = int8_t;
+		};
+
+		template<>
+		struct obf_normalized_unsigned_integral_type<uint64_t> {
+			using type = uint64_t;
+		};
+		template<> 
+		struct obf_normalized_unsigned_integral_type<uint32_t> {
+			using type = uint32_t;
+		};
+		template<> 
+		struct obf_normalized_unsigned_integral_type<uint16_t> {
+			using type = uint16_t;
+		};
+		template<> 
+		struct obf_normalized_unsigned_integral_type<uint8_t> {
+			using type = uint8_t;
+		};
+		template<>
+		struct obf_normalized_unsigned_integral_type<int64_t> {
+			using type = uint64_t;
+		};
+		template<> 
+		struct obf_normalized_unsigned_integral_type<int32_t> {
+			using type = uint32_t;
+		};
+		template<> 
+		struct obf_normalized_unsigned_integral_type<int16_t> {
+			using type = uint16_t;
+		};
+		template<> 
+		struct obf_normalized_unsigned_integral_type<int8_t> {
+			using type = uint8_t;
 		};
 
 		static_assert(sizeof(int)==sizeof(unsigned));
@@ -182,7 +249,7 @@ namespace ithare {
 			static_assert(sizeof(type) >= sizeof(T));
 			static_assert(sizeof(type) >= sizeof(int));
 		};
-
+		
 		template<class T, class T2>
 		struct obf_integral_operator_promoconv {//see issue #2 for description of the approximation of C++ promotion/operator conversion rules
 			using TPROMOTED = typename obf_integral_promotion<T>::type;
