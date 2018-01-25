@@ -52,7 +52,7 @@ constexpr int CHACHA_BLK_SIZE = 64;
 
 /* Adapted from the public domain code by D. Bernstein from SUPERCOP. */
 
-union chacha_buf {
+union chacha_buf {//TODO: obfuscate (DON'T forget to prohibit use of c[64] when doing so)
     uint32_t u[16];
     uint8_t c[64];//CANNOT be used in constexpr calls; use get_byte_n() below instead in constexpr
     
@@ -90,7 +90,7 @@ void chacha20_core(chacha_buf *output, const uint32_t input[16])
 	ITHARE_OBFLIBM1(uint32_t) x[16] = {}; ITHARE_OBF_DBGPRINTLIBX(x[0]);
 	ITHARE_OBF_CALLFROMLIB(obf_copyarray)(x,input);
 
-    for (int i = 20; i > 0; i -= 2) {
+    for (int i = 20; i > 0; i -= 2) {//TODO: blind loop
         ITHARE_OBF_TLS_QUARTERROUND(0, 4, 8, 12);
         ITHARE_OBF_TLS_QUARTERROUND(1, 5, 9, 13);
         ITHARE_OBF_TLS_QUARTERROUND(2, 6, 10, 14);
@@ -103,7 +103,7 @@ void chacha20_core(chacha_buf *output, const uint32_t input[16])
 
 	static_assert(obf_endian::native == obf_endian::little);
     if constexpr (obf_endian::native == obf_endian::little) {
-        for (int i = 0; i < 16; ++i)
+        for (ITHARE_OBFLIB(int) i = 0; i < ITHARE_OBFILIB(16); ++i)
             output->u[i] = x[i] + input[i];
 	}
     /* else ++big-endian: test
@@ -117,27 +117,19 @@ void ChaCha20_ctr32(unsigned char *out, const unsigned char *inp,
                     size_t len, const unsigned int key[8],
                     const unsigned int counter[4])
 {
-    uint32_t input[16] = {};//TODO: move initialization here
 
     /* sigma constant "expand 32-byte k" in little-endian encoding */
-    input[0] = ((uint32_t)'e') | ((uint32_t)'x'<<8) | ((uint32_t)'p'<<16) | ((uint32_t)'a'<<24);
-    input[1] = ((uint32_t)'n') | ((uint32_t)'d'<<8) | ((uint32_t)' '<<16) | ((uint32_t)'3'<<24);
-    input[2] = ((uint32_t)'2') | ((uint32_t)'-'<<8) | ((uint32_t)'b'<<16) | ((uint32_t)'y'<<24);
-    input[3] = ((uint32_t)'t') | ((uint32_t)'e'<<8) | ((uint32_t)' '<<16) | ((uint32_t)'k'<<24);
+	constexpr uint32_t i0 = ((uint32_t)'e') | ((uint32_t)'x'<<8) | ((uint32_t)'p'<<16) | ((uint32_t)'a'<<24);
+	constexpr uint32_t i1 = ((uint32_t)'n') | ((uint32_t)'d'<<8) | ((uint32_t)' '<<16) | ((uint32_t)'3'<<24);
+	constexpr uint32_t i2 = ((uint32_t)'2') | ((uint32_t)'-'<<8) | ((uint32_t)'b'<<16) | ((uint32_t)'y'<<24);
+	constexpr uint32_t i3 = ((uint32_t)'t') | ((uint32_t)'e'<<8) | ((uint32_t)' '<<16) | ((uint32_t)'k'<<24);
 
-    input[4] = key[0];
-    input[5] = key[1];
-    input[6] = key[2];
-    input[7] = key[3];
-    input[8] = key[4];
-    input[9] = key[5];
-    input[10] = key[6];
-    input[11] = key[7];
-
-    input[12] = counter[0];
-    input[13] = counter[1];
-    input[14] = counter[2];
-    input[15] = counter[3];
+    uint32_t input[16] = {//TODO: obfuscate (requires non-trivial support for obfuscated-array-as-input-param)
+		ITHARE_OBFILIB(i0), ITHARE_OBFILIB(i1), ITHARE_OBFILIB(i2), ITHARE_OBFILIB(i3),
+		key[0], key[1], key[2], key[3], 
+		key[4], key[5], key[6], key[7],
+		counter[0], counter[1], counter[2], counter[3]
+	};
 
     chacha_buf buf = {};
     while (len > 0) {
