@@ -194,7 +194,7 @@ void issueCommand(std::string cmd) {
 	std::cout << cmd << std::endl;
 }
 
-enum write_output { none, stable, random };
+enum class write_output { none, stable, random };
 
 void buildCheckRunCheck(std::string cmd,bool obfuscated,write_output wo) {
 	issueCommand(cmd);
