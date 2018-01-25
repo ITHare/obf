@@ -11,7 +11,8 @@ namespace ithare {
 			if constexpr((obfflags&obf_flag_is_constexpr) ||
 				!std::is_same<decltype(from[0]), decltype(to[0])>::value ||
 				!std::is_trivially_copyable<decltype(from[0])>::value || obf_avoid_memxxx) {
-				for (ITHARE_OBFLIB(size_t) i = 0; i < N; ++i) { ITHARE_OBF_DBGPRINTLIB(i);
+				auto n = ITHARE_OBFILIB(N); ITHARE_OBF_DBGPRINTLIB(n);//naming literal as variable just to enable printing it
+				for (ITHARE_OBFLIB(size_t) i = 0; i < n; ++i) { ITHARE_OBF_DBGPRINTLIB(i); 
 					to[i] = from[i];
 				}
 			}
@@ -25,7 +26,8 @@ namespace ithare {
 			ITHARE_OBF_DBGPRINTLIBFUNCNAME("obf_zeroarray");//no 'X'
 			if constexpr((obfflags&obf_flag_is_constexpr) ||
 				!std::is_integral<decltype(to[0])>::value || obf_avoid_memxxx) {
-				for (ITHARE_OBFLIB(size_t) i = 0; i < N; ++i) { ITHARE_OBF_DBGPRINTLIB(i);
+				auto n = ITHARE_OBFILIB(N); ITHARE_OBF_DBGPRINTLIB(n);//naming literal as variable just to enable printing it
+				for (ITHARE_OBFLIB(size_t) i = 0; i < n; ++i) { ITHARE_OBF_DBGPRINTLIB(i);
 					to[i] = 0;
 				}
 			}
