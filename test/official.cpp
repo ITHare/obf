@@ -128,10 +128,10 @@ int main(int argc, char** argv) {
 		std::cout << "sizeof(void*) == " << sizeof(void*) << std::endl;
 #endif
 #ifdef ITHARE_OBF_SEED
-		std::cout << "ITHARE_OBF_SEED=" << std::hex << ITHARE_OBF_SEED << std::endl;
+		std::cout << "ITHARE_OBF_SEED=" << std::hex << ITHARE_OBF_SEED << std::dec << std::endl;
 #endif
 #ifdef ITHARE_OBF_SEED2
-		std::cout << "ITHARE_OBF_SEED2=" << std::hex << ITHARE_OBF_SEED2 << std::endl;
+		std::cout << "ITHARE_OBF_SEED2=" << std::hex << ITHARE_OBF_SEED2 << std::dec << std::endl;
 #endif
 
 	ITOBF obf_init();
