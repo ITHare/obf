@@ -42,6 +42,9 @@
     <ClInclude Include="..\..\no-longer-standard\tls\crypto\chacha.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\src\obf_lib.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\internal.cpp">

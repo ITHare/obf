@@ -532,7 +532,8 @@ namespace ithare {
 		ITHARE_OBF_FORCEINLINE constexpr static return_type injected_add_mod_max_value_ex(return_type base,T x) {
 			//effectively returns base + x (base - x if neg); sic! - no C involved
 			ITHARE_OBF_DECLAREPRNG_INFUNC seedc = ITHARE_OBF_COMBINED_PRNG(seed,seed2);
-			if constexpr(RecursiveInjection::injection_caps & obf_injection_has_add_mod_max_value_ex) {
+			constexpr bool has_shortcut = RecursiveInjection::injection_caps & obf_injection_has_add_mod_max_value_ex;
+			if constexpr(has_shortcut) {
 				if constexpr(neg) {
 					return_type ret = RecursiveInjection::template injected_add_mod_max_value_ex<seedc>(base, -ST(x));
 									//mutually exclusive with all the other non-CHECK calls to injection<> => no need to randomize seedc further 

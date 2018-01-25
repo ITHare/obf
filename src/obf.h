@@ -1,5 +1,5 @@
-#ifndef ithare_obf_obfuscate_h_included
-#define ithare_obf_obfuscate_h_included
+#ifndef ithare_obf_obf_h_included
+#define ithare_obf_obf_h_included
 
 #include "impl/obf_common.h"
 #include "impl/obf_prng.h"
@@ -204,7 +204,8 @@ namespace ithare {
 
 		ITHARE_OBF_FORCEINLINE constexpr operator T_() const { return value(); }
 		ITHARE_OBF_FORCEINLINE constexpr ObfVar& operator ++() { 
-			if constexpr(Injection::injection_caps & obf_injection_has_add_mod_max_value_ex) {
+			constexpr bool has_shortcut = Injection::injection_caps & obf_injection_has_add_mod_max_value_ex;
+			if constexpr(has_shortcut) {
 				typename Injection::return_type ret = Injection::template injected_add_mod_max_value_ex<ITHARE_OBF_NEW_PRNG(seed, 6)>(val,1);
 				ITHARE_OBF_DBG_CHECK_SHORTCUT("++",ret,Injection::template injection<seed>(Injection::template surjection<seed>(val)+1));
 				val = ret;
@@ -1110,4 +1111,4 @@ void obf_auto_dbg_print_libfuncname(const char* fname, const char* file, int lin
 
 #endif //ITHARE_OBF_NO_SHORT_DEFINES
 
-#endif//ithare_obf_obfuscate_h_included
+#endif//ithare_obf_obf_h_included

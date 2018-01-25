@@ -36,6 +36,7 @@
 #define ithare_obf_tls_crypto_chacha_h_included
 
 #include "../../../src/obf.h"
+#include "../../../src/obf_lib.h"
 
 namespace ithare {
 	namespace obf {
@@ -87,7 +88,7 @@ void chacha20_core(chacha_buf *output, const uint32_t input[16])
 {
 	ITHARE_OBF_DBGPRINTLIBFUNCNAME("chacha_core");
 	ITHARE_OBFLIBM1(uint32_t) x[16] = {}; ITHARE_OBF_DBGPRINTLIB(x[0]);
-	obf_copyarray<obfflags>(x,input);
+	ITHARE_OBF_CALLFROMLIB(obf_copyarray)(x,input);
 
     for (int i = 20; i > 0; i -= 2) {
         ITHARE_OBF_TLS_QUARTERROUND(0, 4, 8, 12);
@@ -261,7 +262,7 @@ class EVP_CHACHA {
 		}
 
 		if (rem) {
-			obf_zeroarray<obfflags>(key.buf);
+			ITHARE_OBF_CALLFROMLIB(obf_zeroarray)(key.buf);
 			ITHARE_OBF_CALLFROMLIB(ChaCha20_ctr32)(key.buf, key.buf, CHACHA_BLK_SIZE,
 						   key.key.d, key.counter);
 			for (n = 0; n < rem; n++)

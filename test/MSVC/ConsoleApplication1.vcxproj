@@ -238,6 +238,7 @@
     <ClInclude Include="..\..\src\impl\obf_literal.h" />
     <ClInclude Include="..\..\src\impl\obf_prng.h" />
     <ClInclude Include="..\..\src\obf.h" />
+    <ClInclude Include="..\..\src\obf_lib.h" />
     <ClInclude Include="..\..\src\obf_user_injection.h" />
   </ItemGroup>
   <ItemGroup>
