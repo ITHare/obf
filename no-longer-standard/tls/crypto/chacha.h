@@ -85,7 +85,7 @@ static_assert(sizeof(chacha_buf)==64);
 ITHARE_OBF_DECLARELIBFUNC
 void chacha20_core(chacha_buf *output, const uint32_t input[16])
 {
-    uint32_t x[16] = {};
+    ITHARE_OBFLIBM1(uint32_t) x[16] = {}; ITHARE_OBF_DBGPRINTLIB(x[0]);
     if constexpr((obfflags&obf_flag_is_constexpr)||obf_avoid_memxxx) {
 		obf_copyarray(x,input);
 	}

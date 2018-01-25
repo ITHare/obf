@@ -173,6 +173,8 @@ namespace ithare {
 		using Injection = typename obf_var_injection<obfuscate,T, Context, InjectionRequirements,ITHARE_OBF_NEW_PRNG(seed, 2), cycles>::Injection;
 
 	public:
+		ITHARE_OBF_FORCEINLINE constexpr ObfVar() : val(0) {
+		}
 		ITHARE_OBF_FORCEINLINE constexpr ObfVar(T_ t) : val(Injection::template injection<ITHARE_OBF_NEW_PRNG(seed, 2)>(T(t))) {
 		}
 		template<class T2, ITHARE_OBF_SEEDTPARAM seed2, OBFCYCLES cycles2>
@@ -707,6 +709,8 @@ namespace ithare {
 			static_assert(std::is_integral<T>::value);
 
 		public:
+			ITHARE_OBF_FORCEINLINE constexpr ObfVarDbg() : val(0) {
+			}
 			constexpr ObfVarDbg(T t) : val(t) {
 			}
 			template<class T2>

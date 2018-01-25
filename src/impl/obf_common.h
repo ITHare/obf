@@ -58,8 +58,8 @@ namespace ithare {
 		template<class T,size_t N>
 		ITHARE_OBF_FORCEINLINE constexpr size_t obf_arraysz(T(&)[N]) { return N; }
 
-		template<class T,size_t N>
-		ITHARE_OBF_FORCEINLINE constexpr void obf_copyarray(T(&to)[N], const T from[]) {
+		template<class T,class T2,size_t N>
+		ITHARE_OBF_FORCEINLINE constexpr void obf_copyarray(T(&to)[N], const T2 from[]) {
 			for(size_t i=0; i < N; ++i ) {
 				to[i] = from[i];
 			}
