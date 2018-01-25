@@ -133,13 +133,13 @@ void ChaCha20_ctr32(unsigned char *out, const unsigned char *inp,
 
     chacha_buf buf = {};
     while (len > 0) {
-        size_t todo = sizeof(buf);
+        ITHARE_OBFLIB(size_t) todo = sizeof(buf);
         if (len < todo)
             todo = len;
 
         ITHARE_OBF_CALLFROMLIB(chacha20_core)(&buf, input);
 
-        for (size_t i = 0; i < todo; i++) {
+        for (ITHARE_OBFLIB(size_t) i = 0; i < todo; i++) {
             if constexpr(obfflags&obf_flag_is_constexpr)//potential big-endian issues?
 				out[i] = inp[i] ^ buf.get_byte_n(i);
 			else
@@ -163,7 +163,7 @@ void ChaCha20_ctr32(unsigned char *out, const unsigned char *inp,
 //OBF: combined stuff into EVP_CHACHA class
 
 class EVP_CHACHA {
-	struct KEY {//former EVP_CHACHA_KEY
+	struct KEY {//former EVP_CHACHA_KEY; TODO: obfuscate
 		struct {
 		    alignas(double) /* this ensures even sizeof(EVP_CHACHA_KEY)%8==0 */
 				unsigned int d[CHACHA_KEY_SIZE / 4];
@@ -183,12 +183,12 @@ class EVP_CHACHA {
 		KEY key = {};
 
 		if (user_key)
-			for (unsigned int i = 0; i < CHACHA_KEY_SIZE; i+=4) {
+			for (ITHARE_OBFLIB(unsigned int) i = 0; i < CHACHA_KEY_SIZE; i+=4) {
 				key.key.d[i/4] = ITHARE_OBF_TLS_CHACHA_U8TOU32(user_key+i);
 			}
 
 		if (iv)
-			for (unsigned int i = 0; i < CHACHA_CTR_SIZE; i+=4) {
+			for (ITHARE_OBFLIB(unsigned int) i = 0; i < CHACHA_CTR_SIZE; i+=4) {
 				key.counter[i/4] = ITHARE_OBF_TLS_CHACHA_U8TOU32(iv+i);
 			}
 
@@ -219,9 +219,9 @@ class EVP_CHACHA {
 			}
 		}
 
-		unsigned int rem = (unsigned int)(len % CHACHA_BLK_SIZE);
+		ITHARE_OBFLIB(unsigned int) rem = (unsigned int)(len % CHACHA_BLK_SIZE);
 		len -= rem;
-		unsigned int ctr32 = key.counter[0];//TODO: is it really unsigned int, or maybe uint32_t?
+		ITHARE_OBFLIB(unsigned int) ctr32 = key.counter[0];//TODO: is it really unsigned int, or maybe uint32_t?
 		while (len >= CHACHA_BLK_SIZE) {
 			size_t blocks = len / CHACHA_BLK_SIZE;
 			/*
