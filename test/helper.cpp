@@ -126,22 +126,23 @@ std::string genRandom64() {
 std::string exitCheck(std::string cmd,bool expectok = true) {
 	static int nextlabel = 1;
 	if (expectok) {
+
 		auto ret = std::string("IF NOT ERRORLEVEL 1 GOTO LABEL") + std::to_string(nextlabel)
-		    + "\nECHO \"" + cmd + "\">failed.bat"
+		    + "\nECHO " + replace_string(cmd,">","^>") + ">failed.bat"
 			+ "\nEXIT /B\n:LABEL" + std::to_string(nextlabel);
 		nextlabel++;
 		return ret;
 	}
 	else {
 		auto ret = std::string("IF ERRORLEVEL 1 GOTO LABEL") + std::to_string(nextlabel)
-		    + "\nECHO \"" + cmd + "\">failed.bat"
+		    + "\nECHO " + replace_string(cmd, ">", "^>") + ">failed.bat"
 			+ "\nEXIT /B\n:LABEL" + std::to_string(nextlabel);
 		nextlabel++;
 		return ret;
 	}
 }
 std::string echo(std::string s) {
-	return std::string("ECHO \"" + s +"\"");
+	return std::string("ECHO " + replace_string(s, ">", "^>") +"");
 }
 std::string run(std::string redirect) {
 	if(redirect!="")
