@@ -86,11 +86,7 @@ ITHARE_OBF_DECLARELIBFUNC
 void chacha20_core(chacha_buf *output, const uint32_t input[16])
 {
     ITHARE_OBFLIBM1(uint32_t) x[16] = {}; ITHARE_OBF_DBGPRINTLIB(x[0]);
-    if constexpr((obfflags&obf_flag_is_constexpr)||obf_avoid_memxxx) {
-		obf_copyarray(x,input);
-	}
-    else
-		memcpy(x, input, sizeof(x));
+	obf_copyarray<obfflags>(x,input);
 
     for (int i = 20; i > 0; i -= 2) {
         ITHARE_OBF_TLS_QUARTERROUND(0, 4, 8, 12);
@@ -108,7 +104,7 @@ void chacha20_core(chacha_buf *output, const uint32_t input[16])
         for (int i = 0; i < 16; ++i)
             output->u[i] = x[i] + input[i];
 	}
-    /* else big-endian: test
+    /* else ++big-endian: test
 			for (int i = 0; i < 16; ++i)
             		ITHARE_OBF_TLS_U32TO8_LITTLE(output->c + 4 * i, (x[i] + input[i]));
     }*/
@@ -264,11 +260,7 @@ class EVP_CHACHA {
 		}
 
 		if (rem) {
-			if constexpr((obfflags&obf_flag_is_constexpr)||obf_avoid_memxxx) {
-				obf_zeroarray(key.buf);
-			}
-			else
-				memset(key.buf, 0, sizeof(key.buf));
+			obf_zeroarray<obfflags>(key.buf);
 			ITHARE_OBF_CALLFROMLIB(ChaCha20_ctr32)(key.buf, key.buf, CHACHA_BLK_SIZE,
 						   key.key.d, key.counter);
 			for (n = 0; n < rem; n++)
