@@ -86,8 +86,8 @@ static_assert(sizeof(chacha_buf)==64);
 ITHARE_OBF_DECLARELIBFUNC
 void chacha20_core(chacha_buf *output, const uint32_t input[16])
 {
-	ITHARE_OBF_DBGPRINTLIBFUNCNAME("chacha_core");
-	ITHARE_OBFLIBM1(uint32_t) x[16] = {}; ITHARE_OBF_DBGPRINTLIB(x[0]);
+	ITHARE_OBF_DBGPRINTLIBFUNCNAMEX("chacha_core");
+	ITHARE_OBFLIBM1(uint32_t) x[16] = {}; ITHARE_OBF_DBGPRINTLIBX(x[0]);
 	ITHARE_OBF_CALLFROMLIB(obf_copyarray)(x,input);
 
     for (int i = 20; i > 0; i -= 2) {
@@ -207,8 +207,8 @@ class EVP_CHACHA {
 	static void cipher( KEY& key, unsigned char *out,
 			    const unsigned char *inp, size_t len)
 	{
-		ITHARE_OBF_DBGPRINTLIBFUNCNAME("EVP_CHACHA::cipher");
-		ITHARE_OBFLIB(unsigned int) n = key.partial_len; ITHARE_OBF_DBGPRINTLIB(n);
+		ITHARE_OBF_DBGPRINTLIBFUNCNAMEX("EVP_CHACHA::cipher");
+		ITHARE_OBFLIB(unsigned int) n = key.partial_len; ITHARE_OBF_DBGPRINTLIBX(n);
 		if (n) {
 			while (len && n < ITHARE_OBFILIB(CHACHA_BLK_SIZE)) {
 				*out++ = *inp++ ^ key.buf[n++];

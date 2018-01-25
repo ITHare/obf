@@ -124,8 +124,14 @@ const lest::test spec[] = {
 };
 
 int main(int argc, char** argv) {
-#ifndef ITHARE_OBF_ENABLE_AUTO_DBGPRINT //excluding platform-specific stuff to avoid spurious changes to obftemp.txt 
+#if !defined(ITHARE_OBF_ENABLE_AUTO_DBGPRINT) || ITHARE_OBF_ENABLE_AUTO_DBGPRINT == 2//excluding platform-specific stuff to avoid spurious changes to obftemp.txt with -DITHARE_OBF_ENABLE_AUTO_DBGPRINT
 		std::cout << "sizeof(void*) == " << sizeof(void*) << std::endl;
+#endif
+#ifdef ITHARE_OBF_SEED
+		std::cout << "ITHARE_OBF_SEED=" << std::hex << ITHARE_OBF_SEED << std::endl;
+#endif
+#ifdef ITHARE_OBF_SEED2
+		std::cout << "ITHARE_OBF_SEED2=" << std::hex << ITHARE_OBF_SEED2 << std::endl;
 #endif
 
 	ITOBF obf_init();

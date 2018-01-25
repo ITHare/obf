@@ -6,11 +6,12 @@
 namespace ithare {
 	namespace obf {
 		ITHARE_OBF_DECLARELIBFUNC_WITHEXTRA(class T, class T2, size_t N)
-		void obf_copyarray(T(&to)[N], const T2 from[]) {
+		void obf_copyarray(T(&to)[N], const T2 from[]) { 
+			ITHARE_OBF_DBGPRINTLIBFUNCNAME("obf_copyarray");//no 'X' as there is no need to print func name if there is no other stuff to be printed
 			if constexpr((obfflags&obf_flag_is_constexpr) ||
 				!std::is_same<decltype(from[0]), decltype(to[0])>::value ||
 				!std::is_trivially_copyable<decltype(from[0])>::value || obf_avoid_memxxx) {
-				for (ITHARE_OBFLIB(size_t) i = 0; i < N; ++i) {
+				for (ITHARE_OBFLIB(size_t) i = 0; i < N; ++i) { ITHARE_OBF_DBGPRINTLIB(i);
 					to[i] = from[i];
 				}
 			}
@@ -21,9 +22,10 @@ namespace ithare {
 		}
 		ITHARE_OBF_DECLARELIBFUNC_WITHEXTRA(class T, size_t N)
 		void obf_zeroarray(T(&to)[N]) {
+			ITHARE_OBF_DBGPRINTLIBFUNCNAME("obf_zeroarray");//no 'X'
 			if constexpr((obfflags&obf_flag_is_constexpr) ||
 				!std::is_integral<decltype(to[0])>::value || obf_avoid_memxxx) {
-				for (size_t i = 0; i < N; ++i) {
+				for (ITHARE_OBFLIB(size_t) i = 0; i < N; ++i) { ITHARE_OBF_DBGPRINTLIB(i);
 					to[i] = 0;
 				}
 			}

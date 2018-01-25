@@ -1056,20 +1056,30 @@ void obf_auto_dbg_print_libfuncname(const char* fname, const char* file, int lin
 #define ITHARE_OBF_DBGPRINT(x) do {\
 		ithare::obf::obf_auto_dbg_print<ithare::obf::obf_string_hash(ithare::obf::obf_normalize_fname(ITHARE_OBF_LOCATION)),ithare::obf::obf_string_hash(#x)>(x,#x,__FILE__,__LINE__);\
 	} while(false)
-#define ITHARE_OBF_DBGPRINTLIB(x) do {\
-		if constexpr(!(obfflags&obf_flag_is_constexpr)) {\
-				ithare::obf::obf_auto_dbg_print_fromlib<obfseed,obflevel,obfflags,ithare::obf::obf_string_hash(ithare::obf::obf_normalize_fname(ITHARE_OBF_LOCATION)),ithare::obf::obf_string_hash(#x)>(x,#x,__FILE__,__LINE__);\
-		}\
-	} while(false)
-#define ITHARE_OBF_DBGPRINTLIBFUNCNAME(fname) do {\
+
+#define ITHARE_OBF_DBGPRINTLIBFUNCNAMEX(fname)  /*'X' at the end stands for "cross-platform'*/ do {\
 		if constexpr(!(obfflags&obf_flag_is_constexpr)) {\
 			ithare::obf::obf_auto_dbg_print_libfuncname<obfseed,obflevel,obfflags,ithare::obf::obf_string_hash(ithare::obf::obf_normalize_fname(ITHARE_OBF_LOCATION)),ithare::obf::obf_string_hash(#fname)>(fname,__FILE__,__LINE__);\
 		}\
 	} while(false)
+#define ITHARE_OBF_DBGPRINTLIBX(x) do {\
+		if constexpr(!(obfflags&obf_flag_is_constexpr)) {\
+				ithare::obf::obf_auto_dbg_print_fromlib<obfseed,obflevel,obfflags,ithare::obf::obf_string_hash(ithare::obf::obf_normalize_fname(ITHARE_OBF_LOCATION)),ithare::obf::obf_string_hash(#x)>(x,#x,__FILE__,__LINE__);\
+		}\
+	} while(false)
+#if ITHARE_OBF_ENABLE_AUTO_DBGPRINT>=2 //if not >=2, stick to cross-platform-only
+#define ITHARE_OBF_DBGPRINTLIB ITHARE_OBF_DBGPRINTLIBX
+#define ITHARE_OBF_DBGPRINTLIBFUNCNAME ITHARE_OBF_DBGPRINTLIBFUNCNAMEX
+#else
+#define ITHARE_OBF_DBGPRINTLIB(x)
+#define ITHARE_OBF_DBGPRINTLIBFUNCNAME(fname)
+#endif
 #else
 #define ITHARE_OBF_DBGPRINT(x)
 #define ITHARE_OBF_DBGPRINTLIB(x)
+#define ITHARE_OBF_DBGPRINTLIBX(x)
 #define ITHARE_OBF_DBGPRINTLIBFUNCNAME(fname)
+#define ITHARE_OBF_DBGPRINTLIBFUNCNAMEX(fname)
 #endif
 
 #ifndef ITHARE_OBF_NO_SHORT_DEFINES//#define to avoid polluting global namespace w/o prefix

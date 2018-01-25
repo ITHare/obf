@@ -29,3 +29,4 @@
 test/Clang/obftemp.dSYM/
 /test/MSVC/MSVC-linker-MT-bug
 /test/MSVC/runtest32
+/test/MSVC/local_obftemp.txt

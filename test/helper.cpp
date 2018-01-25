@@ -172,7 +172,7 @@ std::string setup() {
 bool add32tests = false;
 
 std::string fixedSeeds() {
-	return std::string(" -DITHARE_OBF_SEED=0x4b295ebab3333abc -DITHAREOBF_SEED2=0x36e007a38ae8e0ea");//from random.org
+	return std::string(" -DITHARE_OBF_SEED=0x4b295ebab3333abc -DITHARE_OBF_SEED2=0x36e007a38ae8e0ea");//from random.org
 }
 
 std::string genSeed() {
@@ -194,13 +194,24 @@ void issueCommand(std::string cmd) {
 	std::cout << cmd << std::endl;
 }
 
-void buildCheckRunCheck(std::string cmd,bool obfuscated,bool write_output) {
+enum write_output { none, stable, random };
+
+void buildCheckRunCheck(std::string cmd,bool obfuscated,write_output wo) {
 	issueCommand(cmd);
 	std::cout << exitCheck(cmd) << std::endl;
 	std::cout << checkObfuscation(obfuscated) << std::endl;
 
-	std::string tofile = write_output ? rootTestFolder() + "obftemp.txt" : "";
-	
+	std::string tofile = "";
+	switch (wo) {
+	case write_output::none:
+		break;
+	case write_output::stable:
+		tofile = rootTestFolder() + "obftemp.txt";
+		break;
+	case write_output::random:
+		tofile = "local_obftemp.txt";
+		break;
+	}
 	std::string cmdrun = run(tofile);
 	issueCommand(cmdrun);
 	std::cout << exitCheck(cmdrun) << std::endl;
@@ -227,54 +238,57 @@ std::string buildCmd(config cfg,std::string defs) {
 	case release:
 		return buildRelease(defs);
 	}
+	assert(false);
+	return "";
 }
 
-void buildCheckRunCheckx2(config cfg,std::string defs,int nseeds, bool obfuscated=true,bool write_output=false) {
+void buildCheckRunCheckx2(config cfg,std::string defs,int nseeds, bool obfuscated=true,write_output wo=write_output::none) {
 	assert(nseeds >= -1 && nseeds <= 2);
-	if(write_output){
+	if(wo==write_output::stable){
 		assert(nseeds<0);
 	}
-	else
-	{
+	else {
 		assert(nseeds>=0);
 	}
 	
 	std::string cmd1 = buildCmd(cfg, defs + seedsByNum(nseeds));
-	buildCheckRunCheck(cmd1,obfuscated,write_output);
+	buildCheckRunCheck(cmd1,obfuscated,wo);
 	std::string cmd2 = buildCmd(cfg, defs + seedsByNum(nseeds) + " -DITHARE_OBF_TEST_NO_NAMESPACE");
-	buildCheckRunCheck(cmd2,obfuscated,write_output);
+	buildCheckRunCheck(cmd2,obfuscated,wo);
 	
 	if(add32tests) {
 		std::string m32 = build32option();
 		std::string cmd1 = buildCmd(cfg, defs + m32 + seedsByNum(nseeds));
-		buildCheckRunCheck(cmd1,obfuscated,write_output);
+		buildCheckRunCheck(cmd1,obfuscated,wo);
 		std::string cmd2 = buildCmd(cfg, defs + m32 + seedsByNum(nseeds) + " -DITHARE_OBF_TEST_NO_NAMESPACE");
-		buildCheckRunCheck(cmd2,obfuscated,write_output);
+		buildCheckRunCheck(cmd2,obfuscated,wo);
 	}
 }
 
 void genDefineTests() {
-	std::cout << echo( std::string("=== -Define Test 1/11 ===" ) ) << std::endl;
-	buildCheckRunCheckx2(config::release," -DITHARE_OBF_INIT -DITHARE_OBF_CONSISTENT_XPLATFORM_IMPLICIT_SEEDS -DITHARE_OBF_ENABLE_AUTO_DBGPRINT",-1,true,true);
-	std::cout << echo( std::string("=== -Define Test 2/11 ===" ) ) << std::endl;
+	std::cout << echo(std::string("=== -Define Test 1/12 (DEBUG, -DITHARE_OBF_ENABLE_AUTO_DBGPRINT, write_output::stable) ===")) << std::endl;
+	buildCheckRunCheckx2(config::debug, " -DITHARE_OBF_INIT -DITHARE_OBF_CONSISTENT_XPLATFORM_IMPLICIT_SEEDS -DITHARE_OBF_ENABLE_AUTO_DBGPRINT", -1, true, write_output::stable);
+	std::cout << echo(std::string("=== -Define Test 2/12 (RELEASE, -DITHARE_OBF_ENABLE_AUTO_DBGPRINT=2, write_output::random)===")) << std::endl;
+	buildCheckRunCheckx2(config::release, " -DITHARE_OBF_INIT -DITHARE_OBF_CONSISTENT_XPLATFORM_IMPLICIT_SEEDS -DITHARE_OBF_ENABLE_AUTO_DBGPRINT=2", 2, true, write_output::random);
+	std::cout << echo( std::string("=== -Define Test 3/11 (DEBUG, no ITHARE_OBF_SEED) ===" ) ) << std::endl;
 	buildCheckRunCheckx2(config::debug,"",0,false);
-	std::cout << echo( std::string("=== -Define Test 3/11 ===" ) ) << std::endl;
+	std::cout << echo( std::string("=== -Define Test 4/12 (RELEASE, no ITHARE_OBF_SEED) ===" ) ) << std::endl;
 	buildCheckRunCheckx2(config::release,"",0,false);
-	std::cout << echo( std::string("=== -Define Test 4/11 ===" ) ) << std::endl;
+	std::cout << echo( std::string("=== -Define Test 5/12 (DEBUG, single ITHARE_OBF_SEED) ===" ) ) << std::endl;
 	buildCheckRunCheckx2(config::debug,"",1);
-	std::cout << echo( std::string("=== -Define Test 5/11 ===" ) ) << std::endl;
+	std::cout << echo( std::string("=== -Define Test 6/12 (RELEASE, single ITHARE_OBF_SEED) ===" ) ) << std::endl;
 	buildCheckRunCheckx2(config::release,"",1);
-	std::cout << echo( std::string("=== -Define Test 6/11 ===" ) ) << std::endl;
+	std::cout << echo( std::string("=== -Define Test 7/12 (DEBUG) ===" ) ) << std::endl;
 	buildCheckRunCheckx2(config::debug,"",2);
-	std::cout << echo( std::string("=== -Define Test 7/11 ===" ) ) << std::endl;
+	std::cout << echo( std::string("=== -Define Test 8/12 (RELEASE) ===" ) ) << std::endl;
 	buildCheckRunCheckx2(config::release,"",2);
-	std::cout << echo( std::string("=== -Define Test 8/11 ===" ) ) << std::endl;
+	std::cout << echo( std::string("=== -Define Test 9/12 (DEBUG, -DITHARE_OBF_DBG_RUNTIME_CHECKS) ===" ) ) << std::endl;
 	buildCheckRunCheckx2(config::debug," -DITHARE_OBF_DBG_RUNTIME_CHECKS",2);
-	std::cout << echo( std::string("=== -Define Test 9/11 ===" ) ) << std::endl;
+	std::cout << echo( std::string("=== -Define Test 10/12 (RELEASE, -DITHARE_OBF_DBG_RUNTIME_CHECKS) ===" ) ) << std::endl;
 	buildCheckRunCheckx2(config::release, " -DITHARE_OBF_DBG_RUNTIME_CHECKS",2);
-	std::cout << echo( std::string("=== -Define Test 10/11 ===" ) ) << std::endl;
+	std::cout << echo( std::string("=== -Define Test 11/12 (DEBUG, -DITHARE_OBF_CRYPTO_PRNG) ===" ) ) << std::endl;
 	buildCheckRunCheckx2(config::debug," -DITHARE_OBF_CRYPTO_PRNG",2);
-	std::cout << echo( std::string("=== -Define Test 11/11 ===" ) ) << std::endl;
+	std::cout << echo( std::string("=== -Define Test 12/12 (RELEASE, -DITHARE_OBF_CRYPTO_PRNG) ===" ) ) << std::endl;
 	buildCheckRunCheckx2(config::release," -DITHARE_OBF_CRYPTO_PRNG",2);
 }
 
@@ -288,9 +302,9 @@ void genRandomTests(size_t n) {
 		std::cout << echo( std::string("=== Random Test ") + std::to_string(i+1) + "/" + std::to_string(n) + " ===" ) << std::endl;
 		std::string defines = genSeeds()+" -DITHARE_OBF_INIT -DITHARE_OBF_CONSISTENT_XPLATFORM_IMPLICIT_SEEDS"+extra;
 		if( i%4 == 0 ) 
-			buildCheckRunCheck(buildDebug(defines),true,false);
+			buildCheckRunCheck(buildDebug(defines),true,write_output::none);
 		else
-			buildCheckRunCheck(buildRelease(defines),true,false);
+			buildCheckRunCheck(buildRelease(defines),true, write_output::none);
 	}
 }
 
