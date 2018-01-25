@@ -75,8 +75,7 @@ namespace ithare {
 				u = ((u << 5) + u) + *p;
 			return u;
 		}
-
-		
+				
 		enum class obf_endian//along the lines of p0463r1, to be replaced with std::endian
 		{
 #ifdef _MSC_VER
@@ -125,6 +124,53 @@ namespace ithare {
 
 			static_assert(sizeof(type) >= sizeof(T));
 			static_assert(sizeof(type) >= sizeof(T2));
+		};
+
+		template<size_t N>
+		struct obf_uint_by_size;
+		template<>
+		struct obf_uint_by_size<8> { using type = uint8_t; };
+		template<>
+		struct obf_uint_by_size<16> { using type = uint16_t; };
+		template<>
+		struct obf_uint_by_size<32> { using type = uint32_t; };
+		template<>
+		struct obf_uint_by_size<64> { using type = uint64_t; };		
+		template<class T>
+		struct obf_normalized_unsigned_integral_type {
+			static_assert(std::is_integral<T>::value);
+			using type = typename obf_uint_by_size<8*sizeof(T)>::type;
+			static_assert(sizeof(type)==sizeof(T));
+			static_assert(std::is_unsigned<type>::value);
+		};
+
+		template<size_t N>
+		struct obf_sint_by_size;
+		template<>
+		struct obf_sint_by_size<8> { using type = int8_t; };
+		template<>
+		struct obf_sint_by_size<16> { using type = int16_t; };
+		template<>
+		struct obf_sint_by_size<32> { using type = int32_t; };
+		template<>
+		struct obf_sint_by_size<64> { using type = int64_t; };		
+		template<class T>
+		struct obf_normalized_signed_integral_type {
+			static_assert(std::is_integral<T>::value);
+			using type = typename obf_sint_by_size<8*sizeof(T)>::type;
+			static_assert(sizeof(type)==sizeof(T));
+			static_assert(std::is_signed<type>::value);
+		};
+
+		template<class T>
+		struct obf_normalized_integral_type {
+			static_assert(std::is_integral<T>::value);
+			using type = typename obf_select_type< std::is_signed<T>::value,
+								typename obf_normalized_signed_integral_type<T>::type,
+								typename obf_normalized_unsigned_integral_type<T>::type 
+							>::type;
+			static_assert(sizeof(T)==sizeof(type));
+			static_assert(std::is_signed<type>::value == std::is_signed<T>::value);
 		};
 
 		static_assert(sizeof(int)==sizeof(unsigned));
@@ -205,8 +251,10 @@ namespace ithare {
 
 		template<class T, class TC, TC C>
 		constexpr bool obf_integral_operator_literal_cast_is_safe() {
-			return ObfSint128(C) <= ObfSint128(std::numeric_limits<T>::max()) && 
-					   ObfSint128(C) >= ObfSint128(std::numeric_limits<T>::min());
+			using TCNORMAL = typename obf_normalized_integral_type<TC>::type;//from this point on, uint8_t..uint64_t only; simple std::make_unsigned didn't do as some compilers tried to treat unsigned long distinct from both uint32_t and uint64_t
+
+			return ObfSint128(TCNORMAL(C)) <= ObfSint128(std::numeric_limits<T>::max()) && 
+					   ObfSint128(TCNORMAL(C)) >= ObfSint128(std::numeric_limits<T>::min());
 		}
 		
 	}//namespace obf
@@ -249,35 +297,5 @@ namespace ithare {
 	}//namespace obf
 }//namespace ithare
 #endif //ITHARE_OBF_SEED
-
-namespace ithare {
-	namespace obf {
-		template<OBFFLAGS obfflags,class T,class T2,size_t N>
-		ITHARE_OBF_FORCEINLINE constexpr void obf_copyarray(T(&to)[N], const T2 from[]) {
-			if constexpr((obfflags&obf_flag_is_constexpr) || 
-				  !std::is_same<decltype(from[0]),decltype(to[0])>::value || 
-				  !std::is_trivially_copyable<decltype(from[0])>::value || obf_avoid_memxxx) {
-				for(size_t i=0; i < N; ++i ) {
-					to[i] = from[i];
-				}
-			}
-			else {
-				assert(sizeof(T)==sizeof(T2));
-				memcpy(to, from, sizeof(T));
-			}
-		}
-		template<OBFFLAGS obfflags,class T,size_t N>
-		ITHARE_OBF_FORCEINLINE constexpr void obf_zeroarray(T(&to)[N]) {
-			if constexpr((obfflags&obf_flag_is_constexpr) || 
-				  !std::is_integral<decltype(to[0])>::value || obf_avoid_memxxx) {
-				for(size_t i=0; i < N; ++i ) {
-					to[i] = 0;
-				}
-			}
-			else
-				memset(to,0,sizeof(T)*N);
-		}
-	}//namespace obf
-}//namespace ithare 
 
 #endif //ithare_obf_common_h_included

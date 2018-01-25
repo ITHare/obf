@@ -312,17 +312,6 @@ namespace ithare {
 			}
 		}
 
-		template<size_t N>
-		struct obf_uint_by_size;
-		template<>
-		struct obf_uint_by_size<8> { using type = uint8_t; };
-		template<>
-		struct obf_uint_by_size<16> { using type = uint16_t; };
-		template<>
-		struct obf_uint_by_size<32> { using type = uint32_t; };
-		template<>
-		struct obf_uint_by_size<64> { using type = uint64_t; };
-
 		template<class T>
 		constexpr T obf_mask(size_t n) {
 			assert(n <= sizeof(T) * 8);

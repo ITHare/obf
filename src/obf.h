@@ -72,7 +72,7 @@ namespace ithare {
 	template<class T_, T_ C_, ITHARE_OBF_SEEDTPARAM seed, OBFCYCLES cycles>
 	class obf_literal {
 		static_assert(std::is_integral<T_>::value);
-		using T = typename std::make_unsigned<T_>::type;//from this point on, unsigned only
+		using T = typename obf_normalized_unsigned_integral_type<T_>::type;//from this point on, uint8_t..uint64_t only; simple std::make_unsigned didn't do as some compilers tried to treat unsigned long distinct from both uint32_t and uint64_t
 		static constexpr T C = T(C_);
 
 		using Context = ObfLiteralContext<T, ITHARE_OBF_NEW_PRNG(seed, 1),cycles>;
@@ -158,7 +158,7 @@ namespace ithare {
 	template<class T_, ITHARE_OBF_SEEDTPARAM seed, OBFCYCLES cycles,OBFFLAGS flags=0>
 	class ObfVar {
 		static_assert(std::is_integral<T_>::value);
-		using T = typename std::make_unsigned<T_>::type;//from this point on (and down the hierarchy), unsigned only
+		using T = typename obf_normalized_unsigned_integral_type<T_>::type;//from this point on, uint8_t..uint64_t only; simple std::make_unsigned didn't do as some compilers tried to treat unsigned long distinct from both uint32_t and uint64_t
 		//using TTraits = ObfTraits<T>;
 
 		using Context = ObfVarContext<T, ITHARE_OBF_NEW_PRNG(seed, 1), cycles>;
@@ -628,7 +628,7 @@ namespace ithare {
 #define ITHARE_OBF6S(s) ITHARE_OBFS_HELPER(ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+6),s)()
 
 #define ITHARE_OBF_DECLARELIBFUNC template<ITHARE_OBF_SEEDTPARAM obfseed = ITHARE_OBF_DUMMYSEED, OBFLEVEL obflevel=-1,OBFFLAGS obfflags=0> constexpr ITHARE_OBF_FORCEINLINE
-#define ITHARE_OBF_DECLARELIBFUNC_WITHEXTRA(...) template<__VA_ARGS__,ITHARE_OBF_SEEDTPARAM obfseed = ITHARE_OBF_DUMMYSEED, OBFLEVEL obflevel=-1,OBFFLAGS obfflags=0> constexpr ITHARE_OBF_FORCEINLINE
+#define ITHARE_OBF_DECLARELIBFUNC_WITHEXTRA(...) template<ITHARE_OBF_SEEDTPARAM obfseed = ITHARE_OBF_DUMMYSEED, OBFLEVEL obflevel=-1,OBFFLAGS obfflags=0,__VA_ARGS__> constexpr ITHARE_OBF_FORCEINLINE
 #define ITHARE_OBF_CALL0(fname) fname<ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__),(ITHARE_OBF_SCALE)+0,0>
 #define ITHARE_OBF_CALL1(fname) fname<ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__),(ITHARE_OBF_SCALE)+1,0>
 #define ITHARE_OBF_CALL2(fname) fname<ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__),(ITHARE_OBF_SCALE)+2,0>
@@ -654,13 +654,13 @@ namespace ithare {
 #define ITHARE_OBFLIBP2(type) ithare::obf::ObfVar<type,ITHARE_OBF_COMBINED_PRNG(obfseed,ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__)),ithare::obf::obf_exp_cycles(ithare::obf::obf_addlevel(obflevel,1)),obfflags>
 #define ITHARE_OBFLIBP3(type) ithare::obf::ObfVar<type,ITHARE_OBF_COMBINED_PRNG(obfseed,ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__)),ithare::obf::obf_exp_cycles(ithare::obf::obf_addlevel(obflevel,1)),obfflags>
 
-#define ITHARE_OBFILIBM3(c) obf_literal<std::remove_cv<decltype(c)>::type,c,ITHARE_OBF_COMBINED_PRNG(obfseed,ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__)),ithare::obf::obf_exp_cycles(ithare::obf::obf_addlevel(obflevel,-3))>()
-#define ITHARE_OBFILIBM2(c) obf_literal<std::remove_cv<decltype(c)>::type,c,ITHARE_OBF_COMBINED_PRNG(obfseed,ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__)),ithare::obf::obf_exp_cycles(ithare::obf::obf_addlevel(obflevel,-2))>()
-#define ITHARE_OBFILIBM1(c) obf_literal<std::remove_cv<decltype(c)>::type,c,ITHARE_OBF_COMBINED_PRNG(obfseed,ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__)),ithare::obf::obf_exp_cycles(ithare::obf::obf_addlevel(obflevel,-1))>()
-#define ITHARE_OBFILIB(c) obf_literal<std::remove_cv<decltype(c)>::type,c,ITHARE_OBF_COMBINED_PRNG(obfseed,ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__)),ithare::obf::obf_exp_cycles(obflevel)>()
-#define ITHARE_OBFILIBP1(c) obf_literal<std::remove_cv<decltype(c)>::type,c,ITHARE_OBF_COMBINED_PRNG(obfseed,ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__)),ithare::obf::obf_exp_cycles(ithare::obf::obf_addlevel(obflevel,1))>()
-#define ITHARE_OBFILIBP2(c) obf_literal<std::remove_cv<decltype(c)>::type,c,ITHARE_OBF_COMBINED_PRNG(obfseed,ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__)),ithare::obf::obf_exp_cycles(ithare::obf::obf_addlevel(obflevel,2))>()
-#define ITHARE_OBFILIBP3(c) obf_literal<std::remove_cv<decltype(c)>::type,c,ITHARE_OBF_COMBINED_PRNG(obfseed,ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__)),ithare::obf::obf_exp_cycles(ithare::obf::obf_addlevel(obflevel,3))>()
+#define ITHARE_OBFILIBM3(c) obf_literal<typename std::remove_cv<decltype(c)>::type,c,ITHARE_OBF_COMBINED_PRNG(obfseed,ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__)),ithare::obf::obf_exp_cycles(ithare::obf::obf_addlevel(obflevel,-3))>()
+#define ITHARE_OBFILIBM2(c) obf_literal<typename std::remove_cv<decltype(c)>::type,c,ITHARE_OBF_COMBINED_PRNG(obfseed,ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__)),ithare::obf::obf_exp_cycles(ithare::obf::obf_addlevel(obflevel,-2))>()
+#define ITHARE_OBFILIBM1(c) obf_literal<typename std::remove_cv<decltype(c)>::type,c,ITHARE_OBF_COMBINED_PRNG(obfseed,ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__)),ithare::obf::obf_exp_cycles(ithare::obf::obf_addlevel(obflevel,-1))>()
+#define ITHARE_OBFILIB(c) obf_literal<typename std::remove_cv<decltype(c)>::type,c,ITHARE_OBF_COMBINED_PRNG(obfseed,ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__)),ithare::obf::obf_exp_cycles(obflevel)>()
+#define ITHARE_OBFILIBP1(c) obf_literal<typename std::remove_cv<decltype(c)>::type,c,ITHARE_OBF_COMBINED_PRNG(obfseed,ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__)),ithare::obf::obf_exp_cycles(ithare::obf::obf_addlevel(obflevel,1))>()
+#define ITHARE_OBFILIBP2(c) obf_literal<typename std::remove_cv<decltype(c)>::type,c,ITHARE_OBF_COMBINED_PRNG(obfseed,ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__)),ithare::obf::obf_exp_cycles(ithare::obf::obf_addlevel(obflevel,2))>()
+#define ITHARE_OBFILIBP3(c) obf_literal<typename std::remove_cv<decltype(c)>::type,c,ITHARE_OBF_COMBINED_PRNG(obfseed,ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__)),ithare::obf::obf_exp_cycles(ithare::obf::obf_addlevel(obflevel,3))>()
 
 #else//ITHARE_OBF_SEED
 namespace ithare {
@@ -996,7 +996,13 @@ namespace ithare {
 #define ITHARE_OBF_CALL5(fname) fname<0>
 #define ITHARE_OBF_CALL6(fname) fname<0>
 #define ITHARE_OBF_CALL_AS_CONSTEXPR(fname) fname<ithare::obf::obf_flag_is_constexpr>
+#define ITHARE_OBF_CALLFROMLIBM3(fname) fname<obfflags>
+#define ITHARE_OBF_CALLFROMLIBM2(fname) fname<obfflags>
+#define ITHARE_OBF_CALLFROMLIBM1(fname) fname<obfflags>
 #define ITHARE_OBF_CALLFROMLIB(fname) fname<obfflags>
+#define ITHARE_OBF_CALLFROMLIBP1(fname) fname<obfflags>
+#define ITHARE_OBF_CALLFROMLIBP2(fname) fname<obfflags>
+#define ITHARE_OBF_CALLFROMLIBP3(fname) fname<obfflags>
 
 #define ITHARE_OBFLIBM3(type) ithare::obf::ObfVarDbg<type>
 #define ITHARE_OBFLIBM2(type) ithare::obf::ObfVarDbg<type>
@@ -1064,6 +1070,38 @@ void obf_auto_dbg_print_libfuncname(const char* fname, const char* file, int lin
 #define ITHARE_OBF_DBGPRINTLIB(x)
 #define ITHARE_OBF_DBGPRINTLIBFUNCNAME(fname)
 #endif
+
+namespace ithare {
+	namespace obf {
+		ITHARE_OBF_DECLARELIBFUNC_WITHEXTRA(class T,class T2,size_t N)
+		void obf_copyarray(T(&to)[N], const T2 from[]) {
+			ITHARE_OBF_DBGPRINTLIBFUNCNAME("obf_copyarray");
+			if constexpr((obfflags&obf_flag_is_constexpr) || 
+				  !std::is_same<decltype(from[0]),decltype(to[0])>::value || 
+				  !std::is_trivially_copyable<decltype(from[0])>::value || obf_avoid_memxxx) {
+				for(ITHARE_OBFLIB(size_t) i=0; i < N; ++i) { ITHARE_OBF_DBGPRINTLIB(i);
+					to[i] = from[i];
+				}
+			}
+			else {
+				assert(sizeof(T)==sizeof(T2));
+				memcpy(to, from, sizeof(to));
+			}
+		}
+		ITHARE_OBF_DECLARELIBFUNC_WITHEXTRA(class T,size_t N)
+		void obf_zeroarray(T(&to)[N]) {
+			ITHARE_OBF_DBGPRINTLIBFUNCNAME("obf_zeroarray");
+			if constexpr((obfflags&obf_flag_is_constexpr) || 
+				  !std::is_integral<decltype(to[0])>::value || obf_avoid_memxxx) {
+				for(ITHARE_OBFLIB(size_t) i=0; i < N; ++i) { ITHARE_OBF_DBGPRINTLIB(i);
+					to[i] = 0;
+				}
+			}
+			else
+				memset(to,0,sizeof(to));
+		}
+	}//namespace obf
+}//namespace ithare
 
 #ifndef ITHARE_OBF_NO_SHORT_DEFINES//#define to avoid polluting global namespace w/o prefix
 #define OBF0 ITHARE_OBF0
