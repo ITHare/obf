@@ -86,8 +86,8 @@ ITHARE_OBF_DECLARELIBFUNC
 void chacha20_core(chacha_buf *output, const uint32_t input[16])
 {
 	ITHARE_OBF_DBGPRINTLIBFUNCNAME("chacha_core");
-    ITHARE_OBFLIBM1(uint32_t) x[16] = {}; ITHARE_OBF_DBGPRINTLIB(x[0]);
-	ITHARE_OBF_CALLFROMLIBM1(obf_copyarray)(x,input);
+	ITHARE_OBFLIBM1(uint32_t) x[16] = {}; ITHARE_OBF_DBGPRINTLIB(x[0]);
+	obf_copyarray<obfflags>(x,input);
 
     for (int i = 20; i > 0; i -= 2) {
         ITHARE_OBF_TLS_QUARTERROUND(0, 4, 8, 12);
@@ -261,7 +261,7 @@ class EVP_CHACHA {
 		}
 
 		if (rem) {
-			ITHARE_OBF_CALLFROMLIBM1(obf_zeroarray)(key.buf);
+			obf_zeroarray<obfflags>(key.buf);
 			ITHARE_OBF_CALLFROMLIB(ChaCha20_ctr32)(key.buf, key.buf, CHACHA_BLK_SIZE,
 						   key.key.d, key.counter);
 			for (n = 0; n < rem; n++)

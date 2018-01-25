@@ -1071,38 +1071,6 @@ void obf_auto_dbg_print_libfuncname(const char* fname, const char* file, int lin
 #define ITHARE_OBF_DBGPRINTLIBFUNCNAME(fname)
 #endif
 
-namespace ithare {
-	namespace obf {
-		ITHARE_OBF_DECLARELIBFUNC_WITHEXTRA(class T,class T2,size_t N)
-		void obf_copyarray(T(&to)[N], const T2 from[]) {
-			ITHARE_OBF_DBGPRINTLIBFUNCNAME("obf_copyarray");
-			if constexpr((obfflags&obf_flag_is_constexpr) || 
-				  !std::is_same<decltype(from[0]),decltype(to[0])>::value || 
-				  !std::is_trivially_copyable<decltype(from[0])>::value || obf_avoid_memxxx) {
-				for(ITHARE_OBFLIB(size_t) i=0; i < N; ++i) { ITHARE_OBF_DBGPRINTLIB(i);
-					to[i] = from[i];
-				}
-			}
-			else {
-				assert(sizeof(T)==sizeof(T2));
-				memcpy(to, from, sizeof(to));
-			}
-		}
-		ITHARE_OBF_DECLARELIBFUNC_WITHEXTRA(class T,size_t N)
-		void obf_zeroarray(T(&to)[N]) {
-			ITHARE_OBF_DBGPRINTLIBFUNCNAME("obf_zeroarray");
-			if constexpr((obfflags&obf_flag_is_constexpr) || 
-				  !std::is_integral<decltype(to[0])>::value || obf_avoid_memxxx) {
-				for(ITHARE_OBFLIB(size_t) i=0; i < N; ++i) { ITHARE_OBF_DBGPRINTLIB(i);
-					to[i] = 0;
-				}
-			}
-			else
-				memset(to,0,sizeof(to));
-		}
-	}//namespace obf
-}//namespace ithare
-
 #ifndef ITHARE_OBF_NO_SHORT_DEFINES//#define to avoid polluting global namespace w/o prefix
 #define OBF0 ITHARE_OBF0
 #define OBF1 ITHARE_OBF1
