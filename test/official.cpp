@@ -50,8 +50,8 @@ const lest::test spec[] = {
 		
 		using TT2 = typename ITOBF obf_integral_operator_promoconv<int8_t,uint64_t>::type;
 		static_assert(std::is_same<TT2,uint64_t>::value);
-		EXPECT((ITOBF obf_integral_operator_literal_cast_is_safe<int8_t,int,123>()==true));
-		EXPECT((ITOBF obf_integral_operator_literal_cast_is_safe<int8_t,int,129>()==false));
+		EXPECT((ITOBF obf_integral_operator_literal_cast_is_safe<int8_t,int,127>()==true));
+		EXPECT((ITOBF obf_integral_operator_literal_cast_is_safe<int8_t,int,128>()==false));
 
 		using TT3 = typename ITOBF obf_integral_operator_promoconv<int16_t,unsigned int>::type;
 		static_assert(std::is_same<TT3,unsigned int>::value);

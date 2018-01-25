@@ -169,6 +169,8 @@ namespace ithare {
 				typename obf_normalized_signed_integral_type<T>::type,
 				typename obf_normalized_unsigned_integral_type<T>::type
 			>::type;
+			
+			static_assert(std::is_integral<type>::value);
 			static_assert(sizeof(T)==sizeof(type));
 			static_assert(std::is_signed<type>::value == std::is_signed<T>::value);
 		};
@@ -318,10 +320,16 @@ namespace ithare {
 
 		template<class T, class TC, TC C>
 		constexpr bool obf_integral_operator_literal_cast_is_safe() {
-			using TCNORMAL = typename obf_normalized_integral_type<TC>::type;//from this point on, uint8_t..uint64_t only; simple std::make_unsigned didn't do as some compilers tried to treat unsigned long distinct from both uint32_t and uint64_t
+			using TCNORMAL = typename obf_normalized_integral_type<TC>::type;			
+			static_assert(std::numeric_limits<TCNORMAL>::min()==std::numeric_limits<TC>::min());
+			static_assert(std::numeric_limits<TCNORMAL>::max()==std::numeric_limits<TC>::max());
 
-			return ObfSint128(TCNORMAL(C)) <= ObfSint128(std::numeric_limits<T>::max()) &&
-				ObfSint128(TCNORMAL(C)) >= ObfSint128(std::numeric_limits<T>::min());
+			using TNORMAL = typename obf_normalized_integral_type<T>::type;
+			static_assert(std::numeric_limits<TNORMAL>::min()==std::numeric_limits<T>::min());
+			static_assert(std::numeric_limits<TNORMAL>::max()==std::numeric_limits<T>::max());
+
+			return ObfSint128(TCNORMAL(C)) <= ObfSint128(std::numeric_limits<TNORMAL>::max()) &&
+				ObfSint128(TCNORMAL(C)) >= ObfSint128(std::numeric_limits<TNORMAL>::min());
 		}
 		
 	}//namespace obf

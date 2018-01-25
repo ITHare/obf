@@ -1016,13 +1016,13 @@ namespace ithare {
 #define ITHARE_OBFLIBP2(type) ithare::obf::ObfVarDbg<type>
 #define ITHARE_OBFLIBP3(type) ithare::obf::ObfVarDbg<type>
 
-#define ITHARE_OBFILIBM3(c) obf_literal_dbg<std::remove_cv<decltype(c)>::type,c>()
-#define ITHARE_OBFILIBM2(c) obf_literal_dbg<std::remove_cv<decltype(c)>::type,c>()
-#define ITHARE_OBFILIBM1(c) obf_literal_dbg<std::remove_cv<decltype(c)>::type,c>()
-#define ITHARE_OBFILIB(c) obf_literal_dbg<std::remove_cv<decltype(c)>::type,c>()
-#define ITHARE_OBFILIBP1(c) obf_literal_dbg<std::remove_cv<decltype(c)>::type,c>()
-#define ITHARE_OBFILIBP2(c) obf_literal_dbg<std::remove_cv<decltype(c)>::type,c>()
-#define ITHARE_OBFILIBP3(c) obf_literal_dbg<std::remove_cv<decltype(c)>::type,c>()
+#define ITHARE_OBFILIBM3(c) obf_literal_dbg<typename std::remove_cv<decltype(c)>::type,c>()
+#define ITHARE_OBFILIBM2(c) obf_literal_dbg<typename std::remove_cv<decltype(c)>::type,c>()
+#define ITHARE_OBFILIBM1(c) obf_literal_dbg<typename std::remove_cv<decltype(c)>::type,c>()
+#define ITHARE_OBFILIB(c) obf_literal_dbg<typename std::remove_cv<decltype(c)>::type,c>()
+#define ITHARE_OBFILIBP1(c) obf_literal_dbg<typename std::remove_cv<decltype(c)>::type,c>()
+#define ITHARE_OBFILIBP2(c) obf_literal_dbg<typename std::remove_cv<decltype(c)>::type,c>()
+#define ITHARE_OBFILIBP3(c) obf_literal_dbg<typename std::remove_cv<decltype(c)>::type,c>()
 
 #endif //ITHARE_OBF_SEED
 
