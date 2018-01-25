@@ -229,13 +229,13 @@ std::string seedsByNum(int nseeds) {
 	return "";
 }
 
-enum config { debug, release };
+enum class config { debug, release };
 
 std::string buildCmd(config cfg,std::string defs) {
 	switch(cfg) {
-	case debug:
+	case config::debug:
 		return buildDebug(defs);
-	case release:
+	case config::release:
 		return buildRelease(defs);
 	}
 	assert(false);
