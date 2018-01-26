@@ -178,7 +178,7 @@ namespace ithare {
 		static constexpr T CC = ITHARE_OBF_RANDOM(seed, 2,MOD);
 
 		static constexpr T MAXMUL1 = T(-1)/MOD;
-		static constexpr uint64_t MAXMUL1_ADJUSTED0 = obf_sqrt_very_rough_approximation(MAXMUL1);
+		static constexpr uint64_t MAXMUL1_ADJUSTED0 = MAXMUL1;// obf_sqrt_very_rough_approximation(MAXMUL1); TODO
 		static_assert(MAXMUL1_ADJUSTED0 < T(-1));
 		static constexpr T MAXMUL1_ADJUSTED = (T)MAXMUL1_ADJUSTED0;
 		static constexpr T MUL1 = MAXMUL1 > 2 ? 1+(ITHARE_OBF_RANDOM_UINT32(seed, 2)%MAXMUL1_ADJUSTED) : 1;//TODO: check if uint32_t is enough

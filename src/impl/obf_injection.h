@@ -59,7 +59,7 @@ namespace ithare {
 #endif//ITHARE_OBF_DBG_RUNTIME_CHECKS
 
 		//helper constexpr functions
-		template<class T, size_t N>
+		/*template<class T, size_t N>
 		constexpr T obf_compile_time_approximation(T x, std::array<T, N> xref, std::array<T, N> yref) {
 			for (size_t i = 0; i < N - 1; ++i) {
 				T x0 = xref[i];
@@ -83,7 +83,7 @@ namespace ithare {
 				yref[i] = x;
 			}
 			return obf_compile_time_approximation(x0, xref, yref);
-		}
+		}*/
 
 		template<ITHARE_OBF_SEEDTPARAM seed, size_t N>
 		constexpr size_t obf_random_from_list(std::array<size_t, N> weights) {
