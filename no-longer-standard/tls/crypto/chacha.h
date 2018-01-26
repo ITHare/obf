@@ -22,6 +22,10 @@
  */
 
 //OBF: Adapted from OpenSSL 1.1.0g, file internal/chacha.h:
+//OBF: Adapted from OpenSSL 1.1.0g, file chacha_enc.c
+//  As we're moving all the stuff to headers, to avoid potential for name collisions we have to:
+//    Move whatever-possible to namespace ithare::obf::tls::
+//    Add prefix ITHARE_OBF_TLS_ to all the macros (as macros don't belong to any namespace)
 
 /*
  * ChaCha20_ctr32 encrypts |len| bytes from |inp| with the given key and
@@ -40,11 +44,6 @@
  * as trivial as collecting bytes into 32-bit elements, it's reckoned
  * that below macro is sufficient.
  */
-
-//OBF: Adapted from OpenSSL 1.1.0g, file chacha_enc.c
-//  As we're moving all the stuff to headers, to avoid potential for name collisions we have to:
-//    Move whatever-possible to namespace ithare::obf::tls::
-//    Add prefix ITHARE_OBF_TLS_ to all the macros (as macros don't belong to any namespace)
 
 #ifndef ithare_obf_tls_crypto_chacha_h_included
 #define ithare_obf_tls_crypto_chacha_h_included
