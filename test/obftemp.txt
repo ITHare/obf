@@ -272,159 +272,159 @@ ITHARE_OBF_SEED2=36e007a38ae8e0ea
              obf_injection_version<0/*identity*/,ObfBitUint<49>,3563430673635268901,46>: availCycles=46
               ObfVarContext<ObfBitUint<49>>
 
-===== EVP_CHACHA::cipher<3524321248254691542,-1,0>() (@chacha.h:224 @0) =====
+===== EVP_CHACHA::cipher<17982347014887657634,-1,0>() (@chacha.h:223 @0) =====
 
------ some_func<3524321248254691542,-1,0>():n(@chacha.h:225 @0) -----
- ObfVar<uint32_t,14878097880451731287,0>
-  obf_injection<uint32_t,2045430013366163625,0>: which=0 dbgWhich=0
+----- some_func<17982347014887657634,-1,0>():n(@chacha.h:224 @0) -----
+ ObfVar<uint32_t,6787690771817238460,0>
+  obf_injection<uint32_t,10529035076024002250,0>: which=0 dbgWhich=0
    Context:ObfVarContext<uint32_t>
-   obf_injection_version<0/*identity*/,uint32_t,2045430013366163625,0>: availCycles=0
+   obf_injection_version<0/*identity*/,uint32_t,10529035076024002250,0>: availCycles=0
     ObfVarContext<uint32_t>
 
-===== chacha_core<15122533376611397234,-1,0>() (@chacha.h:110 @0) =====
+===== chacha_core<14501068843872916883,-1,0>() (@chacha.h:109 @0) =====
 
------ some_func<15122533376611397234,-1,0>():x[0](@chacha.h:111 @0) -----
- ObfVar<uint32_t,573504399219612036,0>
-  obf_injection<uint32_t,12093364206719636318,0>: which=0 dbgWhich=0
+----- some_func<14501068843872916883,-1,0>():x[0](@chacha.h:110 @0) -----
+ ObfVar<uint32_t,4295798842236932932,0>
+  obf_injection<uint32_t,17292115925505433520,0>: which=0 dbgWhich=0
    Context:ObfVarContext<uint32_t>
-   obf_injection_version<0/*identity*/,uint32_t,12093364206719636318,0>: availCycles=0
+   obf_injection_version<0/*identity*/,uint32_t,17292115925505433520,0>: availCycles=0
     ObfVarContext<uint32_t>
 
-===== EVP_CHACHA::cipher<15986133601881376629,3,0>() (@chacha.h:224 @0) =====
+===== EVP_CHACHA::cipher<12909912296541592712,3,0>() (@chacha.h:223 @0) =====
 
------ some_func<15986133601881376629,3,0>():n(@chacha.h:225 @0) -----
- ObfVar<uint32_t,16055146979923093256,30>
-  obf_injection<uint32_t,8672151905250470886,30>: which=7 dbgWhich=7
+----- some_func<12909912296541592712,3,0>():n(@chacha.h:224 @0) -----
+ ObfVar<uint32_t,5628201824121391808,30>
+  obf_injection<uint32_t,3189061793870318321,30>: which=5 dbgWhich=5
    Context:ObfVarContext<uint32_t>
-   obf_injection_version<7/*split into ObfBitUint<>*/,uint32_t, Context, InjectionRequirements, 8672151905250470886,30>
-    Context:ObfVarContext<uint32_t>
-    TypeLo:ObfBitUint<9>: mask =511
-    Lo:obf_injection<ObfBitUint<9>,8383314824494672617,0>: which=0 dbgWhich=0
-     Context:ObfVarContext<ObfBitUint<9>>
-     obf_injection_version<0/*identity*/,ObfBitUint<9>,8383314824494672617,0>: availCycles=0
-      ObfVarContext<ObfBitUint<9>>
-    TypeHi:ObfBitUint<23>: mask =8388607
-    Hi:obf_injection<ObfBitUint<23>,17298681944066545095,0>: which=0 dbgWhich=0
-     Context:ObfVarContext<ObfBitUint<23>>
-     obf_injection_version<0/*identity*/,ObfBitUint<23>,17298681944066545095,0>: availCycles=0
-      ObfVarContext<ObfBitUint<23>>
-
-===== chacha_core<9694221744860096972,3,0>() (@chacha.h:110 @0) =====
-
------ some_func<9694221744860096972,3,0>():x[0](@chacha.h:111 @0) -----
- ObfVar<uint32_t,8711388403807450656,10>
-  obf_injection<uint32_t,3076422108358079325,10>: which=5 dbgWhich=5
-   Context:ObfVarContext<uint32_t>
-   obf_injection_version<5/*split*/,uint32_t,3076422108358079325,10>
-    Lo:obf_injection<uint16_t,1399111545351686980,0>: which=0 dbgWhich=0
+   obf_injection_version<5/*split*/,uint32_t,3189061793870318321,30>
+    Lo:obf_injection<uint16_t,537281991014453944,4>: which=1 dbgWhich=1
      Context:ObfVarContext<uint16_t>
-     obf_injection_version<0/*identity*/,uint16_t,1399111545351686980,0>: availCycles=0
-      ObfVarContext<uint16_t>
-    Hi:obf_injection<uint16_t,5963601025939359422,0>: which=0 dbgWhich=0
-     Context:ObfVarContext<uint16_t>
-     obf_injection_version<0/*identity*/,uint16_t,5963601025939359422,0>: availCycles=0
-      ObfVarContext<uint16_t>
-
-===== EVP_CHACHA::cipher<10483156421314775858,4,0>() (@chacha.h:224 @0) =====
-
------ some_func<10483156421314775858,4,0>():n(@chacha.h:225 @0) -----
- ObfVar<uint32_t,15728847768910488262,100>
-  obf_injection<uint32_t,15121364005619137922,100>: which=6 dbgWhich=6
-   Context:ObfVarContext<uint32_t>
-   obf_injection_version<6/*injection(halfT)*/,uint32_t,15121364005619137922,100>
-    Lo:obf_injection<uint16_t,13385718303910589519,13>: which=1 dbgWhich=1
-     Context:ObfVarContext<uint16_t>
-     obf_injection_version<1/*add mod 2^N*/,uint16_t,13385718303910589519,13>: C=31 neg=0
-      obf_injection<uint16_t,13318152363878860293,11>: which=5 dbgWhich=5
+     obf_injection_version<1/*add mod 2^N*/,uint16_t,537281991014453944,4>: C=1 neg=1
+      obf_injection<uint16_t,10662160813296452174,2>: which=0 dbgWhich=0
        Context:ObfVarContext<uint16_t>
-       obf_injection_version<5/*split*/,uint16_t,13318152363878860293,11>
-        Lo:obf_injection<uint8_t,2268718955812130963,3>: which=1 dbgWhich=1
+       obf_injection_version<0/*identity*/,uint16_t,10662160813296452174,2>: availCycles=2
+        ObfVarContext<uint16_t>
+    Hi:obf_injection<uint16_t,17036157076056293816,8>: which=8 dbgWhich=8
+     Context:ObfVarContext<uint16_t>
+     obf_injection_version<FIRST_USER_INJECTION/*shift+add*/,uint16_t,17036157076056293816,8>: shift=8
+      obf_injection<uint16_t,7119519148724141197,1>: which=0 dbgWhich=0
+       Context:ObfVarContext<uint16_t>
+       obf_injection_version<0/*identity*/,uint16_t,7119519148724141197,1>: availCycles=1
+        ObfVarContext<uint16_t>
+
+===== chacha_core<1960134321851747252,3,0>() (@chacha.h:109 @0) =====
+
+----- some_func<1960134321851747252,3,0>():x[0](@chacha.h:110 @0) -----
+ ObfVar<uint32_t,4952623727923101800,10>
+  obf_injection<uint32_t,18076321256092944779,10>: which=5 dbgWhich=5
+   Context:ObfVarContext<uint32_t>
+   obf_injection_version<5/*split*/,uint32_t,18076321256092944779,10>
+    Lo:obf_injection<uint16_t,12419804350308093677,1>: which=0 dbgWhich=0
+     Context:ObfVarContext<uint16_t>
+     obf_injection_version<0/*identity*/,uint16_t,12419804350308093677,1>: availCycles=1
+      ObfVarContext<uint16_t>
+    Hi:obf_injection<uint16_t,10460410269811938491,0>: which=0 dbgWhich=0
+     Context:ObfVarContext<uint16_t>
+     obf_injection_version<0/*identity*/,uint16_t,10460410269811938491,0>: availCycles=0
+      ObfVarContext<uint16_t>
+
+===== EVP_CHACHA::cipher<17982440555877104595,4,0>() (@chacha.h:223 @0) =====
+
+----- some_func<17982440555877104595,4,0>():n(@chacha.h:224 @0) -----
+ ObfVar<uint32_t,12368119739533185724,100>
+  obf_injection<uint32_t,13836272482810321746,100>: which=3 dbgWhich=3
+   Context:ObfVarContext<uint32_t>
+   obf_injection_version<3/*split-join*/,uint32_t,13836272482810321746,100>
+    Lo:obf_injection<uint16_t,586998918410101523,25>: which=6 dbgWhich=6
+     Context:ObfVarContext<uint16_t>
+     obf_injection_version<6/*injection(halfT)*/,uint16_t,586998918410101523,25>
+      Lo:obf_injection<uint8_t,14744022579812982750,0>: which=0 dbgWhich=0
+       Context:ObfVarContext<uint8_t>
+       obf_injection_version<0/*identity*/,uint8_t,14744022579812982750,0>: availCycles=0
+        ObfVarContext<uint8_t>
+      Recursive:obf_injection<uint16_t,6719464832666931633,17>: which=5 dbgWhich=5
+       Context:ObfVarContext<uint16_t>
+       obf_injection_version<5/*split*/,uint16_t,6719464832666931633,17>
+        Lo:obf_injection<uint8_t,6436119856340665885,3>: which=1 dbgWhich=1
          Context:ObfVarContext<uint8_t>
-         obf_injection_version<1/*add mod 2^N*/,uint8_t,2268718955812130963,3>: C=7 neg=1
-          obf_injection<uint8_t,15074701011889519067,1>: which=0 dbgWhich=0
+         obf_injection_version<1/*add mod 2^N*/,uint8_t,6436119856340665885,3>: C=31 neg=1
+          obf_injection<uint8_t,11344887915659393734,1>: which=0 dbgWhich=0
            Context:ObfVarContext<uint8_t>
-           obf_injection_version<0/*identity*/,uint8_t,15074701011889519067,1>: availCycles=1
+           obf_injection_version<0/*identity*/,uint8_t,11344887915659393734,1>: availCycles=1
             ObfVarContext<uint8_t>
-        Hi:obf_injection<uint8_t,1274855534614775927,0>: which=0 dbgWhich=0
+        Hi:obf_injection<uint8_t,11230672754117402770,4>: which=1 dbgWhich=1
          Context:ObfVarContext<uint8_t>
-         obf_injection_version<0/*identity*/,uint8_t,1274855534614775927,0>: availCycles=0
-          ObfVarContext<uint8_t>
-    Recursive:obf_injection<uint32_t,2537088610312995679,67>: which=7 dbgWhich=7
+         obf_injection_version<1/*add mod 2^N*/,uint8_t,11230672754117402770,4>: C=5 neg=0
+          obf_injection<uint8_t,17246659513337948330,2>: which=0 dbgWhich=0
+           Context:ObfVarContext<uint8_t>
+           obf_injection_version<0/*identity*/,uint8_t,17246659513337948330,2>: availCycles=2
+            ObfVarContext<uint8_t>
+    Hi:obf_injection<uint16_t,17542789738942884068,7>: which=5 dbgWhich=5
+     Context:ObfVarContext<uint16_t>
+     obf_injection_version<5/*split*/,uint16_t,17542789738942884068,7>
+      Lo:obf_injection<uint8_t,14138676998165389091,0>: which=0 dbgWhich=0
+       Context:ObfVarContext<uint8_t>
+       obf_injection_version<0/*identity*/,uint8_t,14138676998165389091,0>: availCycles=0
+        ObfVarContext<uint8_t>
+      Hi:obf_injection<uint8_t,686992681761389491,0>: which=0 dbgWhich=0
+       Context:ObfVarContext<uint8_t>
+       obf_injection_version<0/*identity*/,uint8_t,686992681761389491,0>: availCycles=0
+        ObfVarContext<uint8_t>
+    Recursive:obf_injection<uint32_t,13219823238238996046,38>: which=6 dbgWhich=6
      Context:ObfVarContext<uint32_t>
-     obf_injection_version<7/*split into ObfBitUint<>*/,uint32_t, Context, InjectionRequirements, 2537088610312995679,67>
-      Context:ObfVarContext<uint32_t>
-      TypeLo:ObfBitUint<24>: mask =16777215
-      Lo:obf_injection<ObfBitUint<24>,16494133512001597739,0>: which=0 dbgWhich=0
-       Context:ObfVarContext<ObfBitUint<24>>
-       obf_injection_version<0/*identity*/,ObfBitUint<24>,16494133512001597739,0>: availCycles=0
-        ObfVarContext<ObfBitUint<24>>
-      TypeHi:ObfBitUint<8>: mask =255
-      Hi:obf_injection<ObfBitUint<8>,7518524012535719239,26>: which=4 dbgWhich=4
-       Context:ObfVarContext<ObfBitUint<8>>
-       obf_injection_version<4/*mul odd mod 2^N*/,ObfBitUint<8>,7518524012535719239,26>: C=31 CINV=223
-        literal:obf_literal_ctx<uint8_t,223,960483643930587615,4>
-         obf_injection<uint8_t,14128098498241599662,4>: which=4 dbgWhich=4
-          Context:ObfLiteralContext<uint8_t,15133110289800041822,4>: which=0 dbgWhich=0
-           ObfLiteralContext_version<0/*identity*/,uint8_t>
-          obf_injection_version<4/*mul odd mod 2^N*/,uint8_t,14128098498241599662,4>: C=31 CINV=223
-           literal:obf_literal_ctx<uint8_t,223,16399999712441343512,0>
-            obf_injection<uint8_t,148140311592952266,0>: which=0 dbgWhich=0
-             Context:ObfZeroContext<uint8_t>
-             obf_injection_version<0/*identity*/,uint8_t,148140311592952266,0>: availCycles=0
-              ObfZeroContext<uint8_t>
-           Recursive:obf_injection<uint8_t,555334711309529172,1>: which=1 dbgWhich=1
-            Context:ObfLiteralContext<uint8_t,15133110289800041822,4>: which=0 dbgWhich=0
-             ObfLiteralContext_version<0/*identity*/,uint8_t>
-            obf_injection_version<1/*add mod 2^N*/,uint8_t,555334711309529172,1>: C=0 neg=1
-             obf_injection<uint8_t,17773089712227901541,0>: which=0 dbgWhich=0
-              Context:ObfLiteralContext<uint8_t,15133110289800041822,4>: which=0 dbgWhich=0
-               ObfLiteralContext_version<0/*identity*/,uint8_t>
-              obf_injection_version<0/*identity*/,uint8_t,17773089712227901541,0>: availCycles=0
-               ObfLiteralContext<uint8_t,15133110289800041822,4>: which=0 dbgWhich=0
-                ObfLiteralContext_version<0/*identity*/,uint8_t>
-        Recursive:obf_injection<ObfBitUint<8>,11182131963902634087,16>: which=1 dbgWhich=1
-         Context:ObfVarContext<ObfBitUint<8>>
-         obf_injection_version<1/*add mod 2^N*/,ObfBitUint<8>,11182131963902634087,16>: C=5 neg=1
-          obf_injection<ObfBitUint<8>,7282286875322950705,14>: which=4 dbgWhich=4
-           Context:ObfVarContext<ObfBitUint<8>>
-           obf_injection_version<4/*mul odd mod 2^N*/,ObfBitUint<8>,7282286875322950705,14>: C=5 CINV=205
-            literal:obf_literal_ctx<uint8_t,205,14832821597963414547,4>
-             obf_injection<uint8_t,4534280342778743500,4>: which=8 dbgWhich=8
-              Context:ObfLiteralContext<uint8_t,15133110289800041822,4>: which=0 dbgWhich=0
-               ObfLiteralContext_version<0/*identity*/,uint8_t>
-              obf_injection_version<FIRST_USER_INJECTION/*shift+add*/,uint8_t,4534280342778743500,4>: shift=4
-               obf_injection<uint8_t,10983689368281728761,0>: which=0 dbgWhich=0
-                Context:ObfLiteralContext<uint8_t,15133110289800041822,4>: which=0 dbgWhich=0
-                 ObfLiteralContext_version<0/*identity*/,uint8_t>
-                obf_injection_version<0/*identity*/,uint8_t,10983689368281728761,0>: availCycles=0
-                 ObfLiteralContext<uint8_t,15133110289800041822,4>: which=0 dbgWhich=0
-                  ObfLiteralContext_version<0/*identity*/,uint8_t>
-            Recursive:obf_injection<ObfBitUint<8>,3721995569333294910,4>: which=1 dbgWhich=1
-             Context:ObfVarContext<ObfBitUint<8>>
-             obf_injection_version<1/*add mod 2^N*/,ObfBitUint<8>,3721995569333294910,4>: C=1 neg=0
-              obf_injection<ObfBitUint<8>,16711487910243818844,2>: which=0 dbgWhich=0
-               Context:ObfVarContext<ObfBitUint<8>>
-               obf_injection_version<0/*identity*/,ObfBitUint<8>,16711487910243818844,2>: availCycles=2
-                ObfVarContext<ObfBitUint<8>>
+     obf_injection_version<6/*injection(halfT)*/,uint32_t,13219823238238996046,38>
+      Lo:obf_injection<uint16_t,612936015594497918,10>: which=4 dbgWhich=4
+       Context:ObfVarContext<uint16_t>
+       obf_injection_version<4/*mul odd mod 2^N*/,uint16_t,612936015594497918,10>: C=7 CINV=28087
+        literal:obf_literal_ctx<uint16_t,28087,2307146269143668250,2>
+         obf_injection<uint16_t,18284519171620380534,2>: which=1 dbgWhich=1
+          Context:ObfLiteralContext<uint16_t,4638579888012061611,2>: which=0 dbgWhich=0
+           ObfLiteralContext_version<0/*identity*/,uint16_t>
+          obf_injection_version<1/*add mod 2^N*/,uint16_t,18284519171620380534,2>: C=5 neg=1
+           obf_injection<uint16_t,14134107653011472165,1>: which=0 dbgWhich=0
+            Context:ObfLiteralContext<uint16_t,4638579888012061611,2>: which=0 dbgWhich=0
+             ObfLiteralContext_version<0/*identity*/,uint16_t>
+            obf_injection_version<0/*identity*/,uint16_t,14134107653011472165,1>: availCycles=1
+             ObfLiteralContext<uint16_t,4638579888012061611,2>: which=0 dbgWhich=0
+              ObfLiteralContext_version<0/*identity*/,uint16_t>
+        Recursive:obf_injection<uint16_t,617623262257071637,2>: which=1 dbgWhich=1
+         Context:ObfVarContext<uint16_t>
+         obf_injection_version<1/*add mod 2^N*/,uint16_t,617623262257071637,2>: C=7 neg=0
+          obf_injection<uint16_t,3417455637519271222,0>: which=0 dbgWhich=0
+           Context:ObfVarContext<uint16_t>
+           obf_injection_version<0/*identity*/,uint16_t,3417455637519271222,0>: availCycles=0
+            ObfVarContext<uint16_t>
+      Recursive:obf_injection<uint32_t,18401757958582137324,16>: which=2 dbgWhich=2
+       Context:ObfVarContext<uint32_t>
+       obf_injection_version<2/*kinda-Feistel*/,uint32_t,18401757958582137324,16>: availCycles=2 cycles_f=0 cycles_rInj=1
+        f():obf_randomized_non_reversible_function<uint16_t,12802038922157544627,0>: which=0
+         obf_randomized_non_reversible_function<0/*identity*/,uint16_t,12802038922157544627,0>
+        Recursive:obf_injection<uint32_t,13568483102639339864,1>: which=0 dbgWhich=0
+         Context:ObfVarContext<uint32_t>
+         obf_injection_version<0/*identity*/,uint32_t,13568483102639339864,1>: availCycles=1
+          ObfVarContext<uint32_t>
 
-===== chacha_core<18318967023687161947,4,0>() (@chacha.h:110 @0) =====
+===== chacha_core<12734933977026685720,4,0>() (@chacha.h:109 @0) =====
 
------ some_func<18318967023687161947,4,0>():x[0](@chacha.h:111 @0) -----
- ObfVar<uint32_t,10101426781196535623,30>
-  obf_injection<uint32_t,12882652524531729979,30>: which=5 dbgWhich=5
+----- some_func<12734933977026685720,4,0>():x[0](@chacha.h:110 @0) -----
+ ObfVar<uint32_t,3054279594687811731,30>
+  obf_injection<uint32_t,8525852974916267112,30>: which=1 dbgWhich=1
    Context:ObfVarContext<uint32_t>
-   obf_injection_version<5/*split*/,uint32_t,12882652524531729979,30>
-    Lo:obf_injection<uint16_t,10691299642308859368,3>: which=1 dbgWhich=1
-     Context:ObfVarContext<uint16_t>
-     obf_injection_version<1/*add mod 2^N*/,uint16_t,10691299642308859368,3>: C=5 neg=1
-      obf_injection<uint16_t,941663937097122177,1>: which=0 dbgWhich=0
+   obf_injection_version<1/*add mod 2^N*/,uint32_t,8525852974916267112,30>: C=1 neg=1
+    obf_injection<uint32_t,7002284823346481451,28>: which=5 dbgWhich=5
+     Context:ObfVarContext<uint32_t>
+     obf_injection_version<5/*split*/,uint32_t,7002284823346481451,28>
+      Lo:obf_injection<uint16_t,7545306022495127526,6>: which=1 dbgWhich=1
        Context:ObfVarContext<uint16_t>
-       obf_injection_version<0/*identity*/,uint16_t,941663937097122177,1>: availCycles=1
-        ObfVarContext<uint16_t>
-    Hi:obf_injection<uint16_t,3673746439822652428,7>: which=1 dbgWhich=1
-     Context:ObfVarContext<uint16_t>
-     obf_injection_version<1/*add mod 2^N*/,uint16_t,3673746439822652428,7>: C=5 neg=0
-      obf_injection<uint16_t,16527342526474708713,5>: which=0 dbgWhich=0
+       obf_injection_version<1/*add mod 2^N*/,uint16_t,7545306022495127526,6>: C=31 neg=1
+        obf_injection<uint16_t,14595379083215618175,4>: which=0 dbgWhich=0
+         Context:ObfVarContext<uint16_t>
+         obf_injection_version<0/*identity*/,uint16_t,14595379083215618175,4>: availCycles=4
+          ObfVarContext<uint16_t>
+      Hi:obf_injection<uint16_t,13876435085798574484,4>: which=1 dbgWhich=1
        Context:ObfVarContext<uint16_t>
-       obf_injection_version<0/*identity*/,uint16_t,16527342526474708713,5>: availCycles=5
-        ObfVarContext<uint16_t>
+       obf_injection_version<1/*add mod 2^N*/,uint16_t,13876435085798574484,4>: C=5 neg=0
+        obf_injection<uint16_t,761090365769195506,2>: which=0 dbgWhich=0
+         Context:ObfVarContext<uint16_t>
+         obf_injection_version<0/*identity*/,uint16_t,761090365769195506,2>: availCycles=2
+          ObfVarContext<uint16_t>
