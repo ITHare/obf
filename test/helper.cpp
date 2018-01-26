@@ -92,8 +92,8 @@ std::string buildRelease(std::string defines_) {
 }
 std::string buildDebug(std::string defines_) {
 	std::string defines = replace_string(defines_, " -D", " /D");
-	return std::string("cl /permissive- /GS /W3 /Zc:wchar_t /ZI /Gm /Od /sdl /Zc:inline /fp:precise /D_DEBUG /D_CONSOLE /D_UNICODE /DUNICODE /errorReport:prompt /WX /Zc:forScope /RTC1 /Gd /MDd /EHsc /nologo /diagnostics:classic /std:c++17 /cgthreads1 /INCREMENTAL:NO") + defines + " " + srcDirPrefix + "..\\official.cpp";
-		//string is copy-pasted from Debug config with manually-added /cgthreads1 /INCREMENTAL:NO
+	return std::string("cl /permissive- /GS /W3 /Zc:wchar_t /ZI /Gm /Od /sdl /Zc:inline /fp:precise /D_DEBUG /D_CONSOLE /D_UNICODE /DUNICODE /errorReport:prompt /WX /Zc:forScope /RTC1 /Gd /MDd /EHsc /nologo /diagnostics:classic /std:c++17 /cgthreads1 /INCREMENTAL:NO /bigobj") + defines + " " + srcDirPrefix + "..\\official.cpp";
+		//string is copy-pasted from Debug config with manually-added /cgthreads1 /INCREMENTAL:NO /bigobj
 }
 std::string build32option() {
 	std::cout << "no option to run both 32-bit and 64-bit testing for MSVC now, run testing without -add32tests in two different 'Tools command prompts' instead" << std::endl;
@@ -163,7 +163,7 @@ std::string cleanup() {
 	return std::string("del official.exe");
 }
 std::string setup() {
-	return "@ECHO OFF";
+	return "@ECHO OFF\nDEL *.PDB";
 }
 #else
 #error "Unrecognized platform for randomized testing"
@@ -285,7 +285,11 @@ void genDefineTests() {
 	std::cout << echo( std::string("=== -Define Test 9/12 (DEBUG, -DITHARE_OBF_DBG_RUNTIME_CHECKS) ===" ) ) << std::endl;
 	buildCheckRunCheckx2(config::debug," -DITHARE_OBF_DBG_RUNTIME_CHECKS",2);
 	std::cout << echo( std::string("=== -Define Test 10/12 (RELEASE, -DITHARE_OBF_DBG_RUNTIME_CHECKS) ===" ) ) << std::endl;
+#ifdef _MSC_VER
+	std::cout << echo("*** SKIPPED -DITHARE_OBF_DBG_RUNTIME_CHECKS/RELEASE FOR MSVS ***") << std::endl;
+#else
 	buildCheckRunCheckx2(config::release, " -DITHARE_OBF_DBG_RUNTIME_CHECKS",2);
+#endif
 	std::cout << echo( std::string("=== -Define Test 11/12 (DEBUG, -DITHARE_OBF_CRYPTO_PRNG) ===" ) ) << std::endl;
 	buildCheckRunCheckx2(config::debug," -DITHARE_OBF_CRYPTO_PRNG",2);
 	std::cout << echo( std::string("=== -Define Test 12/12 (RELEASE, -DITHARE_OBF_CRYPTO_PRNG) ===" ) ) << std::endl;
@@ -293,18 +297,30 @@ void genDefineTests() {
 }
 
 void genRandomTests(size_t n) {
-	for(size_t i=0; i < n; ++i ) {
+	for (size_t i = 0; i < n; ++i) {
+		config cfg = config::release;
+		if (i % 4 == 0)
+			cfg = config::debug;
 		std::string extra;
-		if( i%3 == 0 )//every third, non-exclusive
-			extra += " -DITHARE_OBF_DBG_RUNTIME_CHECKS";
+		if (i % 3 == 0) { //every third, non-exclusive
+			bool rtchecks_ok = true;
+#ifdef _MSC_VER
+		if (cfg == config::release)
+			rtchecks_ok = false;//cl doesn't seem to cope with RUNTIME_CHECKS :-(
+#endif
+			if(rtchecks_ok)
+				extra += " -DITHARE_OBF_DBG_RUNTIME_CHECKS";
+		}
 		if(add32tests && i%5 <=1)
 			extra += build32option();
 		std::cout << echo( std::string("=== Random Test ") + std::to_string(i+1) + "/" + std::to_string(n) + " ===" ) << std::endl;
 		std::string defines = genSeeds()+" -DITHARE_OBF_INIT -DITHARE_OBF_CONSISTENT_XPLATFORM_IMPLICIT_SEEDS"+extra;
-		if( i%4 == 0 ) 
+		if( cfg == config::debug ) 
 			buildCheckRunCheck(buildDebug(defines),true,write_output::none);
-		else
-			buildCheckRunCheck(buildRelease(defines),true, write_output::none);
+		else {
+			assert(cfg == config::release);
+			buildCheckRunCheck(buildRelease(defines), true, write_output::none);
+		}
 	}
 }
 

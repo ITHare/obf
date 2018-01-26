@@ -178,19 +178,19 @@ namespace ithare {
 		static constexpr T CC = ITHARE_OBF_RANDOM(seed, 2,MOD);
 
 		static constexpr T MAXMUL1 = T(-1)/MOD;
-		static constexpr auto MAXMUL1_ADJUSTED0 = obf_sqrt_very_rough_approximation(MAXMUL1);
+		static constexpr uint64_t MAXMUL1_ADJUSTED0 = obf_sqrt_very_rough_approximation(MAXMUL1);
 		static_assert(MAXMUL1_ADJUSTED0 < T(-1));
 		static constexpr T MAXMUL1_ADJUSTED = (T)MAXMUL1_ADJUSTED0;
-		static constexpr T MUL1 = MAXMUL1 > 2 ? 1+ITHARE_OBF_RANDOM(seed, 2, MAXMUL1_ADJUSTED) : 1;
+		static constexpr T MUL1 = MAXMUL1 > 2 ? 1+(ITHARE_OBF_RANDOM_UINT32(seed, 2)%MAXMUL1_ADJUSTED) : 1;//TODO: check if uint32_t is enough
 		static constexpr T DELTA = MUL1 * MOD;
 		static_assert(DELTA / MUL1 == MOD);//overflow check
 
 		static constexpr T MAXMUL2 = T(-1) / DELTA;
-		static constexpr T MUL2 = MAXMUL2 > 2 ? 1+ITHARE_OBF_RANDOM(seed, 3, MAXMUL2) : 1;
+		static constexpr T MUL2 = MAXMUL2 > 2 ? 1+(ITHARE_OBF_RANDOM_UINT32(seed, 3)% MAXMUL2) : 1;//TODO: check if uint32_t is enough
 		static constexpr T DELTAMOD = MUL2 * MOD;
 		static_assert(DELTAMOD / MUL2 == MOD);//overflow check
 
-		static constexpr T PREMUL3 = ITHARE_OBF_RANDOM(seed, 4, MUL2);
+		static constexpr T PREMUL3 = ITHARE_OBF_RANDOM_UINT32(seed, 4)% MUL2;//TODO: check if uint32_t is enough
 		static constexpr T MUL3 = PREMUL3 > 0 ? PREMUL3 : 1;
 		static constexpr T CC0 = ( CC + MUL3 * MOD ) % DELTAMOD;
 

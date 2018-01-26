@@ -1058,17 +1058,17 @@ void obf_auto_dbg_print_libfuncname(const char* fname, const char* file, int lin
 }}//namespace ithare::obf
 
 #define ITHARE_OBF_DBGPRINT(x) do {\
-		ithare::obf::obf_auto_dbg_print<ithare::obf::obf_string_hash(ithare::obf::obf_normalize_fname(ITHARE_OBF_LOCATION)),ithare::obf::obf_string_hash(#x)>(x,#x,__FILE__,__LINE__);\
+		ithare::obf::obf_auto_dbg_print<ithare::obf::obf_string_hash(ithare::obf::obf_normalize_fname(ITHARE_OBF_LOCATION)),ithare::obf::obf_string_hash(#x)>(x,#x,ITHARE_OBF_LOCATION,0);\
 	} while(false)
 
 #define ITHARE_OBF_DBGPRINTLIBFUNCNAMEX(fname)  /*'X' at the end stands for "cross-platform'*/ do {\
 		if constexpr(!(obfflags&obf_flag_is_constexpr)) {\
-			ithare::obf::obf_auto_dbg_print_libfuncname<obfseed,obflevel,obfflags,ithare::obf::obf_string_hash(ithare::obf::obf_normalize_fname(ITHARE_OBF_LOCATION)),ithare::obf::obf_string_hash(#fname)>(fname,__FILE__,__LINE__);\
+			ithare::obf::obf_auto_dbg_print_libfuncname<obfseed,obflevel,obfflags,ithare::obf::obf_string_hash(ithare::obf::obf_normalize_fname(ITHARE_OBF_LOCATION)),ithare::obf::obf_string_hash(#fname)>(fname,ITHARE_OBF_LOCATION,0);\
 		}\
 	} while(false)
 #define ITHARE_OBF_DBGPRINTLIBX(x) do {\
 		if constexpr(!(obfflags&obf_flag_is_constexpr)) {\
-				ithare::obf::obf_auto_dbg_print_fromlib<obfseed,obflevel,obfflags,ithare::obf::obf_string_hash(ithare::obf::obf_normalize_fname(ITHARE_OBF_LOCATION)),ithare::obf::obf_string_hash(#x)>(x,#x,__FILE__,__LINE__);\
+				ithare::obf::obf_auto_dbg_print_fromlib<obfseed,obflevel,obfflags,ithare::obf::obf_string_hash(ithare::obf::obf_normalize_fname(ITHARE_OBF_LOCATION)),ithare::obf::obf_string_hash(#x)>(x,#x,ITHARE_OBF_LOCATION,0);\
 		}\
 	} while(false)
 #if ITHARE_OBF_ENABLE_AUTO_DBGPRINT>=2 //if not >=2, stick to cross-platform-only
