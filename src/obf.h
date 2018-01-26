@@ -997,7 +997,7 @@ namespace ithare {
 #define ITHARE_OBF_DECLARELIBFUNC template<OBFFLAGS obfflags=0> constexpr inline
 #define ITHARE_OBF_DECLARELIBFUNC_WITHEXTRA(...) template<OBFFLAGS obfflags=0,__VA_ARGS__> constexpr inline
 #define ITHARE_OBF_DECLARELIBFUNC_VAR template<OBFFLAGS obfflags=0> constexpr inline
-#define ITHARE_OBF_DECLARELIBOBFPARAM(type) type
+#define ITHARE_OBF_DECLARELIBOBFPARAM(type) ithare::obf::ObfVarDbg<type>
 
 #define ITHARE_OBF_CALL0(fname) fname<0>
 #define ITHARE_OBF_CALL1(fname) fname<0>
