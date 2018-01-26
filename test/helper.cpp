@@ -288,10 +288,18 @@ void genDefineTests() {
 #else
 	buildCheckRunCheckx2(config::release, " -DITHARE_OBF_DBG_RUNTIME_CHECKS",2);
 #endif
-	std::cout << echo( std::string("=== -Define Test 11/12 (DEBUG, -DITHARE_OBF_CRYPTO_PRNG) ===" ) ) << std::endl;
+	std::cout << echo(std::string("=== -Define Test 11/12 (DEBUG, -DITHARE_OBF_CRYPTO_PRNG) ===")) << std::endl;
+#if defined(_MSC_VER) && !defined(_M_X64)
+	std::cout << echo("*** SKIPPED -DITHARE_OBF_DBG_RUNTIME_CHECKS FOR MSVC/x86 ***") << std::endl;
+#else
 	buildCheckRunCheckx2(config::debug," -DITHARE_OBF_CRYPTO_PRNG",2);
-	std::cout << echo( std::string("=== -Define Test 12/12 (RELEASE, -DITHARE_OBF_CRYPTO_PRNG) ===" ) ) << std::endl;
-	buildCheckRunCheckx2(config::release," -DITHARE_OBF_CRYPTO_PRNG",2);
+#endif
+	std::cout << echo(std::string("=== -Define Test 12/12 (RELEASE, -DITHARE_OBF_CRYPTO_PRNG) ===")) << std::endl;
+#if defined(_MSC_VER) && !defined(_M_X64)
+	std::cout << echo("*** SKIPPED -DITHARE_OBF_DBG_RUNTIME_CHECKS FOR MSVC/x86 ***") << std::endl;
+#else
+	buildCheckRunCheckx2(config::release, " -DITHARE_OBF_CRYPTO_PRNG", 2);
+#endif
 }
 
 void genRandomTests(size_t n) {
