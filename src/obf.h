@@ -180,8 +180,8 @@ namespace ithare {
 		}
 		ITHARE_OBF_FORCEINLINE constexpr ObfVar(T_ t) : val(Injection::template injection<ITHARE_OBF_NEW_PRNG(seed, 2)>(T(t))) {
 		}
-		template<class T2, ITHARE_OBF_SEEDTPARAM seed2, OBFCYCLES cycles2>
-		ITHARE_OBF_FORCEINLINE ObfVar(ObfVar<T2, seed2, cycles2> t) : val(Injection::template injection<ITHARE_OBF_COMBINED_PRNG(seed,seed2)>(T(T_(t.value())))) {//TODO: randomized injection implementation
+		template<class T2, ITHARE_OBF_SEEDTPARAM seed2, OBFCYCLES cycles2,OBFFLAGS flags2>
+		ITHARE_OBF_FORCEINLINE constexpr ObfVar(ObfVar<T2, seed2, cycles2,flags2> t) : val(Injection::template injection<ITHARE_OBF_COMBINED_PRNG(seed,seed2)>(T(T_(t.value())))) {//TODO: randomized injection implementation
 		}
 		template<class T2, T2 C2, ITHARE_OBF_SEEDTPARAM seed2, OBFCYCLES cycles2,OBFFLAGS flags2>
 		ITHARE_OBF_FORCEINLINE constexpr ObfVar(obf_literal<T2, C2, seed2, cycles2,flags2> t) : val(Injection::template injection<ITHARE_OBF_COMBINED_PRNG(seed,seed2)>(T(T_(t.value())))) {//TODO: randomized injection implementation
@@ -190,13 +190,13 @@ namespace ithare {
 			val = Injection::template injection<ITHARE_OBF_NEW_PRNG(seed, 3)>(T(t));//TODO: different implementations of the same injection in different contexts
 			return *this;
 		}
-		template<class T2, ITHARE_OBF_SEEDTPARAM seed2, OBFCYCLES cycles2>
-		ITHARE_OBF_FORCEINLINE constexpr ObfVar& operator =(ObfVar<T2, seed2, cycles2> t) {
+		template<class T2, ITHARE_OBF_SEEDTPARAM seed2, OBFCYCLES cycles2,OBFFLAGS flags2>
+		ITHARE_OBF_FORCEINLINE constexpr ObfVar& operator =(ObfVar<T2, seed2, cycles2,flags2> t) {
 			val = Injection::template injection<ITHARE_OBF_NEW_PRNG(seed, 4)>(T(T_(t.value())));//TODO: different implementations of the same injection in different contexts
 			return *this;
 		}
-		template<class T2, T2 C2, ITHARE_OBF_SEEDTPARAM seed2, OBFCYCLES cycles2>
-		ITHARE_OBF_FORCEINLINE constexpr ObfVar& operator =(obf_literal<T2, C2, seed2, cycles2> t) {
+		template<class T2, T2 C2, ITHARE_OBF_SEEDTPARAM seed2, OBFCYCLES cycles2,OBFFLAGS flags2>
+		ITHARE_OBF_FORCEINLINE constexpr ObfVar& operator =(obf_literal<T2, C2, seed2, cycles2,flags2> t) {
 			ITHARE_OBF_DECLAREPRNG_INFUNC seedc = ITHARE_OBF_COMBINED_PRNG(seed,seed2);
 			val = Injection::template injection<seedc>(T(T_(t.value())));//TODO: different implementations of the same injection in different contexts
 			return *this;
@@ -235,28 +235,28 @@ namespace ithare {
 		template<class T2>
 		ITHARE_OBF_FORCEINLINE constexpr bool operator >=(T2 t) { return value() >= t; }
 
-		template<class T2, ITHARE_OBF_SEEDTPARAM seed2, OBFCYCLES cycles2>
-		ITHARE_OBF_FORCEINLINE constexpr bool operator <(ObfVar<T2, seed2, cycles2> t) {
+		template<class T2, ITHARE_OBF_SEEDTPARAM seed2, OBFCYCLES cycles2,OBFFLAGS flags2>
+		ITHARE_OBF_FORCEINLINE constexpr bool operator <(ObfVar<T2, seed2, cycles2,flags2> t) {
 			return value() < t.value();
 		}
-		template<class T2, ITHARE_OBF_SEEDTPARAM seed2, OBFCYCLES cycles2>
-		ITHARE_OBF_FORCEINLINE constexpr bool operator >(ObfVar<T2, seed2, cycles2> t) {
+		template<class T2, ITHARE_OBF_SEEDTPARAM seed2, OBFCYCLES cycles2,OBFFLAGS flags2>
+		ITHARE_OBF_FORCEINLINE constexpr bool operator >(ObfVar<T2, seed2, cycles2,flags2> t) {
 			return value() > t.value();
 		}
-		template<class T2, ITHARE_OBF_SEEDTPARAM seed2, OBFCYCLES cycles2>
-		ITHARE_OBF_FORCEINLINE constexpr bool operator ==(ObfVar<T2, seed2, cycles2> t) {
+		template<class T2, ITHARE_OBF_SEEDTPARAM seed2, OBFCYCLES cycles2,OBFFLAGS flags2>
+		ITHARE_OBF_FORCEINLINE constexpr bool operator ==(ObfVar<T2, seed2, cycles2,flags2> t) {
 			return value() == t.value();
 		}
-		template<class T2, ITHARE_OBF_SEEDTPARAM seed2, OBFCYCLES cycles2>
-		ITHARE_OBF_FORCEINLINE constexpr bool operator !=(ObfVar<T2, seed2, cycles2> t) {
+		template<class T2, ITHARE_OBF_SEEDTPARAM seed2, OBFCYCLES cycles2,OBFFLAGS flags2>
+		ITHARE_OBF_FORCEINLINE constexpr bool operator !=(ObfVar<T2, seed2, cycles2,flags2> t) {
 			return value() != t.value();
 		}
-		template<class T2, ITHARE_OBF_SEEDTPARAM seed2, OBFCYCLES cycles2>
-		ITHARE_OBF_FORCEINLINE constexpr bool operator <=(ObfVar<T2, seed2, cycles2> t) {
+		template<class T2, ITHARE_OBF_SEEDTPARAM seed2, OBFCYCLES cycles2,OBFFLAGS flags2>
+		ITHARE_OBF_FORCEINLINE constexpr bool operator <=(ObfVar<T2, seed2, cycles2,flags2> t) {
 			return value() <= t.value();
 		}
-		template<class T2, ITHARE_OBF_SEEDTPARAM seed2, OBFCYCLES cycles2>
-		ITHARE_OBF_FORCEINLINE constexpr bool operator >=(ObfVar<T2, seed2, cycles2> t) {
+		template<class T2, ITHARE_OBF_SEEDTPARAM seed2, OBFCYCLES cycles2,OBFFLAGS flags2>
+		ITHARE_OBF_FORCEINLINE constexpr bool operator >=(ObfVar<T2, seed2, cycles2,flags2> t) {
 			return value() >= t.value();
 		}
 
@@ -315,45 +315,45 @@ namespace ithare {
 		template<class T2>
 		ITHARE_OBF_FORCEINLINE constexpr ObfVar& operator %=(T2 t) { *this = value() % t; return *this; }
 
-		template<class T2, ITHARE_OBF_SEEDTPARAM seed2, OBFCYCLES cycles2>
-		ITHARE_OBF_FORCEINLINE constexpr ObfVar& operator +=(ObfVar<T2, seed2, cycles2> t) {
+		template<class T2, ITHARE_OBF_SEEDTPARAM seed2, OBFCYCLES cycles2,OBFFLAGS flags2>
+		ITHARE_OBF_FORCEINLINE constexpr ObfVar& operator +=(ObfVar<T2, seed2, cycles2,flags2> t) {
 			return *this += t.value();
 		}
-		template<class T2, ITHARE_OBF_SEEDTPARAM seed2, OBFCYCLES cycles2>
-		ITHARE_OBF_FORCEINLINE constexpr ObfVar& operator -=(ObfVar<T2, seed2, cycles2> t) {
+		template<class T2, ITHARE_OBF_SEEDTPARAM seed2, OBFCYCLES cycles2,OBFFLAGS flags2>
+		ITHARE_OBF_FORCEINLINE constexpr ObfVar& operator -=(ObfVar<T2, seed2, cycles2,flags2> t) {
 			return *this -= t.value();
 		}
-		template<class T2, ITHARE_OBF_SEEDTPARAM seed2, OBFCYCLES cycles2>
-		ITHARE_OBF_FORCEINLINE constexpr ObfVar& operator *=(ObfVar<T2, seed2, cycles2> t) {
+		template<class T2, ITHARE_OBF_SEEDTPARAM seed2, OBFCYCLES cycles2,OBFFLAGS flags2>
+		ITHARE_OBF_FORCEINLINE constexpr ObfVar& operator *=(ObfVar<T2, seed2, cycles2,flags2> t) {
 			return *this *= t.value();
 		}
-		template<class T2, ITHARE_OBF_SEEDTPARAM seed2, OBFCYCLES cycles2>
-		ITHARE_OBF_FORCEINLINE constexpr ObfVar& operator /=(ObfVar<T2, seed2, cycles2> t) {
+		template<class T2, ITHARE_OBF_SEEDTPARAM seed2, OBFCYCLES cycles2,OBFFLAGS flags2>
+		ITHARE_OBF_FORCEINLINE constexpr ObfVar& operator /=(ObfVar<T2, seed2, cycles2,flags2> t) {
 			return *this /= t.value();
 		}
-		template<class T2, ITHARE_OBF_SEEDTPARAM seed2, OBFCYCLES cycles2>
-		ITHARE_OBF_FORCEINLINE constexpr ObfVar& operator %=(ObfVar<T2, seed2, cycles2> t) {
+		template<class T2, ITHARE_OBF_SEEDTPARAM seed2, OBFCYCLES cycles2,OBFFLAGS flags2>
+		ITHARE_OBF_FORCEINLINE constexpr ObfVar& operator %=(ObfVar<T2, seed2, cycles2,flags2> t) {
 			return *this %= t.value();
 		}
 
-		template<class T2, T2 C2, ITHARE_OBF_SEEDTPARAM seed2, OBFCYCLES cycles2>
-		ITHARE_OBF_FORCEINLINE constexpr ObfVar& operator +=(obf_literal<T2, C2, seed2, cycles2> t) {
+		template<class T2, T2 C2, ITHARE_OBF_SEEDTPARAM seed2, OBFCYCLES cycles2,OBFFLAGS flags2>
+		ITHARE_OBF_FORCEINLINE constexpr ObfVar& operator +=(obf_literal<T2, C2, seed2, cycles2,flags2> t) {
 			return *this += t.value();
 		}
-		template<class T2, T2 C2, ITHARE_OBF_SEEDTPARAM seed2, OBFCYCLES cycles2>
-		ITHARE_OBF_FORCEINLINE constexpr ObfVar& operator -=(obf_literal<T2, C2, seed2, cycles2> t) {
+		template<class T2, T2 C2, ITHARE_OBF_SEEDTPARAM seed2, OBFCYCLES cycles2,OBFFLAGS flags2>
+		ITHARE_OBF_FORCEINLINE constexpr ObfVar& operator -=(obf_literal<T2, C2, seed2, cycles2,flags2> t) {
 			return *this -= t.value();
 		}
-		template<class T2, T2 C2, ITHARE_OBF_SEEDTPARAM seed2, OBFCYCLES cycles2>
-		ITHARE_OBF_FORCEINLINE constexpr ObfVar& operator *=(obf_literal<T2, C2, seed2, cycles2> t) {
+		template<class T2, T2 C2, ITHARE_OBF_SEEDTPARAM seed2, OBFCYCLES cycles2,OBFFLAGS flags2>
+		ITHARE_OBF_FORCEINLINE constexpr ObfVar& operator *=(obf_literal<T2, C2, seed2, cycles2,flags2> t) {
 			return *this *= t.value();
 		}
-		template<class T2, T2 C2, ITHARE_OBF_SEEDTPARAM seed2, OBFCYCLES cycles2>
-		ITHARE_OBF_FORCEINLINE constexpr ObfVar& operator /=(obf_literal<T2, C2, seed2, cycles2> t) {
+		template<class T2, T2 C2, ITHARE_OBF_SEEDTPARAM seed2, OBFCYCLES cycles2,OBFFLAGS flags2>
+		ITHARE_OBF_FORCEINLINE constexpr ObfVar& operator /=(obf_literal<T2, C2, seed2, cycles2,flags2> t) {
 			return *this /= t.value();
 		}
-		template<class T2, T2 C2, ITHARE_OBF_SEEDTPARAM seed2, OBFCYCLES cycles2>
-		ITHARE_OBF_FORCEINLINE constexpr ObfVar& operator %=(obf_literal<T2, C2, seed2, cycles2> t) {
+		template<class T2, T2 C2, ITHARE_OBF_SEEDTPARAM seed2, OBFCYCLES cycles2,OBFFLAGS flags2>
+		ITHARE_OBF_FORCEINLINE constexpr ObfVar& operator %=(obf_literal<T2, C2, seed2, cycles2,flags2> t) {
 			return *this %= t.value();
 		}
 
@@ -368,27 +368,27 @@ namespace ithare {
 		template<class T2>
 		ITHARE_OBF_FORCEINLINE constexpr ObfVar operator %(T2 t) { return ObfVar(value() % t); }
 		
-		template<class T2, ITHARE_OBF_SEEDTPARAM seed2, OBFCYCLES cycles2>
-		ITHARE_OBF_FORCEINLINE constexpr ObfVar operator +(ObfVar<T2,seed2,cycles2> t) { return ObfVar(value() + t.value()); }
-		template<class T2, ITHARE_OBF_SEEDTPARAM seed2, OBFCYCLES cycles2>
-		ITHARE_OBF_FORCEINLINE constexpr ObfVar operator -(ObfVar<T2, seed2, cycles2> t) { return ObfVar(value() - t.value()); }
-		template<class T2, ITHARE_OBF_SEEDTPARAM seed2, OBFCYCLES cycles2>
-		ITHARE_OBF_FORCEINLINE constexpr ObfVar operator *(ObfVar<T2, seed2, cycles2> t) { return ObfVar(value() * t.value()); }
-		template<class T2, ITHARE_OBF_SEEDTPARAM seed2, OBFCYCLES cycles2>
-		ITHARE_OBF_FORCEINLINE constexpr ObfVar operator /(ObfVar<T2, seed2, cycles2> t) { return ObfVar(value() / t.value()); }
-		template<class T2, ITHARE_OBF_SEEDTPARAM seed2, OBFCYCLES cycles2>
-		ITHARE_OBF_FORCEINLINE constexpr ObfVar operator %(ObfVar<T2, seed2, cycles2> t) { return ObfVar(value() % t.value()); }
+		template<class T2, ITHARE_OBF_SEEDTPARAM seed2, OBFCYCLES cycles2,OBFFLAGS flags2>
+		ITHARE_OBF_FORCEINLINE constexpr ObfVar operator +(ObfVar<T2,seed2,cycles2,flags2> t) { return ObfVar(value() + t.value()); }
+		template<class T2, ITHARE_OBF_SEEDTPARAM seed2, OBFCYCLES cycles2,OBFFLAGS flags2>
+		ITHARE_OBF_FORCEINLINE constexpr ObfVar operator -(ObfVar<T2, seed2, cycles2,flags2> t) { return ObfVar(value() - t.value()); }
+		template<class T2, ITHARE_OBF_SEEDTPARAM seed2, OBFCYCLES cycles2,OBFFLAGS flags2>
+		ITHARE_OBF_FORCEINLINE constexpr ObfVar operator *(ObfVar<T2, seed2, cycles2,flags2> t) { return ObfVar(value() * t.value()); }
+		template<class T2, ITHARE_OBF_SEEDTPARAM seed2, OBFCYCLES cycles2,OBFFLAGS flags2>
+		ITHARE_OBF_FORCEINLINE constexpr ObfVar operator /(ObfVar<T2, seed2, cycles2,flags2> t) { return ObfVar(value() / t.value()); }
+		template<class T2, ITHARE_OBF_SEEDTPARAM seed2, OBFCYCLES cycles2,OBFFLAGS flags2>
+		ITHARE_OBF_FORCEINLINE constexpr ObfVar operator %(ObfVar<T2, seed2, cycles2,flags2> t) { return ObfVar(value() % t.value()); }
 
-		template<class T2, T2 C2, ITHARE_OBF_SEEDTPARAM seed2, OBFCYCLES cycles2>
-		ITHARE_OBF_FORCEINLINE constexpr ObfVar operator +(obf_literal<T2, C2, seed2, cycles2> t) { return ObfVar(value() + t.value()); }
-		template<class T2, T2 C2, ITHARE_OBF_SEEDTPARAM seed2, OBFCYCLES cycles2>
-		ITHARE_OBF_FORCEINLINE constexpr ObfVar operator -(obf_literal<T2, C2, seed2, cycles2> t) { return ObfVar(value() - t.value()); }
-		template<class T2, T2 C2, ITHARE_OBF_SEEDTPARAM seed2, OBFCYCLES cycles2>
-		ITHARE_OBF_FORCEINLINE constexpr ObfVar operator *(obf_literal<T2, C2, seed2, cycles2> t) { return ObfVar(value() * t.value()); }
-		template<class T2, T2 C2, ITHARE_OBF_SEEDTPARAM seed2, OBFCYCLES cycles2>
-		ITHARE_OBF_FORCEINLINE constexpr ObfVar operator /(obf_literal<T2, C2, seed2, cycles2> t) { return ObfVar(value() / t.value()); }
-		template<class T2, T2 C2, ITHARE_OBF_SEEDTPARAM seed2, OBFCYCLES cycles2>
-		ITHARE_OBF_FORCEINLINE constexpr ObfVar operator %(obf_literal<T2, C2, seed2, cycles2> t) { return ObfVar(value() % t.value()); }
+		template<class T2, T2 C2, ITHARE_OBF_SEEDTPARAM seed2, OBFCYCLES cycles2,OBFFLAGS flags2>
+		ITHARE_OBF_FORCEINLINE constexpr ObfVar operator +(obf_literal<T2, C2, seed2, cycles2,flags2> t) { return ObfVar(value() + t.value()); }
+		template<class T2, T2 C2, ITHARE_OBF_SEEDTPARAM seed2, OBFCYCLES cycles2,OBFFLAGS flags2>
+		ITHARE_OBF_FORCEINLINE constexpr ObfVar operator -(obf_literal<T2, C2, seed2, cycles2,flags2> t) { return ObfVar(value() - t.value()); }
+		template<class T2, T2 C2, ITHARE_OBF_SEEDTPARAM seed2, OBFCYCLES cycles2,OBFFLAGS flags2>
+		ITHARE_OBF_FORCEINLINE constexpr ObfVar operator *(obf_literal<T2, C2, seed2, cycles2,flags2> t) { return ObfVar(value() * t.value()); }
+		template<class T2, T2 C2, ITHARE_OBF_SEEDTPARAM seed2, OBFCYCLES cycles2,OBFFLAGS flags2>
+		ITHARE_OBF_FORCEINLINE constexpr ObfVar operator /(obf_literal<T2, C2, seed2, cycles2,flags2> t) { return ObfVar(value() / t.value()); }
+		template<class T2, T2 C2, ITHARE_OBF_SEEDTPARAM seed2, OBFCYCLES cycles2,OBFFLAGS flags2>
+		ITHARE_OBF_FORCEINLINE constexpr ObfVar operator %(obf_literal<T2, C2, seed2, cycles2,flags2> t) { return ObfVar(value() % t.value()); }
 
 		//TODO: bitwise
 
@@ -634,8 +634,14 @@ namespace ithare {
 
 #define ITHARE_OBF_DECLARELIBFUNC template<ITHARE_OBF_SEEDTPARAM obfseed = ITHARE_OBF_DUMMYSEED, OBFLEVEL obflevel=-1,OBFFLAGS obfflags=0> constexpr ITHARE_OBF_FORCEINLINE
 #define ITHARE_OBF_DECLARELIBFUNC_WITHEXTRA(...) template<ITHARE_OBF_SEEDTPARAM obfseed = ITHARE_OBF_DUMMYSEED, OBFLEVEL obflevel=-1,OBFFLAGS obfflags=0,__VA_ARGS__> constexpr ITHARE_OBF_FORCEINLINE
-#define ITHARE_OBF_DECLARELIBFUNC_VAR template<ITHARE_OBF_SEEDTPARAM obfseed = ITHARE_OBF_DUMMYSEED, OBFLEVEL obflevel=-1,OBFFLAGS obfflags=0,ITHARE_OBF_SEEDTPARAM obfvarseed,OBFCYCLES obfvarcycles,OBFFLAGS obfvarflags> constexpr ITHARE_OBF_FORCEINLINE
-#define ITHARE_OBF_DECLARELIBOBFPARAM(type) ithare::obf::ObfVar<type,obfvarseed,obfvarcycles,obfvarflags>
+#define ITHARE_OBF_DECLARELIBFUNC_PTRTOOBF template<ITHARE_OBF_SEEDTPARAM obfseed = ITHARE_OBF_DUMMYSEED, OBFLEVEL obflevel=-1,OBFFLAGS obfflags=0,ITHARE_OBF_SEEDTPARAM obfvarseed,OBFCYCLES obfvarcycles,OBFFLAGS obfvarflags> constexpr ITHARE_OBF_FORCEINLINE
+#define ITHARE_OBF_DECLARELIBPARAM_PTRTOOBF(type) ithare::obf::ObfVar<type,obfvarseed,obfvarcycles,obfvarflags>
+//#define ITHARE_OBF_DECLARELIBFUNC_STRUCT template<ITHARE_OBF_SEEDTPARAM obfseed = ITHARE_OBF_DUMMYSEED, OBFLEVEL obflevel=-1,OBFFLAGS obfflags=0,ITHARE_OBF_SEEDTPARAM obfstructseed,OBFLEVEL obfstructlevel,OBFFLAGS obfstructflags> constexpr ITHARE_OBF_FORCEINLINE
+//#define ITHARE_OBF_DECLARELIBSTRUCTPARAM(type) type<obfstructseed,obfstructlevel,obfstructflags>
+
+#define ITHARE_OBF_DECLARELIBCLASS template<ITHARE_OBF_SEEDTPARAM obfclsseed = ITHARE_OBF_DUMMYSEED, OBFLEVEL obfclslevel=-1,OBFFLAGS obfclsflags=0> 
+#define ITHARE_OBF_OBFLIBCLASS(name) name<ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__),(ITHARE_OBF_SCALE)+0,0> 
+//TODO: LIBOBFLIBCLASS M3..P3
 
 #define ITHARE_OBF_CALL0(fname) fname<ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__),(ITHARE_OBF_SCALE)+0,0>
 #define ITHARE_OBF_CALL1(fname) fname<ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__),(ITHARE_OBF_SCALE)+1,0>
@@ -654,21 +660,24 @@ namespace ithare {
 #define ITHARE_OBF_CALLFROMLIBP2(fname) fname<ITHARE_OBF_COMBINED_PRNG(obfseed,ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__)),ithare::obf::obf_addlevel(obflevel,2),obfflags>
 #define ITHARE_OBF_CALLFROMLIBP3(fname) fname<ITHARE_OBF_COMBINED_PRNG(obfseed,ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__)),ithare::obf::obf_addlevel(obflevel,3),obfflags>
 
-#define ITHARE_OBFLIBM3(type) ithare::obf::ObfVar<type,ITHARE_OBF_COMBINED_PRNG(obfseed,ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__)),ithare::obf::obf_exp_cycles(ithare::obf::obf_addlevel(obflevel,-3)),obfflags>
-#define ITHARE_OBFLIBM2(type) ithare::obf::ObfVar<type,ITHARE_OBF_COMBINED_PRNG(obfseed,ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__)),ithare::obf::obf_exp_cycles(ithare::obf::obf_addlevel(obflevel,-2)),obfflags>
-#define ITHARE_OBFLIBM1(type) ithare::obf::ObfVar<type,ITHARE_OBF_COMBINED_PRNG(obfseed,ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__)),ithare::obf::obf_exp_cycles(ithare::obf::obf_addlevel(obflevel,-1)),obfflags>
-#define ITHARE_OBFLIB(type) ithare::obf::ObfVar<type,ITHARE_OBF_COMBINED_PRNG(obfseed,ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__)),ithare::obf::obf_exp_cycles(obflevel),obfflags>
-#define ITHARE_OBFLIBP1(type) ithare::obf::ObfVar<type,ITHARE_OBF_COMBINED_PRNG(obfseed,ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__)),ithare::obf::obf_exp_cycles(ithare::obf::obf_addlevel(obflevel,1)),obfflags>
-#define ITHARE_OBFLIBP2(type) ithare::obf::ObfVar<type,ITHARE_OBF_COMBINED_PRNG(obfseed,ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__)),ithare::obf::obf_exp_cycles(ithare::obf::obf_addlevel(obflevel,1)),obfflags>
-#define ITHARE_OBFLIBP3(type) ithare::obf::ObfVar<type,ITHARE_OBF_COMBINED_PRNG(obfseed,ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__)),ithare::obf::obf_exp_cycles(ithare::obf::obf_addlevel(obflevel,1)),obfflags>
+#define ITHARE_OBFLIBFM3(type) ithare::obf::ObfVar<type,ITHARE_OBF_COMBINED_PRNG(obfseed,ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__)),ithare::obf::obf_exp_cycles(ithare::obf::obf_addlevel(obflevel,-3)),obfflags>
+#define ITHARE_OBFLIBFM2(type) ithare::obf::ObfVar<type,ITHARE_OBF_COMBINED_PRNG(obfseed,ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__)),ithare::obf::obf_exp_cycles(ithare::obf::obf_addlevel(obflevel,-2)),obfflags>
+#define ITHARE_OBFLIBFM1(type) ithare::obf::ObfVar<type,ITHARE_OBF_COMBINED_PRNG(obfseed,ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__)),ithare::obf::obf_exp_cycles(ithare::obf::obf_addlevel(obflevel,-1)),obfflags>
+#define ITHARE_OBFLIBF(type) ithare::obf::ObfVar<type,ITHARE_OBF_COMBINED_PRNG(obfseed,ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__)),ithare::obf::obf_exp_cycles(obflevel),obfflags>
+#define ITHARE_OBFLIBFP1(type) ithare::obf::ObfVar<type,ITHARE_OBF_COMBINED_PRNG(obfseed,ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__)),ithare::obf::obf_exp_cycles(ithare::obf::obf_addlevel(obflevel,1)),obfflags>
+#define ITHARE_OBFLIBFP2(type) ithare::obf::ObfVar<type,ITHARE_OBF_COMBINED_PRNG(obfseed,ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__)),ithare::obf::obf_exp_cycles(ithare::obf::obf_addlevel(obflevel,1)),obfflags>
+#define ITHARE_OBFLIBFP3(type) ithare::obf::ObfVar<type,ITHARE_OBF_COMBINED_PRNG(obfseed,ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__)),ithare::obf::obf_exp_cycles(ithare::obf::obf_addlevel(obflevel,1)),obfflags>
 
-#define ITHARE_OBFILIBM3(c) obf_literal<typename std::remove_cv<decltype(c)>::type,c,ITHARE_OBF_COMBINED_PRNG(obfseed,ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__)),ithare::obf::obf_exp_cycles(ithare::obf::obf_addlevel(obflevel,-3)),obfflags>()
-#define ITHARE_OBFILIBM2(c) obf_literal<typename std::remove_cv<decltype(c)>::type,c,ITHARE_OBF_COMBINED_PRNG(obfseed,ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__)),ithare::obf::obf_exp_cycles(ithare::obf::obf_addlevel(obflevel,-2)),obfflags>()
-#define ITHARE_OBFILIBM1(c) obf_literal<typename std::remove_cv<decltype(c)>::type,c,ITHARE_OBF_COMBINED_PRNG(obfseed,ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__)),ithare::obf::obf_exp_cycles(ithare::obf::obf_addlevel(obflevel,-1)),obfflags>()
-#define ITHARE_OBFILIB(c) obf_literal<typename std::remove_cv<decltype(c)>::type,c,ITHARE_OBF_COMBINED_PRNG(obfseed,ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__)),ithare::obf::obf_exp_cycles(obflevel),obfflags>()
-#define ITHARE_OBFILIBP1(c) obf_literal<typename std::remove_cv<decltype(c)>::type,c,ITHARE_OBF_COMBINED_PRNG(obfseed,ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__)),ithare::obf::obf_exp_cycles(ithare::obf::obf_addlevel(obflevel,1)),obfflags>()
-#define ITHARE_OBFILIBP2(c) obf_literal<typename std::remove_cv<decltype(c)>::type,c,ITHARE_OBF_COMBINED_PRNG(obfseed,ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__)),ithare::obf::obf_exp_cycles(ithare::obf::obf_addlevel(obflevel,2)),obfflags>()
-#define ITHARE_OBFILIBP3(c) obf_literal<typename std::remove_cv<decltype(c)>::type,c,ITHARE_OBF_COMBINED_PRNG(obfseed,ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__)),ithare::obf::obf_exp_cycles(ithare::obf::obf_addlevel(obflevel,3)),obfflags>()
+#define ITHARE_OBFLIBC(type) ithare::obf::ObfVar<type,ITHARE_OBF_COMBINED_PRNG(obfclsseed,ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__)),ithare::obf::obf_exp_cycles(obfclslevel),obfclsflags>
+//TODO: M3..P3
+
+#define ITHARE_OBFILIBFM3(c) obf_literal<typename std::remove_cv<decltype(c)>::type,c,ITHARE_OBF_COMBINED_PRNG(obfseed,ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__)),ithare::obf::obf_exp_cycles(ithare::obf::obf_addlevel(obflevel,-3)),obfflags>()
+#define ITHARE_OBFILIBFM2(c) obf_literal<typename std::remove_cv<decltype(c)>::type,c,ITHARE_OBF_COMBINED_PRNG(obfseed,ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__)),ithare::obf::obf_exp_cycles(ithare::obf::obf_addlevel(obflevel,-2)),obfflags>()
+#define ITHARE_OBFILIBFM1(c) obf_literal<typename std::remove_cv<decltype(c)>::type,c,ITHARE_OBF_COMBINED_PRNG(obfseed,ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__)),ithare::obf::obf_exp_cycles(ithare::obf::obf_addlevel(obflevel,-1)),obfflags>()
+#define ITHARE_OBFILIBF(c) obf_literal<typename std::remove_cv<decltype(c)>::type,c,ITHARE_OBF_COMBINED_PRNG(obfseed,ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__)),ithare::obf::obf_exp_cycles(obflevel),obfflags>()
+#define ITHARE_OBFILIBFP1(c) obf_literal<typename std::remove_cv<decltype(c)>::type,c,ITHARE_OBF_COMBINED_PRNG(obfseed,ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__)),ithare::obf::obf_exp_cycles(ithare::obf::obf_addlevel(obflevel,1)),obfflags>()
+#define ITHARE_OBFILIBFP2(c) obf_literal<typename std::remove_cv<decltype(c)>::type,c,ITHARE_OBF_COMBINED_PRNG(obfseed,ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__)),ithare::obf::obf_exp_cycles(ithare::obf::obf_addlevel(obflevel,2)),obfflags>()
+#define ITHARE_OBFILIBFP3(c) obf_literal<typename std::remove_cv<decltype(c)>::type,c,ITHARE_OBF_COMBINED_PRNG(obfseed,ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__)),ithare::obf::obf_exp_cycles(ithare::obf::obf_addlevel(obflevel,3)),obfflags>()
 
 #else//ITHARE_OBF_SEED
 namespace ithare {
@@ -996,8 +1005,12 @@ namespace ithare {
 
 #define ITHARE_OBF_DECLARELIBFUNC template<OBFFLAGS obfflags=0> constexpr inline
 #define ITHARE_OBF_DECLARELIBFUNC_WITHEXTRA(...) template<OBFFLAGS obfflags=0,__VA_ARGS__> constexpr inline
-#define ITHARE_OBF_DECLARELIBFUNC_VAR template<OBFFLAGS obfflags=0> constexpr inline
-#define ITHARE_OBF_DECLARELIBOBFPARAM(type) ithare::obf::ObfVarDbg<type>
+#define ITHARE_OBF_DECLARELIBFUNC_PTRTOOBF template<OBFFLAGS obfflags=0> constexpr inline
+#define ITHARE_OBF_DECLARELIBPARAM_PTRTOOBF(type) ithare::obf::ObfVarDbg<type>
+
+#define ITHARE_OBF_DECLARELIBCLASS template<OBFFLAGS obfclsflags=0> 
+#define ITHARE_OBF_OBFLIBCLASS(name) name<0> 
+//TODO: M3..P3
 
 #define ITHARE_OBF_CALL0(fname) fname<0>
 #define ITHARE_OBF_CALL1(fname) fname<0>
@@ -1015,21 +1028,24 @@ namespace ithare {
 #define ITHARE_OBF_CALLFROMLIBP2(fname) fname<obfflags>
 #define ITHARE_OBF_CALLFROMLIBP3(fname) fname<obfflags>
 
-#define ITHARE_OBFLIBM3(type) ithare::obf::ObfVarDbg<type>
-#define ITHARE_OBFLIBM2(type) ithare::obf::ObfVarDbg<type>
-#define ITHARE_OBFLIBM1(type) ithare::obf::ObfVarDbg<type>
-#define ITHARE_OBFLIB(type) ithare::obf::ObfVarDbg<type>
-#define ITHARE_OBFLIBP1(type) ithare::obf::ObfVarDbg<type>
-#define ITHARE_OBFLIBP2(type) ithare::obf::ObfVarDbg<type>
-#define ITHARE_OBFLIBP3(type) ithare::obf::ObfVarDbg<type>
+#define ITHARE_OBFLIBFM3(type) ithare::obf::ObfVarDbg<type>
+#define ITHARE_OBFLIBFM2(type) ithare::obf::ObfVarDbg<type>
+#define ITHARE_OBFLIBFM1(type) ithare::obf::ObfVarDbg<type>
+#define ITHARE_OBFLIBF(type) ithare::obf::ObfVarDbg<type>
+#define ITHARE_OBFLIBFP1(type) ithare::obf::ObfVarDbg<type>
+#define ITHARE_OBFLIBFP2(type) ithare::obf::ObfVarDbg<type>
+#define ITHARE_OBFLIBFP3(type) ithare::obf::ObfVarDbg<type>
 
-#define ITHARE_OBFILIBM3(c) obf_literal_dbg<typename std::remove_cv<decltype(c)>::type,c>()
-#define ITHARE_OBFILIBM2(c) obf_literal_dbg<typename std::remove_cv<decltype(c)>::type,c>()
-#define ITHARE_OBFILIBM1(c) obf_literal_dbg<typename std::remove_cv<decltype(c)>::type,c>()
-#define ITHARE_OBFILIB(c) obf_literal_dbg<typename std::remove_cv<decltype(c)>::type,c>()
-#define ITHARE_OBFILIBP1(c) obf_literal_dbg<typename std::remove_cv<decltype(c)>::type,c>()
-#define ITHARE_OBFILIBP2(c) obf_literal_dbg<typename std::remove_cv<decltype(c)>::type,c>()
-#define ITHARE_OBFILIBP3(c) obf_literal_dbg<typename std::remove_cv<decltype(c)>::type,c>()
+#define ITHARE_OBFLIBC(type) ithare::obf::ObfVarDbg<type>
+//TODO: M3..P3
+
+#define ITHARE_OBFILIBFM3(c) obf_literal_dbg<typename std::remove_cv<decltype(c)>::type,c>()
+#define ITHARE_OBFILIBFM2(c) obf_literal_dbg<typename std::remove_cv<decltype(c)>::type,c>()
+#define ITHARE_OBFILIBFM1(c) obf_literal_dbg<typename std::remove_cv<decltype(c)>::type,c>()
+#define ITHARE_OBFILIBF(c) obf_literal_dbg<typename std::remove_cv<decltype(c)>::type,c>()
+#define ITHARE_OBFILIBFP1(c) obf_literal_dbg<typename std::remove_cv<decltype(c)>::type,c>()
+#define ITHARE_OBFILIBFP2(c) obf_literal_dbg<typename std::remove_cv<decltype(c)>::type,c>()
+#define ITHARE_OBFILIBFP3(c) obf_literal_dbg<typename std::remove_cv<decltype(c)>::type,c>()
 
 #endif //ITHARE_OBF_SEED
 

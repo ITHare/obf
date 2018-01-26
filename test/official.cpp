@@ -42,7 +42,7 @@ ITHARE_OBF_NOINLINE OBF6(int64_t) factorial(OBF6(int64_t) x) {
 ITHARE_OBF_NOINLINE void test_chacha_cipher0(const uint8_t* inp, uint8_t* out) {
 	uint8_t user_key[ITOBF_TLS CHACHA_KEY_SIZE] = { 0 };
 	uint8_t iv[ITOBF_TLS CHACHA_CTR_SIZE] = { 0 };
-	ITOBF_TLS EVP_CHACHA chacha(user_key, iv, 1);
+	ITOBF_TLS EVP_CHACHA<> chacha(user_key, iv, 1);
 
 	chacha.cipher(out, inp, 16);
 }
@@ -50,7 +50,7 @@ ITHARE_OBF_NOINLINE void test_chacha_cipher0(const uint8_t* inp, uint8_t* out) {
 ITHARE_OBF_NOINLINE void test_chacha_cipher1(const uint8_t* inp, uint8_t* out) {
 	uint8_t user_key[ITOBF_TLS CHACHA_KEY_SIZE] = { 1, 0 };
 	uint8_t iv[ITOBF_TLS CHACHA_CTR_SIZE] = { 0 };
-	ITOBF_TLS EVP_CHACHA chacha(user_key, iv, 1);
+	ITHARE_OBF_OBFLIBCLASS(ITOBF_TLS EVP_CHACHA) chacha(user_key, iv, 1);
 
 	OBF_CALL3(chacha.cipher)(out, inp, 16);
 }
@@ -58,7 +58,7 @@ ITHARE_OBF_NOINLINE void test_chacha_cipher1(const uint8_t* inp, uint8_t* out) {
 ITHARE_OBF_NOINLINE void test_chacha_cipher_rfc(const uint8_t* inp, uint8_t* out) {
 	uint8_t user_key[ITOBF_TLS CHACHA_KEY_SIZE] = { 0x00,0x01,0x02,0x03,0x04,0x05,0x06,0x07,0x08,0x09,0x0a,0x0b,0x0c,0x0d,0x0e,0x0f,0x10,0x11,0x12,0x13,0x14,0x15,0x16,0x17,0x18,0x19,0x1a,0x1b,0x1c,0x1d,0x1e,0x1f };
 	uint8_t iv[ITOBF_TLS CHACHA_CTR_SIZE] = { 1,0,0,0,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x4a,0x00,0x00,0x00,0x00 };//1st 4 bytes are ctr
-	ITOBF_TLS EVP_CHACHA chacha(user_key, iv, 1);
+	ITHARE_OBF_OBFLIBCLASS(ITOBF_TLS EVP_CHACHA) chacha(user_key, iv, 1);
 
 	OBF_CALL4(chacha.cipher)(out, inp, 16);
 }
@@ -125,11 +125,11 @@ const lest::test spec[] = {
 	CASE("chacha20(RFC7539, fully compile-time)") {
 		constexpr uint8_t user_key[ITOBF_TLS CHACHA_KEY_SIZE] = { 0x00,0x01,0x02,0x03,0x04,0x05,0x06,0x07,0x08,0x09,0x0a,0x0b,0x0c,0x0d,0x0e,0x0f,0x10,0x11,0x12,0x13,0x14,0x15,0x16,0x17,0x18,0x19,0x1a,0x1b,0x1c,0x1d,0x1e,0x1f };
 		constexpr uint8_t iv[ITOBF_TLS CHACHA_CTR_SIZE] = { 1,0,0,0,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x4a,0x00,0x00,0x00,0x00 };//1st 4 bytes are ctr
-		constexpr ITOBF_TLS EVP_CHACHA chacha = ITHARE_OBF_CALL_AS_CONSTEXPR(ITOBF_TLS EVP_CHACHA::construct)(user_key, iv, 1);
+		constexpr ITOBF_TLS EVP_CHACHA<> chacha = ITHARE_OBF_CALL_AS_CONSTEXPR(ITOBF_TLS EVP_CHACHA<>::construct)(user_key, iv, 1);
 		
 		constexpr uint8_t inp[16] = {0};
-		constexpr std::pair<ITOBF_TLS EVP_CHACHA,ITOBF ObfArrayWrapper<unsigned char,16>> ciphered = chacha.constexpr_cipher(inp);
-		constexpr ITOBF_TLS EVP_CHACHA chacha2 = ciphered.first;
+		constexpr std::pair<ITOBF_TLS EVP_CHACHA<>,ITOBF ObfArrayWrapper<unsigned char,16>> ciphered = chacha.constexpr_cipher(inp);
+		constexpr ITOBF_TLS EVP_CHACHA<> chacha2 = ciphered.first;
 		constexpr ITOBF ObfArrayWrapper<unsigned char, 16> out = ciphered.second;
 		uint8_t expected_out[16] = { 0x22,0x4f,0x51,0xf3,0x40,0x1b,0xd9,0xe1,0x2f,0xde,0x27,0x6f,0xb8,0x63,0x1d,0xed };
 			//from RFC7539

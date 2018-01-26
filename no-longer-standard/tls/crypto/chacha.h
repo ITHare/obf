@@ -83,11 +83,11 @@ static_assert(sizeof(chacha_buf)==64);
 
 /* chacha_core performs 20 rounds of ChaCha on the input words in
  * |input| and writes the 64 output bytes to |output|. */
-ITHARE_OBF_DECLARELIBFUNC_VAR
-void chacha20_core(chacha_buf *output, const ITHARE_OBF_DECLARELIBOBFPARAM(uint32_t) input[16])
+ITHARE_OBF_DECLARELIBFUNC_PTRTOOBF
+void chacha20_core(chacha_buf *output, const ITHARE_OBF_DECLARELIBPARAM_PTRTOOBF(uint32_t) input[16])
 {
 	ITHARE_OBF_DBGPRINTLIBFUNCNAMEX("chacha_core");
-	ITHARE_OBFLIBM1(uint32_t) x[16] = {}; ITHARE_OBF_DBGPRINTLIBX(x[0]);
+	ITHARE_OBFLIBFM1(uint32_t) x[16] = {}; ITHARE_OBF_DBGPRINTLIBX(x[0]);
 	ITHARE_OBF_CALLFROMLIB(obf_copyarray)(x,input);
 
     for (int i = 20; i > 0; i -= 2) {//TODO: blind loop
@@ -103,7 +103,7 @@ void chacha20_core(chacha_buf *output, const ITHARE_OBF_DECLARELIBOBFPARAM(uint3
 
 	static_assert(obf_endian::native == obf_endian::little);
     if constexpr (obf_endian::native == obf_endian::little) {
-        for (ITHARE_OBFLIB(int) i = 0; i < ITHARE_OBFILIB(16); ++i)
+        for (ITHARE_OBFLIBF(int) i = 0; i < ITHARE_OBFILIBF(16); ++i)
             output->u[i] = x[i] + input[i];
 	}
     /* else ++big-endian: test
@@ -124,8 +124,8 @@ void ChaCha20_ctr32(unsigned char *out, const unsigned char *inp,
 	constexpr uint32_t i2 = ((uint32_t)'2') | ((uint32_t)'-'<<8) | ((uint32_t)'b'<<16) | ((uint32_t)'y'<<24);
 	constexpr uint32_t i3 = ((uint32_t)'t') | ((uint32_t)'e'<<8) | ((uint32_t)' '<<16) | ((uint32_t)'k'<<24);
 
-    ITHARE_OBFLIB(uint32_t) input[16] = {//TODO: obfuscate (requires non-trivial support for obfuscated-array-as-input-param)
-		ITHARE_OBFILIB(i0), ITHARE_OBFILIB(i1), ITHARE_OBFILIB(i2), ITHARE_OBFILIB(i3),
+    ITHARE_OBFLIBF(uint32_t) input[16] = {//TODO: obfuscate (requires non-trivial support for obfuscated-array-as-input-param)
+		ITHARE_OBFILIBF(i0), ITHARE_OBFILIBF(i1), ITHARE_OBFILIBF(i2), ITHARE_OBFILIBF(i3),
 		key[0], key[1], key[2], key[3], 
 		key[4], key[5], key[6], key[7],
 		counter[0], counter[1], counter[2], counter[3]
@@ -133,13 +133,13 @@ void ChaCha20_ctr32(unsigned char *out, const unsigned char *inp,
 
     chacha_buf buf = {};
     while (len > 0) {
-        ITHARE_OBFLIB(size_t) todo = sizeof(buf);
+        ITHARE_OBFLIBF(size_t) todo = sizeof(buf);
         if (len < todo)
             todo = len;
 
         ITHARE_OBF_CALLFROMLIB(chacha20_core)(&buf, input);
 
-        for (ITHARE_OBFLIB(size_t) i = 0; i < todo; i++) {
+        for (ITHARE_OBFLIBF(size_t) i = 0; i < todo; i++) {
             if constexpr(obfflags&obf_flag_is_constexpr)//potential big-endian issues?
 				out[i] = inp[i] ^ buf.get_byte_n(i);
 			else
@@ -162,6 +162,7 @@ void ChaCha20_ctr32(unsigned char *out, const unsigned char *inp,
 //OBF: Adapted from OpenSSL 1.1.0g, CHACHA part of file crypto/evp/e_chacha20_poly1305.c
 //OBF: combined stuff into EVP_CHACHA class
 
+ITHARE_OBF_DECLARELIBCLASS
 class EVP_CHACHA {
 	struct KEY {//former EVP_CHACHA_KEY; TODO: obfuscate
 		struct {
@@ -170,7 +171,7 @@ class EVP_CHACHA {
 		} key;
 		unsigned int  counter[CHACHA_CTR_SIZE / 4];
 		unsigned char buf[CHACHA_BLK_SIZE];
-		unsigned int  partial_len;
+		ITHARE_OBFLIBC(unsigned int)  partial_len;
 	};
 	KEY key;
 
@@ -183,12 +184,12 @@ class EVP_CHACHA {
 		KEY key = {};
 
 		if (user_key)
-			for (ITHARE_OBFLIB(unsigned int) i = 0; i < ITHARE_OBFILIB(CHACHA_KEY_SIZE); i+=4) {
+			for (ITHARE_OBFLIBF(unsigned int) i = 0; i < ITHARE_OBFILIBF(CHACHA_KEY_SIZE); i+=4) {
 				key.key.d[i/4] = ITHARE_OBF_TLS_CHACHA_U8TOU32(user_key+i);
 			}
 
 		if (iv)
-			for (ITHARE_OBFLIB(unsigned int) i = 0; i < ITHARE_OBFILIB(CHACHA_CTR_SIZE); i+=4) {
+			for (ITHARE_OBFLIBF(unsigned int) i = 0; i < ITHARE_OBFILIBF(CHACHA_CTR_SIZE); i+=4) {
 				key.counter[i/4] = ITHARE_OBF_TLS_CHACHA_U8TOU32(iv+i);
 			}
 
@@ -200,9 +201,9 @@ class EVP_CHACHA {
 			    const unsigned char *inp, size_t len)
 	{
 		ITHARE_OBF_DBGPRINTLIBFUNCNAMEX("EVP_CHACHA::cipher");
-		ITHARE_OBFLIB(unsigned int) n = key.partial_len; ITHARE_OBF_DBGPRINTLIBX(n);
+		ITHARE_OBFLIBF(unsigned int) n = key.partial_len; ITHARE_OBF_DBGPRINTLIBX(n);
 		if (n) {
-			while (len && n < ITHARE_OBFILIB(CHACHA_BLK_SIZE)) {
+			while (len && n < ITHARE_OBFILIBF(CHACHA_BLK_SIZE)) {
 				*out++ = *inp++ ^ key.buf[n++];
 				len--;
 			}
@@ -219,9 +220,9 @@ class EVP_CHACHA {
 			}
 		}
 
-		ITHARE_OBFLIB(unsigned int) rem = (unsigned int)(len % CHACHA_BLK_SIZE);
+		ITHARE_OBFLIBF(unsigned int) rem = (unsigned int)(len % CHACHA_BLK_SIZE);
 		len -= rem;
-		ITHARE_OBFLIB(unsigned int) ctr32 = key.counter[0];//TODO: is it really unsigned int, or maybe uint32_t?
+		ITHARE_OBFLIBF(unsigned int) ctr32 = key.counter[0];//TODO: is it really unsigned int, or maybe uint32_t?
 		while (len >= CHACHA_BLK_SIZE) {
 			size_t blocks = len / CHACHA_BLK_SIZE;
 			/*
