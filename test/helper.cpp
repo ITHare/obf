@@ -85,12 +85,12 @@ std::string replace_string(std::string subject, std::string search,//adapted fro
 std::string buildRelease(std::string defines_) {
 	std::string defines = replace_string(defines_, " -D", " /D");
 	return std::string("cl /permissive- /GS /GL /W3 /Gy /Zc:wchar_t /Gm- /O2 /sdl /Zc:inline /fp:precise /DNDEBUG /D_CONSOLE /D_UNICODE /DUNICODE /errorReport:prompt /WX /Zc:forScope /GR- /Gd /Oi /MT /EHsc /nologo /diagnostics:classic /std:c++17 /cgthreads1 /INCREMENTAL:NO") + defines + " " + srcDirPrefix + "..\\official.cpp";
-		//string is copy-pasted from Rel-NoPDB config with manually-added /cgthreads1 /INCREMENTAL:NO 
+		//string is copy-pasted from Rel-NoPDB config with manually-added /cgthreads1 /INCREMENTAL:NO, and /WX- replaced with /WX
 }
 std::string buildDebug(std::string defines_) {
 	std::string defines = replace_string(defines_, " -D", " /D");
 	return std::string("cl /permissive- /GS /W3 /Zc:wchar_t /ZI /Gm /Od /sdl /Zc:inline /fp:precise /D_DEBUG /D_CONSOLE /D_UNICODE /DUNICODE /errorReport:prompt /WX /Zc:forScope /RTC1 /Gd /MDd /EHsc /nologo /diagnostics:classic /std:c++17 /cgthreads1 /INCREMENTAL:NO /bigobj") + defines + " " + srcDirPrefix + "..\\official.cpp";
-		//string is copy-pasted from Debug config with manually-added /cgthreads1 /INCREMENTAL:NO /bigobj
+		//string is copy-pasted from Debug config with manually-added /cgthreads1 /INCREMENTAL:NO /bigobj, and /WX- replaced with /WX
 }
 std::string build32option() {
 	std::cout << "no option to run both 32-bit and 64-bit testing for MSVC now, run testing without -add32tests in two different 'Tools command prompts' instead" << std::endl;
@@ -277,13 +277,17 @@ void genDefineTests() {
 	std::cout << echo( std::string("=== -Define Test 8/12 (RELEASE) ===" ) ) << std::endl;
 	buildCheckRunCheckx2(config::release,"",2);
 	std::cout << echo( std::string("=== -Define Test 9/12 (DEBUG, -DITHARE_OBF_DBG_RUNTIME_CHECKS) ===" ) ) << std::endl;
-	buildCheckRunCheckx2(config::debug," -DITHARE_OBF_DBG_RUNTIME_CHECKS",2);
+#if defined(_MSC_VER)
+	std::cout << echo("*** SKIPPED -DITHARE_OBF_DBG_RUNTIME_CHECKS FOR MSVC ***") << std::endl;
+#else
+	buildCheckRunCheckx2(config::debug, " -DITHARE_OBF_DBG_RUNTIME_CHECKS", 2);
+#endif
 	std::cout << echo( std::string("=== -Define Test 10/12 (RELEASE, -DITHARE_OBF_DBG_RUNTIME_CHECKS) ===" ) ) << std::endl;
-//#ifdef _MSC_VER
-//	std::cout << echo("*** SKIPPED -DITHARE_OBF_DBG_RUNTIME_CHECKS/RELEASE FOR MSVS ***") << std::endl;
-//#else
+#if defined(_MSC_VER)
+	std::cout << echo("*** SKIPPED -DITHARE_OBF_DBG_RUNTIME_CHECKS FOR MSVC ***") << std::endl;
+#else
 	buildCheckRunCheckx2(config::release, " -DITHARE_OBF_DBG_RUNTIME_CHECKS",2);
-//#endif
+#endif
 	std::cout << echo( std::string("=== -Define Test 11/12 (DEBUG, -DITHARE_OBF_CRYPTO_PRNG) ===" ) ) << std::endl;
 	buildCheckRunCheckx2(config::debug," -DITHARE_OBF_CRYPTO_PRNG",2);
 	std::cout << echo( std::string("=== -Define Test 12/12 (RELEASE, -DITHARE_OBF_CRYPTO_PRNG) ===" ) ) << std::endl;
@@ -298,10 +302,9 @@ void genRandomTests(size_t n) {
 		std::string extra;
 		if (i % 3 == 0) { //every third, non-exclusive
 			bool rtchecks_ok = true;
-//#ifdef _MSC_VER
-//		if (cfg == config::release)
-//			rtchecks_ok = false;//cl doesn't seem to cope with RUNTIME_CHECKS :-(
-//#endif
+#if defined(_MSC_VER) 
+			rtchecks_ok = false;//cl doesn't seem to cope well with RUNTIME_CHECKS :-(
+#endif
 			if(rtchecks_ok)
 				extra += " -DITHARE_OBF_DBG_RUNTIME_CHECKS";
 		}
