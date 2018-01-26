@@ -1,3 +1,17 @@
+/* 
+ * Copyright 2018 ITHare.com 
+ *
+ * Licensed under the OpenSSL license (the "License").  You may not use
+ * this file except in compliance with the License.  You can obtain a copy
+ * in the file LICENSE in the source distribution or at
+ * https://www.openssl.org/source/license.html
+ *
+ * This is a SIGNIFICANTLY MODIFIED version of the file(s) from the
+ * original OpenSSL library. Make sure NOT to blame the OpenSSL Project 
+ * if anything goes wrong with this adaptation...
+ *
+ */
+
 /*
  * Copyright 2015-2016 The OpenSSL Project Authors. All Rights Reserved.
  *
