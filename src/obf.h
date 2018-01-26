@@ -183,8 +183,8 @@ namespace ithare {
 		template<class T2, ITHARE_OBF_SEEDTPARAM seed2, OBFCYCLES cycles2>
 		ITHARE_OBF_FORCEINLINE ObfVar(ObfVar<T2, seed2, cycles2> t) : val(Injection::template injection<ITHARE_OBF_COMBINED_PRNG(seed,seed2)>(T(T_(t.value())))) {//TODO: randomized injection implementation
 		}
-		template<class T2, T2 C2, ITHARE_OBF_SEEDTPARAM seed2, OBFCYCLES cycles2>
-		ITHARE_OBF_FORCEINLINE constexpr ObfVar(obf_literal<T2, C2, seed2, cycles2> t) : val(Injection::template injection<ITHARE_OBF_COMBINED_PRNG(seed,seed2)>(T(T_(t.value())))) {//TODO: randomized injection implementation
+		template<class T2, T2 C2, ITHARE_OBF_SEEDTPARAM seed2, OBFCYCLES cycles2,OBFFLAGS flags2>
+		ITHARE_OBF_FORCEINLINE constexpr ObfVar(obf_literal<T2, C2, seed2, cycles2,flags2> t) : val(Injection::template injection<ITHARE_OBF_COMBINED_PRNG(seed,seed2)>(T(T_(t.value())))) {//TODO: randomized injection implementation
 		}
 		ITHARE_OBF_FORCEINLINE constexpr ObfVar& operator =(T_ t) {
 			val = Injection::template injection<ITHARE_OBF_NEW_PRNG(seed, 3)>(T(t));//TODO: different implementations of the same injection in different contexts
@@ -606,7 +606,7 @@ namespace ithare {
 //along the lines of https://stackoverflow.com/questions/19343205/c-concatenating-file-and-line-macros:
 #define ITHARE_OBF_S1(x) #x
 #define ITHARE_OBF_S2(x) ITHARE_OBF_S1(x)
-#define ITHARE_OBF_LOCATION __FILE__ " : " ITHARE_OBF_S2(__LINE__)
+#define ITHARE_OBF_LOCATION __FILE__ ":" ITHARE_OBF_S2(__LINE__)
 
 #define ITHARE_OBF0(type) ithare::obf::ObfVar<type,ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+0)>
 #define ITHARE_OBF1(type) ithare::obf::ObfVar<type,ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+1)>
@@ -634,6 +634,9 @@ namespace ithare {
 
 #define ITHARE_OBF_DECLARELIBFUNC template<ITHARE_OBF_SEEDTPARAM obfseed = ITHARE_OBF_DUMMYSEED, OBFLEVEL obflevel=-1,OBFFLAGS obfflags=0> constexpr ITHARE_OBF_FORCEINLINE
 #define ITHARE_OBF_DECLARELIBFUNC_WITHEXTRA(...) template<ITHARE_OBF_SEEDTPARAM obfseed = ITHARE_OBF_DUMMYSEED, OBFLEVEL obflevel=-1,OBFFLAGS obfflags=0,__VA_ARGS__> constexpr ITHARE_OBF_FORCEINLINE
+#define ITHARE_OBF_DECLARELIBFUNC_VAR template<ITHARE_OBF_SEEDTPARAM obfseed = ITHARE_OBF_DUMMYSEED, OBFLEVEL obflevel=-1,OBFFLAGS obfflags=0,ITHARE_OBF_SEEDTPARAM obfvarseed,OBFCYCLES obfvarcycles,OBFFLAGS obfvarflags> constexpr ITHARE_OBF_FORCEINLINE
+#define ITHARE_OBF_DECLARELIBOBFPARAM(type) ithare::obf::ObfVar<type,obfvarseed,obfvarcycles,obfvarflags>
+
 #define ITHARE_OBF_CALL0(fname) fname<ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__),(ITHARE_OBF_SCALE)+0,0>
 #define ITHARE_OBF_CALL1(fname) fname<ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__),(ITHARE_OBF_SCALE)+1,0>
 #define ITHARE_OBF_CALL2(fname) fname<ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__),(ITHARE_OBF_SCALE)+2,0>

@@ -83,8 +83,8 @@ static_assert(sizeof(chacha_buf)==64);
 
 /* chacha_core performs 20 rounds of ChaCha on the input words in
  * |input| and writes the 64 output bytes to |output|. */
-ITHARE_OBF_DECLARELIBFUNC
-void chacha20_core(chacha_buf *output, const uint32_t input[16])
+ITHARE_OBF_DECLARELIBFUNC_VAR
+void chacha20_core(chacha_buf *output, const ITHARE_OBF_DECLARELIBOBFPARAM(uint32_t) input[16])
 {
 	ITHARE_OBF_DBGPRINTLIBFUNCNAMEX("chacha_core");
 	ITHARE_OBFLIBM1(uint32_t) x[16] = {}; ITHARE_OBF_DBGPRINTLIBX(x[0]);
@@ -124,7 +124,7 @@ void ChaCha20_ctr32(unsigned char *out, const unsigned char *inp,
 	constexpr uint32_t i2 = ((uint32_t)'2') | ((uint32_t)'-'<<8) | ((uint32_t)'b'<<16) | ((uint32_t)'y'<<24);
 	constexpr uint32_t i3 = ((uint32_t)'t') | ((uint32_t)'e'<<8) | ((uint32_t)' '<<16) | ((uint32_t)'k'<<24);
 
-    uint32_t input[16] = {//TODO: obfuscate (requires non-trivial support for obfuscated-array-as-input-param)
+    ITHARE_OBFLIB(uint32_t) input[16] = {//TODO: obfuscate (requires non-trivial support for obfuscated-array-as-input-param)
 		ITHARE_OBFILIB(i0), ITHARE_OBFILIB(i1), ITHARE_OBFILIB(i2), ITHARE_OBFILIB(i3),
 		key[0], key[1], key[2], key[3], 
 		key[4], key[5], key[6], key[7],
