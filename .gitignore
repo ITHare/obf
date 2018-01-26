@@ -23,6 +23,7 @@
 /test/Clang/obfofficial
 /test/Clang/helper
 /test/Clang/obftemp
+/test/Clang/obftemp-release
 /test/Clang/obftemptest.sh
 /test/Clang/ConsoleApplication1.log
 /test/Clang/failed.sh
