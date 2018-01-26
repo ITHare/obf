@@ -121,7 +121,7 @@ void chacha20_core(ITHARE_OBF_DECLARELIBPARAM_CLASS(chacha_buf) *output, const I
 
 ITHARE_OBF_DECLARELIBFUNC_OBF_OBF
 void ChaCha20_ctr32(unsigned char *out, const unsigned char *inp,
-                    ITHARE_OBFLIBF(size_t) len, const ITHARE_OBF_DECLARELIBPARAM_OBF(unsigned int) key[8],
+                    size_t len, const ITHARE_OBF_DECLARELIBPARAM_OBF(unsigned int) key[8],//making len ITHARE_OBFLIBF(size_t) crashes MSVC :-(
                     const ITHARE_OBF_DECLARELIBPARAM_OBF2(unsigned int) counter[4])
 {
 
@@ -176,6 +176,9 @@ class EVP_CHACHA {
 		ITHARE_OBFLIBC(unsigned int) counter[CHACHA_CTR_SIZE / 4];
 		unsigned char buf[CHACHA_BLK_SIZE];//obfuscating it would propagate all the way to the caller - left unobfuscated for now...
 		ITHARE_OBFLIBC(unsigned int) partial_len;
+
+		constexpr KEY() : key{}, counter{}, buf{}, partial_len(0) {
+		}
 	};
 	KEY key;
 
@@ -185,20 +188,20 @@ class EVP_CHACHA {
 	ITHARE_OBF_DECLARELIBFUNC
 	static KEY init_key(const unsigned char user_key[CHACHA_KEY_SIZE],
 				const unsigned char iv[CHACHA_CTR_SIZE], int enc){
-		KEY key = {};
+		KEY key2 = {};
 
 		if (user_key)
 			for (ITHARE_OBFLIBF(unsigned int) i = 0; i < ITHARE_OBFILIBF(CHACHA_KEY_SIZE); i+=4) {
-				key.key.d[i/4] = ITHARE_OBF_TLS_CHACHA_U8TOU32(user_key+i);
+				key2.key.d[i/4] = ITHARE_OBF_TLS_CHACHA_U8TOU32(user_key+i);
 			}
 
 		if (iv)
 			for (ITHARE_OBFLIBF(unsigned int) i = 0; i < ITHARE_OBFILIBF(CHACHA_CTR_SIZE); i+=4) {
-				key.counter[i/4] = ITHARE_OBF_TLS_CHACHA_U8TOU32(iv+i);
+				key2.counter[i/4] = ITHARE_OBF_TLS_CHACHA_U8TOU32(iv+i);
 			}
 
-		key.partial_len = 0;
-		return key;
+		key2.partial_len = 0;
+		return key2;
 	}
 	ITHARE_OBF_DECLARELIBFUNC
 	static void cipher( KEY& key, unsigned char *out,
