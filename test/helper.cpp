@@ -60,12 +60,9 @@ std::string checkObfuscation(bool obfuscated) {//very weak heuristics, but still
 	std::string ret = std::string("strings obftemp | grep Negative");//referring to string "Negative value of factorial()" 
 	return ret + "\n" + exitCheck(ret,!obfuscated);
 }
-/*std::string moveFileRmOriginal(std::string from, std::string to) {
-	return std::string( "rm ")+to+"\nmv "+from+" "+to;
+std::string backupExe() {
+	return std::string("mv -f obftemp obftemp-release");
 }
-std::string cmpFile(std::string from, std::string to) {
-	return std::string( "diff ")+from+" "+to;
-}*/
 std::string setup() {
 	return std::string("#!/bin/sh");
 }
@@ -150,12 +147,9 @@ std::string run(std::string redirect) {
 	else
 		return std::string("official.exe");
 }
-/*std::string moveFileRmOriginal(std::string from, std::string to) {
-	return std::string( "del ") + to + "\nrename "+from+" "+to;
+std::string backupExe() {
+	return std::string("MOVE /Y official.exe official-release.exe");
 }
-std::string cmpFile(std::string from, std::string to) {
-	return std::string( "fc ")+from+" "+to;
-}*/
 std::string checkObfuscation(bool obfuscated) {//very weak heuristics, but still better than nothing
 	return "";//sorry, nothing for now for Windows :-(
 }
@@ -320,6 +314,10 @@ void genRandomTests(size_t n) {
 		else {
 			assert(cfg == config::release);
 			buildCheckRunCheck(buildRelease(defines), true, write_output::none);
+			if (extra == "") {
+				std::cout << echo("Backing up release executable...") << std::endl;
+				std::cout << backupExe() << std::endl;
+			}
 		}
 	}
 }
