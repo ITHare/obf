@@ -119,10 +119,10 @@ void chacha20_core(ITHARE_OBF_DECLARELIBPARAM_CLASS(chacha_buf) *output, const I
     }*/
 }
 
-ITHARE_OBF_DECLARELIBFUNC
+ITHARE_OBF_DECLARELIBFUNC_OBF_OBF
 void ChaCha20_ctr32(unsigned char *out, const unsigned char *inp,
-                    size_t len, const unsigned int key[8],
-                    const unsigned int counter[4])
+                    ITHARE_OBFLIBF(size_t) len, const ITHARE_OBF_DECLARELIBPARAM_OBF(unsigned int) key[8],
+                    const ITHARE_OBF_DECLARELIBPARAM_OBF2(unsigned int) counter[4])
 {
 
     /* sigma constant "expand 32-byte k" in little-endian encoding */
@@ -171,11 +171,11 @@ class EVP_CHACHA {
 	struct KEY {//former EVP_CHACHA_KEY; TODO: obfuscate
 		struct {
 		    alignas(double) /* this ensures even sizeof(EVP_CHACHA_KEY)%8==0 */
-				unsigned int d[CHACHA_KEY_SIZE / 4];
+				ITHARE_OBFLIBC(unsigned int) d[CHACHA_KEY_SIZE / 4];
 		} key;
-		unsigned int  counter[CHACHA_CTR_SIZE / 4];
-		unsigned char buf[CHACHA_BLK_SIZE];
-		ITHARE_OBFLIBC(unsigned int)  partial_len;
+		ITHARE_OBFLIBC(unsigned int) counter[CHACHA_CTR_SIZE / 4];
+		unsigned char buf[CHACHA_BLK_SIZE];//obfuscating it would propagate all the way to the caller - left unobfuscated for now...
+		ITHARE_OBFLIBC(unsigned int) partial_len;
 	};
 	KEY key;
 

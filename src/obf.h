@@ -639,8 +639,10 @@ namespace ithare {
 #define ITHARE_OBF_DECLARELIBFUNC template<ITHARE_OBF_SEEDTPARAM obfseed = ITHARE_OBF_DUMMYSEED, OBFLEVEL obflevel=-1,OBFFLAGS obfflags=0> constexpr ITHARE_OBF_FORCEINLINE
 #define ITHARE_OBF_DECLARELIBFUNC_WITHEXTRA(...) template<ITHARE_OBF_SEEDTPARAM obfseed = ITHARE_OBF_DUMMYSEED, OBFLEVEL obflevel=-1,OBFFLAGS obfflags=0,__VA_ARGS__> constexpr ITHARE_OBF_FORCEINLINE
 #define ITHARE_OBF_DECLARELIBFUNC_OBF template<ITHARE_OBF_SEEDTPARAM obfseed = ITHARE_OBF_DUMMYSEED, OBFLEVEL obflevel=-1,OBFFLAGS obfflags=0,ITHARE_OBF_SEEDTPARAM obfvarseed,OBFCYCLES obfvarcycles,OBFFLAGS obfvarflags> constexpr ITHARE_OBF_FORCEINLINE
+#define ITHARE_OBF_DECLARELIBFUNC_OBF_OBF template<ITHARE_OBF_SEEDTPARAM obfseed = ITHARE_OBF_DUMMYSEED, OBFLEVEL obflevel=-1,OBFFLAGS obfflags=0,ITHARE_OBF_SEEDTPARAM obfvarseed,OBFCYCLES obfvarcycles,OBFFLAGS obfvarflags,ITHARE_OBF_SEEDTPARAM obfvarseed2,OBFCYCLES obfvarcycles2,OBFFLAGS obfvarflags2> constexpr ITHARE_OBF_FORCEINLINE
 #define ITHARE_OBF_DECLARELIBFUNC_CLASS_OBF template<ITHARE_OBF_SEEDTPARAM obfseed = ITHARE_OBF_DUMMYSEED, OBFLEVEL obflevel=-1,OBFFLAGS obfflags=0,ITHARE_OBF_SEEDTPARAM obfclsseed,OBFLEVEL obfclslevel,OBFFLAGS obfclsflags,ITHARE_OBF_SEEDTPARAM obfvarseed,OBFCYCLES obfvarcycles,OBFFLAGS obfvarflags> constexpr ITHARE_OBF_FORCEINLINE
 #define ITHARE_OBF_DECLARELIBPARAM_OBF(type) ithare::obf::ObfVar<type,obfvarseed,obfvarcycles,obfvarflags>
+#define ITHARE_OBF_DECLARELIBPARAM_OBF2(type) ithare::obf::ObfVar<type,obfvarseed2,obfvarcycles2,obfvarflags2>
 #define ITHARE_OBF_DECLARELIBPARAM_CLASS(name) name<obfclsseed,obfclslevel,obfclsflags>
 //#define ITHARE_OBF_DECLARELIBFUNC_STRUCT template<ITHARE_OBF_SEEDTPARAM obfseed = ITHARE_OBF_DUMMYSEED, OBFLEVEL obflevel=-1,OBFFLAGS obfflags=0,ITHARE_OBF_SEEDTPARAM obfstructseed,OBFLEVEL obfstructlevel,OBFFLAGS obfstructflags> constexpr ITHARE_OBF_FORCEINLINE
 //#define ITHARE_OBF_DECLARELIBSTRUCTPARAM(type) type<obfstructseed,obfstructlevel,obfstructflags>
@@ -1014,8 +1016,10 @@ namespace ithare {
 #define ITHARE_OBF_DECLARELIBFUNC template<OBFFLAGS obfflags=0> constexpr inline
 #define ITHARE_OBF_DECLARELIBFUNC_WITHEXTRA(...) template<OBFFLAGS obfflags=0,__VA_ARGS__> constexpr inline
 #define ITHARE_OBF_DECLARELIBFUNC_OBF template<OBFFLAGS obfflags=0> constexpr inline
+#define ITHARE_OBF_DECLARELIBFUNC_OBF_OBF template<OBFFLAGS obfflags=0> constexpr inline
 #define ITHARE_OBF_DECLARELIBFUNC_CLASS_OBF template<OBFFLAGS obfflags=0,OBFFLAGS obfclsflags> constexpr ITHARE_OBF_FORCEINLINE
 #define ITHARE_OBF_DECLARELIBPARAM_OBF(type) ithare::obf::ObfVarDbg<type>
+#define ITHARE_OBF_DECLARELIBPARAM_OBF2(type) ithare::obf::ObfVarDbg<type>
 #define ITHARE_OBF_DECLARELIBPARAM_CLASS(name) name<obfclsflags>
 
 #define ITHARE_OBF_CALL0(fname) fname<0>
