@@ -52,18 +52,25 @@ constexpr int CHACHA_BLK_SIZE = 64;
 
 /* Adapted from the public domain code by D. Bernstein from SUPERCOP. */
 
-union chacha_buf {//TODO: obfuscate (DON'T forget to prohibit use of c[64] when doing so)
+ITHARE_OBF_DECLARELIBCLASS
+union chacha_buf {//OPTIONAL: obfuscate (would have to have TWO versions (selected by intermediate template): 
+					// 1st with union, and another with OBFLIBC(); both should hide data members and provide the same API)
     uint32_t u[16];
     uint8_t c[64];//CANNOT be used in constexpr calls; use get_byte_n() below instead in constexpr
-    
-    constexpr uint8_t get_byte_n( size_t idx) const {
+	
+	ITHARE_OBF_DECLARELIBFUNC
+    uint8_t get_byte_n(size_t idx) const {
 		assert(idx <= 63);
-		size_t uidx = idx / 4;
-		size_t intraidx = idx % 4;
-		return uint8_t(u[uidx] >> (8*intraidx));
+		if constexpr(obfflags&obf_flag_is_constexpr) {//supposedly endian-agnostic, but need to double-check
+			size_t uidx = idx / 4;
+			size_t intraidx = idx % 4;
+			return uint8_t(u[uidx] >> (8*intraidx));
+		}
+		else
+			return c[idx];
 	}
 };
-static_assert(sizeof(chacha_buf)==64);
+static_assert(sizeof(chacha_buf<>)==64);
 
 # define ITHARE_OBF_TLS_ROTATE(v, n) (((v) << (n)) | ((v) >> (32 - (n))))
 
@@ -83,8 +90,8 @@ static_assert(sizeof(chacha_buf)==64);
 
 /* chacha_core performs 20 rounds of ChaCha on the input words in
  * |input| and writes the 64 output bytes to |output|. */
-ITHARE_OBF_DECLARELIBFUNC_PTRTOOBF
-void chacha20_core(chacha_buf *output, const ITHARE_OBF_DECLARELIBPARAM_PTRTOOBF(uint32_t) input[16])
+ITHARE_OBF_DECLARELIBFUNC_CLASS_OBF
+void chacha20_core(ITHARE_OBF_DECLARELIBPARAM_CLASS(chacha_buf) *output, const ITHARE_OBF_DECLARELIBPARAM_OBF(uint32_t) input[16])
 {
 	ITHARE_OBF_DBGPRINTLIBFUNCNAMEX("chacha_core");
 	ITHARE_OBFLIBFM1(uint32_t) x[16] = {}; ITHARE_OBF_DBGPRINTLIBX(x[0]);
@@ -131,7 +138,7 @@ void ChaCha20_ctr32(unsigned char *out, const unsigned char *inp,
 		counter[0], counter[1], counter[2], counter[3]
 	};
 
-    chacha_buf buf = {};
+    ITHARE_OBF_OBFLIBCLASS(chacha_buf) buf = {};
     while (len > 0) {
         ITHARE_OBFLIBF(size_t) todo = sizeof(buf);
         if (len < todo)
@@ -140,10 +147,7 @@ void ChaCha20_ctr32(unsigned char *out, const unsigned char *inp,
         ITHARE_OBF_CALLFROMLIB(chacha20_core)(&buf, input);
 
         for (ITHARE_OBFLIBF(size_t) i = 0; i < todo; i++) {
-            if constexpr(obfflags&obf_flag_is_constexpr)//potential big-endian issues?
-				out[i] = inp[i] ^ buf.get_byte_n(i);
-			else
-				out[i] = inp[i] ^ buf.c[i];
+			out[i] = inp[i] ^ buf.ITHARE_OBF_CALLFROMLIB(get_byte_n)(i);
 		}
         out += todo;
         inp += todo;

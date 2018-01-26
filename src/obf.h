@@ -632,16 +632,19 @@ namespace ithare {
 #define ITHARE_OBF5S(s) ITHARE_OBFS_HELPER(ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+5),s)()
 #define ITHARE_OBF6S(s) ITHARE_OBFS_HELPER(ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__),ithare::obf::obf_exp_cycles((ITHARE_OBF_SCALE)+6),s)()
 
-#define ITHARE_OBF_DECLARELIBFUNC template<ITHARE_OBF_SEEDTPARAM obfseed = ITHARE_OBF_DUMMYSEED, OBFLEVEL obflevel=-1,OBFFLAGS obfflags=0> constexpr ITHARE_OBF_FORCEINLINE
-#define ITHARE_OBF_DECLARELIBFUNC_WITHEXTRA(...) template<ITHARE_OBF_SEEDTPARAM obfseed = ITHARE_OBF_DUMMYSEED, OBFLEVEL obflevel=-1,OBFFLAGS obfflags=0,__VA_ARGS__> constexpr ITHARE_OBF_FORCEINLINE
-#define ITHARE_OBF_DECLARELIBFUNC_PTRTOOBF template<ITHARE_OBF_SEEDTPARAM obfseed = ITHARE_OBF_DUMMYSEED, OBFLEVEL obflevel=-1,OBFFLAGS obfflags=0,ITHARE_OBF_SEEDTPARAM obfvarseed,OBFCYCLES obfvarcycles,OBFFLAGS obfvarflags> constexpr ITHARE_OBF_FORCEINLINE
-#define ITHARE_OBF_DECLARELIBPARAM_PTRTOOBF(type) ithare::obf::ObfVar<type,obfvarseed,obfvarcycles,obfvarflags>
-//#define ITHARE_OBF_DECLARELIBFUNC_STRUCT template<ITHARE_OBF_SEEDTPARAM obfseed = ITHARE_OBF_DUMMYSEED, OBFLEVEL obflevel=-1,OBFFLAGS obfflags=0,ITHARE_OBF_SEEDTPARAM obfstructseed,OBFLEVEL obfstructlevel,OBFFLAGS obfstructflags> constexpr ITHARE_OBF_FORCEINLINE
-//#define ITHARE_OBF_DECLARELIBSTRUCTPARAM(type) type<obfstructseed,obfstructlevel,obfstructflags>
-
 #define ITHARE_OBF_DECLARELIBCLASS template<ITHARE_OBF_SEEDTPARAM obfclsseed = ITHARE_OBF_DUMMYSEED, OBFLEVEL obfclslevel=-1,OBFFLAGS obfclsflags=0> 
 #define ITHARE_OBF_OBFLIBCLASS(name) name<ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__),(ITHARE_OBF_SCALE)+0,0> 
 //TODO: LIBOBFLIBCLASS M3..P3
+
+#define ITHARE_OBF_DECLARELIBFUNC template<ITHARE_OBF_SEEDTPARAM obfseed = ITHARE_OBF_DUMMYSEED, OBFLEVEL obflevel=-1,OBFFLAGS obfflags=0> constexpr ITHARE_OBF_FORCEINLINE
+#define ITHARE_OBF_DECLARELIBFUNC_WITHEXTRA(...) template<ITHARE_OBF_SEEDTPARAM obfseed = ITHARE_OBF_DUMMYSEED, OBFLEVEL obflevel=-1,OBFFLAGS obfflags=0,__VA_ARGS__> constexpr ITHARE_OBF_FORCEINLINE
+#define ITHARE_OBF_DECLARELIBFUNC_OBF template<ITHARE_OBF_SEEDTPARAM obfseed = ITHARE_OBF_DUMMYSEED, OBFLEVEL obflevel=-1,OBFFLAGS obfflags=0,ITHARE_OBF_SEEDTPARAM obfvarseed,OBFCYCLES obfvarcycles,OBFFLAGS obfvarflags> constexpr ITHARE_OBF_FORCEINLINE
+#define ITHARE_OBF_DECLARELIBFUNC_CLASS_OBF template<ITHARE_OBF_SEEDTPARAM obfseed = ITHARE_OBF_DUMMYSEED, OBFLEVEL obflevel=-1,OBFFLAGS obfflags=0,ITHARE_OBF_SEEDTPARAM obfclsseed,OBFLEVEL obfclslevel,OBFFLAGS obfclsflags,ITHARE_OBF_SEEDTPARAM obfvarseed,OBFCYCLES obfvarcycles,OBFFLAGS obfvarflags> constexpr ITHARE_OBF_FORCEINLINE
+#define ITHARE_OBF_DECLARELIBPARAM_OBF(type) ithare::obf::ObfVar<type,obfvarseed,obfvarcycles,obfvarflags>
+#define ITHARE_OBF_DECLARELIBPARAM_CLASS(name) name<obfclsseed,obfclslevel,obfclsflags>
+//#define ITHARE_OBF_DECLARELIBFUNC_STRUCT template<ITHARE_OBF_SEEDTPARAM obfseed = ITHARE_OBF_DUMMYSEED, OBFLEVEL obflevel=-1,OBFFLAGS obfflags=0,ITHARE_OBF_SEEDTPARAM obfstructseed,OBFLEVEL obfstructlevel,OBFFLAGS obfstructflags> constexpr ITHARE_OBF_FORCEINLINE
+//#define ITHARE_OBF_DECLARELIBSTRUCTPARAM(type) type<obfstructseed,obfstructlevel,obfstructflags>
+
 
 #define ITHARE_OBF_CALL0(fname) fname<ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__),(ITHARE_OBF_SCALE)+0,0>
 #define ITHARE_OBF_CALL1(fname) fname<ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__),(ITHARE_OBF_SCALE)+1,0>
@@ -669,7 +672,8 @@ namespace ithare {
 #define ITHARE_OBFLIBFP3(type) ithare::obf::ObfVar<type,ITHARE_OBF_COMBINED_PRNG(obfseed,ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__)),ithare::obf::obf_exp_cycles(ithare::obf::obf_addlevel(obflevel,1)),obfflags>
 
 #define ITHARE_OBFLIBC(type) ithare::obf::ObfVar<type,ITHARE_OBF_COMBINED_PRNG(obfclsseed,ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__)),ithare::obf::obf_exp_cycles(obfclslevel),obfclsflags>
-//TODO: M3..P3
+//TODO!: M3..P3
+//TODO!: LIBFC
 
 #define ITHARE_OBFILIBFM3(c) obf_literal<typename std::remove_cv<decltype(c)>::type,c,ITHARE_OBF_COMBINED_PRNG(obfseed,ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__)),ithare::obf::obf_exp_cycles(ithare::obf::obf_addlevel(obflevel,-3)),obfflags>()
 #define ITHARE_OBFILIBFM2(c) obf_literal<typename std::remove_cv<decltype(c)>::type,c,ITHARE_OBF_COMBINED_PRNG(obfseed,ITHARE_OBF_INIT_PRNG(ITHARE_OBF_LOCATION,0,__COUNTER__)),ithare::obf::obf_exp_cycles(ithare::obf::obf_addlevel(obflevel,-2)),obfflags>()
@@ -1003,14 +1007,16 @@ namespace ithare {
 #define ITHARE_OBF5S(s) ITHARE_OBFS_DBG_HELPER(s)()
 #define ITHARE_OBF6S(s) ITHARE_OBFS_DBG_HELPER(s)()
 
-#define ITHARE_OBF_DECLARELIBFUNC template<OBFFLAGS obfflags=0> constexpr inline
-#define ITHARE_OBF_DECLARELIBFUNC_WITHEXTRA(...) template<OBFFLAGS obfflags=0,__VA_ARGS__> constexpr inline
-#define ITHARE_OBF_DECLARELIBFUNC_PTRTOOBF template<OBFFLAGS obfflags=0> constexpr inline
-#define ITHARE_OBF_DECLARELIBPARAM_PTRTOOBF(type) ithare::obf::ObfVarDbg<type>
-
 #define ITHARE_OBF_DECLARELIBCLASS template<OBFFLAGS obfclsflags=0> 
 #define ITHARE_OBF_OBFLIBCLASS(name) name<0> 
 //TODO: M3..P3
+
+#define ITHARE_OBF_DECLARELIBFUNC template<OBFFLAGS obfflags=0> constexpr inline
+#define ITHARE_OBF_DECLARELIBFUNC_WITHEXTRA(...) template<OBFFLAGS obfflags=0,__VA_ARGS__> constexpr inline
+#define ITHARE_OBF_DECLARELIBFUNC_OBF template<OBFFLAGS obfflags=0> constexpr inline
+#define ITHARE_OBF_DECLARELIBFUNC_CLASS_OBF template<OBFFLAGS obfflags=0,OBFFLAGS obfclsflags> constexpr ITHARE_OBF_FORCEINLINE
+#define ITHARE_OBF_DECLARELIBPARAM_OBF(type) ithare::obf::ObfVarDbg<type>
+#define ITHARE_OBF_DECLARELIBPARAM_CLASS(name) name<obfclsflags>
 
 #define ITHARE_OBF_CALL0(fname) fname<0>
 #define ITHARE_OBF_CALL1(fname) fname<0>
