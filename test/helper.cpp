@@ -285,11 +285,11 @@ void genDefineTests() {
 	std::cout << echo( std::string("=== -Define Test 9/12 (DEBUG, -DITHARE_OBF_DBG_RUNTIME_CHECKS) ===" ) ) << std::endl;
 	buildCheckRunCheckx2(config::debug," -DITHARE_OBF_DBG_RUNTIME_CHECKS",2);
 	std::cout << echo( std::string("=== -Define Test 10/12 (RELEASE, -DITHARE_OBF_DBG_RUNTIME_CHECKS) ===" ) ) << std::endl;
-#ifdef _MSC_VER
-	std::cout << echo("*** SKIPPED -DITHARE_OBF_DBG_RUNTIME_CHECKS/RELEASE FOR MSVS ***") << std::endl;
-#else
+//#ifdef _MSC_VER
+//	std::cout << echo("*** SKIPPED -DITHARE_OBF_DBG_RUNTIME_CHECKS/RELEASE FOR MSVS ***") << std::endl;
+//#else
 	buildCheckRunCheckx2(config::release, " -DITHARE_OBF_DBG_RUNTIME_CHECKS",2);
-#endif
+//#endif
 	std::cout << echo( std::string("=== -Define Test 11/12 (DEBUG, -DITHARE_OBF_CRYPTO_PRNG) ===" ) ) << std::endl;
 	buildCheckRunCheckx2(config::debug," -DITHARE_OBF_CRYPTO_PRNG",2);
 	std::cout << echo( std::string("=== -Define Test 12/12 (RELEASE, -DITHARE_OBF_CRYPTO_PRNG) ===" ) ) << std::endl;
@@ -304,10 +304,10 @@ void genRandomTests(size_t n) {
 		std::string extra;
 		if (i % 3 == 0) { //every third, non-exclusive
 			bool rtchecks_ok = true;
-#ifdef _MSC_VER
-		if (cfg == config::release)
-			rtchecks_ok = false;//cl doesn't seem to cope with RUNTIME_CHECKS :-(
-#endif
+//#ifdef _MSC_VER
+//		if (cfg == config::release)
+//			rtchecks_ok = false;//cl doesn't seem to cope with RUNTIME_CHECKS :-(
+//#endif
 			if(rtchecks_ok)
 				extra += " -DITHARE_OBF_DBG_RUNTIME_CHECKS";
 		}
