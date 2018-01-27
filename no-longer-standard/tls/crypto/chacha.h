@@ -1,3 +1,17 @@
+/* 
+ * Copyright 2018 ITHare.com 
+ *
+ * Licensed under the OpenSSL license (the "License").  You may not use
+ * this file except in compliance with the License.  You can obtain a copy
+ * in the file LICENSE in the source distribution or at
+ * https://www.openssl.org/source/license.html
+ *
+ * This is a SIGNIFICANTLY MODIFIED version of the file(s) from the
+ * original OpenSSL library. Make sure NOT to blame the OpenSSL Project 
+ * if anything goes wrong with this adaptation...
+ *
+ */
+
 /*
  * Copyright 2015-2016 The OpenSSL Project Authors. All Rights Reserved.
  *
@@ -8,6 +22,10 @@
  */
 
 //OBF: Adapted from OpenSSL 1.1.0g, file internal/chacha.h:
+//OBF: Adapted from OpenSSL 1.1.0g, file chacha_enc.c
+//  As we're moving all the stuff to headers, to avoid potential for name collisions we have to:
+//    Move whatever-possible to namespace ithare::obf::tls::
+//    Add prefix ITHARE_OBF_TLS_ to all the macros (as macros don't belong to any namespace)
 
 /*
  * ChaCha20_ctr32 encrypts |len| bytes from |inp| with the given key and
@@ -26,11 +44,6 @@
  * as trivial as collecting bytes into 32-bit elements, it's reckoned
  * that below macro is sufficient.
  */
-
-//OBF: Adapted from OpenSSL 1.1.0g, file chacha_enc.c
-//  As we're moving all the stuff to headers, to avoid potential for name collisions we have to:
-//    Move whatever-possible to namespace ithare::obf::tls::
-//    Add prefix ITHARE_OBF_TLS_ to all the macros (as macros don't belong to any namespace)
 
 #ifndef ithare_obf_tls_crypto_chacha_h_included
 #define ithare_obf_tls_crypto_chacha_h_included
