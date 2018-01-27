@@ -285,7 +285,7 @@ namespace ithare {
 		}
 		template<ITHARE_OBF_SEEDTPARAM seed2>
 		ITHARE_OBF_FORCEINLINE static T final_surjection(T y) {
-			return y - CC * T(1 + ObfNonBlockingCodeStaticData<void>::template zero_if_not_being_debugged<seed2>());
+			return y - CC * T(1 + ObfNonBlockingCodeStaticData<void>::zero_if_not_being_debugged());
 		}
 
 #ifdef ITHARE_OBF_DBG_ENABLE_DBGPRINT

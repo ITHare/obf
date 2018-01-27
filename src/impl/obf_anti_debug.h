@@ -304,7 +304,6 @@ class ObfNonBlockingCode {//to be used ONLY on-stack
 	template<class Dummy>
 	struct ObfNonBlockingCodeStaticData {
 
-		template<ITHARE_OBF_SEEDTPARAM seed2>
 		ITHARE_OBF_FORCEINLINE static uint32_t zero_if_not_being_debugged() {
 			return 0;
 		}
