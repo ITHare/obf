@@ -292,41 +292,45 @@ void buildCheckRunCheckx2(config cfg,std::string defs,int nseeds, bool obfuscate
 }
 
 void genDefineTests() {
-	std::cout << echo(std::string("=== -Define Test 1/12 (DEBUG, -DITHARE_OBF_ENABLE_AUTO_DBGPRINT, write_output::stable) ===")) << std::endl;
+	std::cout << echo(std::string("=== -Define Test 1/14 (DEBUG, -DITHARE_OBF_ENABLE_AUTO_DBGPRINT, write_output::stable) ===")) << std::endl;
 	buildCheckRunCheckx2(config::debug, " -DITHARE_OBF_INIT -DITHARE_OBF_CONSISTENT_XPLATFORM_IMPLICIT_SEEDS -DITHARE_OBF_ENABLE_AUTO_DBGPRINT", -1, true, write_output::stable);
-	std::cout << echo(std::string("=== -Define Test 2/12 (RELEASE, -DITHARE_OBF_ENABLE_AUTO_DBGPRINT=2, write_output::random)===")) << std::endl;
+	std::cout << echo(std::string("=== -Define Test 2/14 (RELEASE, -DITHARE_OBF_ENABLE_AUTO_DBGPRINT=2, write_output::random)===")) << std::endl;
 	buildCheckRunCheckx2(config::release, " -DITHARE_OBF_INIT -DITHARE_OBF_CONSISTENT_XPLATFORM_IMPLICIT_SEEDS -DITHARE_OBF_ENABLE_AUTO_DBGPRINT=2", 2, true, write_output::random);
-	std::cout << echo( std::string("=== -Define Test 3/11 (DEBUG, no ITHARE_OBF_SEED) ===" ) ) << std::endl;
+	std::cout << echo( std::string("=== -Define Test 3/14 (DEBUG, no ITHARE_OBF_SEED) ===" ) ) << std::endl;
 	buildCheckRunCheckx2(config::debug,"",0,false);
-	std::cout << echo( std::string("=== -Define Test 4/12 (RELEASE, no ITHARE_OBF_SEED) ===" ) ) << std::endl;
+	std::cout << echo( std::string("=== -Define Test 4/14 (RELEASE, no ITHARE_OBF_SEED) ===" ) ) << std::endl;
 	buildCheckRunCheckx2(config::release,"",0,false);
-	std::cout << echo( std::string("=== -Define Test 5/12 (DEBUG, single ITHARE_OBF_SEED) ===" ) ) << std::endl;
+	std::cout << echo( std::string("=== -Define Test 5/14 (DEBUG, single ITHARE_OBF_SEED) ===" ) ) << std::endl;
 	buildCheckRunCheckx2(config::debug,"",1);
-	std::cout << echo( std::string("=== -Define Test 6/12 (RELEASE, single ITHARE_OBF_SEED) ===" ) ) << std::endl;
+	std::cout << echo( std::string("=== -Define Test 6/14 (RELEASE, single ITHARE_OBF_SEED) ===" ) ) << std::endl;
 	buildCheckRunCheckx2(config::release,"",1);
-	std::cout << echo( std::string("=== -Define Test 7/12 (DEBUG) ===" ) ) << std::endl;
+	std::cout << echo( std::string("=== -Define Test 7/14 (DEBUG) ===" ) ) << std::endl;
 	buildCheckRunCheckx2(config::debug,"",2);
-	std::cout << echo( std::string("=== -Define Test 8/12 (RELEASE) ===" ) ) << std::endl;
+	std::cout << echo( std::string("=== -Define Test 8/14 (RELEASE) ===" ) ) << std::endl;
 	buildCheckRunCheckx2(config::release,"",2);
-	std::cout << echo( std::string("=== -Define Test 9/12 (DEBUG, -DITHARE_OBF_DBG_RUNTIME_CHECKS) ===" ) ) << std::endl;
+	std::cout << echo(std::string("=== -Define Test 9/14 (DEBUG, -DITHARE_OBF_NO_ANTI_DEBUG) ===")) << std::endl;
+	buildCheckRunCheckx2(config::debug, " -DITHARE_OBF_NO_ANTI_DEBUG", 2);
+	std::cout << echo(std::string("=== -Define Test 10/14 (RELEASE, -DITHARE_OBF_NO_IMPLICIT_ANTI_DEBUG) ===")) << std::endl;
+	buildCheckRunCheckx2(config::release, " -DITHARE_OBF_NO_IMPLICIT_ANTI_DEBUG", 2);
+	std::cout << echo( std::string("=== -Define Test 11/14 (DEBUG, -DITHARE_OBF_DBG_RUNTIME_CHECKS) ===" ) ) << std::endl;
 #if defined(_MSC_VER)
 	std::cout << echo("*** SKIPPED -DITHARE_OBF_DBG_RUNTIME_CHECKS FOR MSVC ***") << std::endl;
 #else
 	buildCheckRunCheckx2(config::debug, " -DITHARE_OBF_DBG_RUNTIME_CHECKS", 2);
 #endif
-	std::cout << echo( std::string("=== -Define Test 10/12 (RELEASE, -DITHARE_OBF_DBG_RUNTIME_CHECKS) ===" ) ) << std::endl;
+	std::cout << echo( std::string("=== -Define Test 12/14 (RELEASE, -DITHARE_OBF_DBG_RUNTIME_CHECKS) ===" ) ) << std::endl;
 #if defined(_MSC_VER)
 	std::cout << echo("*** SKIPPED -DITHARE_OBF_DBG_RUNTIME_CHECKS FOR MSVC ***") << std::endl;
 #else
 	buildCheckRunCheckx2(config::release, " -DITHARE_OBF_DBG_RUNTIME_CHECKS",2);
 #endif
-	std::cout << echo(std::string("=== -Define Test 11/12 (DEBUG, -DITHARE_OBF_CRYPTO_PRNG) ===")) << std::endl;
+	std::cout << echo(std::string("=== -Define Test 13/14 (DEBUG, -DITHARE_OBF_CRYPTO_PRNG) ===")) << std::endl;
 #if defined(_MSC_VER) && !defined(_M_X64)
 	std::cout << echo("*** SKIPPED -DITHARE_OBF_DBG_RUNTIME_CHECKS FOR MSVC/x86 ***") << std::endl;
 #else
 	buildCheckRunCheckx2(config::debug," -DITHARE_OBF_CRYPTO_PRNG",2);
 #endif
-	std::cout << echo(std::string("=== -Define Test 12/12 (RELEASE, -DITHARE_OBF_CRYPTO_PRNG) ===")) << std::endl;
+	std::cout << echo(std::string("=== -Define Test 14/14 (RELEASE, -DITHARE_OBF_CRYPTO_PRNG) ===")) << std::endl;
 #if defined(_MSC_VER) && !defined(_M_X64)
 	std::cout << echo("*** SKIPPED -DITHARE_OBF_DBG_RUNTIME_CHECKS FOR MSVC/x86 ***") << std::endl;
 #else
@@ -352,6 +356,7 @@ void genRandomTests(size_t n) {
 			extra += build32option();
 		std::cout << echo( std::string("=== Random Test ") + std::to_string(i+1) + "/" + std::to_string(n) + " ===" ) << std::endl;
 		std::string defines = genSeeds()+" -DITHARE_OBF_INIT -DITHARE_OBF_CONSISTENT_XPLATFORM_IMPLICIT_SEEDS"+extra;
+		//std::string defines = genSeeds() + " -DITHARE_OBF_NO_ANTI_DEBUG -DITHARE_OBF_CONSISTENT_XPLATFORM_IMPLICIT_SEEDS" + extra;
 		if( cfg == config::debug ) 
 			buildCheckRunCheck(buildDebug(defines),true,write_output::none);
 		else {
