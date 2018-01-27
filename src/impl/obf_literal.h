@@ -154,7 +154,7 @@ namespace ithare {
 
 	//version 3: Naive System-Dependent Anti-Debugging
 	struct obf_literal_context_version3_descr {//NB: to ensure 100%-compatible generation across platforms, probabilities MUST NOT depend on the platform, directly or indirectly
-#if defined(ITHARE_OBF_INIT) && !defined(ITHARE_OBF_NO_ANTI_DEBUG) &&!defined(ITHARE_OBF_NO_IMPLICIT_ANTI_DEBUG)
+#if defined(ITHARE_OBF_INIT) && !defined(ITHARE_OBF_NO_ANTI_DEBUG) && !defined(ITHARE_OBF_NO_IMPLICIT_ANTI_DEBUG)
 		static constexpr ObfDescriptor descr = ObfDescriptor(true, 10, 100);
 #else
 		static constexpr ObfDescriptor descr = ObfDescriptor(false, 0, 0);
@@ -265,7 +265,7 @@ namespace ithare {
 
 	//version 5: Time-Based Anti-Debugging
 	struct obf_literal_context_version5_descr {//NB: to ensure 100%-compatible generation across platforms, probabilities MUST NOT depend on the platform, directly or indirectly
-#if defined(ITHARE_OBF_INIT) && !defined(ITHARE_OBF_NO_ANTI_DEBUG) &&!defined(ITHARE_OBF_NO_IMPLICIT_ANTI_DEBUG)
+#if defined(ITHARE_OBF_INIT) && !defined(ITHARE_OBF_NO_ANTI_DEBUG) && !defined(ITHARE_OBF_NO_IMPLICIT_ANTI_DEBUG)
 		static constexpr ObfDescriptor descr = ObfDescriptor(true, 15, 100);//may involve reading from std::atomic<>
 #else
 		static constexpr ObfDescriptor descr = ObfDescriptor(false, 0, 0);
@@ -344,6 +344,9 @@ namespace ithare {
 			obf_literal_context_version5_descr::descr,
 		};
 		constexpr static size_t which = obf_random_obf_from_list<ITHARE_OBF_NEW_PRNG(seed, 1)>(cycles, descr);
+#if defined(ITHARE_OBF_NO_ANTI_DEBUG) || defined(ITHARE_OBF_NO_IMPLICIT_ANTI_DEBUG)
+		static_assert(which != 3 && which != 5);
+#endif
 		using WhichType = ObfLiteralContext_version<which, T, seed>;
 
 	public:

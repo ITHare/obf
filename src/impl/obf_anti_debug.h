@@ -229,7 +229,6 @@ template<class Dummy>
 struct ObfNonBlockingCodeStaticData {
 	static std::atomic<uint32_t> violation_count;
 	
-	template<ITHARE_OBF_SEEDTPARAM seed2>
 	ITHARE_OBF_FORCEINLINE static uint32_t zero_if_not_being_debugged() {
 		return violation_count.load();
 	} 
