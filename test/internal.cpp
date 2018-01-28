@@ -10,6 +10,7 @@
 
 #define ITHARE_OBF_SEED 0x0c7dfa61a871b133
 #define ITHARE_OBF_SEED2 0xdacb5ca59a237d13 
+#define ITHARE_OBF_NO_ANTI_DEBUG
 
 #define ITHARE_OBF_CONSISTENT_XPLATFORM_IMPLICIT_SEEDS
 //---#define ITHARE_OBF_DBG_MAP --- obsolete?
@@ -36,6 +37,7 @@
 
 #include "../src/obf.h"
 #include <chrono>//for benchmarking
+#include <thread>
 
 #include "../no-longer-standard/tls/crypto/chacha.h"
 using namespace ithare::obf;
@@ -109,14 +111,14 @@ private:
 	std::string message;
 };
 
-ITHARE_OBF_NOINLINE OBF6(int64_t) factorial(OBF6(int64_t) x) {
+ITHARE_OBF_NOINLINE OBF0(int64_t) factorial(OBF0(int64_t) x) {
 	ObfNonBlockingCode obf_nb_guard;
 	DBGPRINT(x)
 	if (x < 0)
 		throw MyException(OBF5S("Negative argument to factorial!"));
-	OBF3(int64_t) ret = 1;
+	OBF0(int64_t) ret = 1;
 	DBGPRINT(ret)
-	for (OBF3(int64_t) i = 1; i <= x; ++i) {
+	for (OBF0(int64_t) i = 1; i <= x; ++i) {
 		DBGPRINT(i);
 		ret *= i;
 	}
@@ -172,6 +174,19 @@ public:
 	}
 };
 
+void threadfunc() {
+	uint8_t user_key[CHACHA_KEY_SIZE] = { 0x00,0x01,0x02,0x03,0x04,0x05,0x06,0x07,0x08,0x09,0x0a,0x0b,0x0c,0x0d,0x0e,0x0f,0x10,0x11,0x12,0x13,0x14,0x15,0x16,0x17,0x18,0x19,0x1a,0x1b,0x1c,0x1d,0x1e,0x1f };
+	uint8_t iv[CHACHA_CTR_SIZE] = { 1,0,0,0,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x4a,0x00,0x00,0x00,0x00 };//1st 4 bytes are ctr
+	EVP_CHACHA<> chacha(user_key, iv, 1);
+
+	uint8_t inp[16] = { 0 };
+	uint8_t out[16] = { 0 };
+	OBF_CALL3(chacha.cipher)(out, inp, 16);
+	uint8_t expected_out[16] = { 0x22,0x4f,0x51,0xf3,0x40,0x1b,0xd9,0xe1,0x2f,0xde,0x27,0x6f,0xb8,0x63,0x1d,0xed };
+	//from RFC7539
+	assert(std::equal(std::begin(out), std::end(out), std::begin(expected_out), std::end(expected_out)));
+}
+
 int main(int argc, char** argv) {
 #ifndef NDEBUG
 	freopen("ConsoleApplication1.log", "w", stdout);
@@ -216,20 +231,13 @@ int main(int argc, char** argv) {
 	//obf_dbgPrint();
 	//std::string s = obf_literal<decltype(""), "",0, 1>();
 	//std::string s = deobfuscate<seed,cycles>(constexpr obfuscate<seed,XYZ>("Long string which makes lots of sense"));
-	uint8_t user_key[ CHACHA_KEY_SIZE] = { 0x00,0x01,0x02,0x03,0x04,0x05,0x06,0x07,0x08,0x09,0x0a,0x0b,0x0c,0x0d,0x0e,0x0f,0x10,0x11,0x12,0x13,0x14,0x15,0x16,0x17,0x18,0x19,0x1a,0x1b,0x1c,0x1d,0x1e,0x1f };
-	uint8_t iv[ CHACHA_CTR_SIZE] = { 1,0,0,0,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x4a,0x00,0x00,0x00,0x00 };//1st 4 bytes are ctr
-	 EVP_CHACHA<> chacha(user_key, iv, 1);
-
-	uint8_t inp[16] = { 0 };
-	uint8_t out[16] = { 0 };
-	OBF_CALL3(chacha.cipher)(out, inp, 16);
-	uint8_t expected_out[16] = { 0x22,0x4f,0x51,0xf3,0x40,0x1b,0xd9,0xe1,0x2f,0xde,0x27,0x6f,0xb8,0x63,0x1d,0xed };
-	//from RFC7539
-	assert(std::equal(std::begin(out), std::end(out), std::begin(expected_out), std::end(expected_out)));
 
 	//for(int i=0;i<16;++i) {
 	//	std::cout << std::hex << int(out[i]) << " " << std::endl;
 	//}
+
+	std::thread th(threadfunc);
+	th.join();
 
 	if (argc <= 1)
 		return 0;
