@@ -189,7 +189,7 @@ std::string cleanup() {
 	return std::string("del official.exe");
 }
 std::string setup() {
-	return "@ECHO OFF\nDEL *.PDB";
+	return "@ECHO OFF\nDEL *.PDB\nDEL *.IDB";
 }
 #else
 #error "Unrecognized platform for randomized testing"
