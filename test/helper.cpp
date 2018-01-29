@@ -81,7 +81,7 @@ std::string exitCheck(std::string cmd, bool expectok = true) {
 }
 std::string echo(std::string s,bool highlight=false) {
 	if(highlight)
-		return std::string("echo -e \"${HIGHLIGHT}")+s+"${NOHIGHLIGHT}\"";	
+		return std::string("echo \"${HIGHLIGHT}")+s+"${NOHIGHLIGHT}\"";	
 	else
 		return std::string("echo \"" + s +"\"");
 }
@@ -99,7 +99,7 @@ std::string backupExe() {
 	return std::string("mv -f obftemp obftemp-release");
 }
 std::string setup() {
-	return std::string("#!/bin/sh\nHIGHLIGHT='\033[0;31m\033[1m'\nNOHIGHLIGHT='\033[0m'");
+	return std::string("#!/bin/sh\nHIGHLIGHT='\033[32m\033[1m\033[7m'\nNOHIGHLIGHT='\033[0m'\n") + echo("===*** COMPILER BEING USED: ***===",true)+"\ng++ --version";
 		//color along the lines of https://stackoverflow.com/a/5947802/4947867
 }
 std::string cleanup() {
