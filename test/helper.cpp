@@ -45,10 +45,10 @@ std::string srcDirPrefix = "";
 std::string rootTestFolder() { return  srcDirPrefix + "../"; }
 
 std::string buildRelease(std::string defines) {
-	return std::string("g++ -O3 -DNDEBUG ") + defines + " -o obftemp -std=c++1z -lstdc++ -Werror " + srcDirPrefix + "../official.cpp";
+	return std::string("$CXX -O3 -DNDEBUG ") + defines + " -o obftemp -std=c++1z -lstdc++ -Werror " + srcDirPrefix + "../official.cpp";
 }
 std::string buildDebug(std::string defines) {
-	return std::string("g++ ") + defines + " -o obftemp -std=c++1z -lstdc++ -Werror " + srcDirPrefix + "../official.cpp";
+	return std::string("$CXX ") + defines + " -o obftemp -std=c++1z -lstdc++ -Werror " + srcDirPrefix + "../official.cpp";
 }
 std::string build32option() {
 	return " -m32";
@@ -99,8 +99,10 @@ std::string backupExe() {
 	return std::string("mv -f obftemp obftemp-release");
 }
 std::string setup() {
-	return std::string("#!/bin/sh\nHIGHLIGHT='\033[32m\033[1m\033[7m'\nNOHIGHLIGHT='\033[0m'\n") + echo("===*** COMPILER BEING USED: ***===",true)+"\ng++ --version";
-		//color along the lines of https://stackoverflow.com/a/5947802/4947867
+	return std::string("#!/bin/sh") 
+	+ "\nCXX=\"${CXX:=g++}\""
+	+ "\nHIGHLIGHT='\\033[32m\\033[1m\\033[7m'\nNOHIGHLIGHT='\\033[0m'\n" //along the lines of https://stackoverflow.com/a/5947802/4947867
+	+ echo("===*** COMPILER BEING USED: CXX=${CXX} ***===",true)+"\n$CXX --version";
 }
 std::string cleanup() {
 	return std::string("rm obftemp");	
@@ -362,7 +364,7 @@ void genRandomTests(size_t n) {
 		}
 		if(add32tests && i%5 <=1)
 			extra += build32option();
-		std::cout << echo( std::string("=== Random Test ") + std::to_string(i+1) + "/" + std::to_string(n) + " ===" ) << std::endl;
+		std::cout << echo( std::string("=== Random Test ") + std::to_string(i+1) + "/" + std::to_string(n) + " ===", true ) << std::endl;
 		std::string defines = genSeeds()+" -DITHARE_OBF_INIT -DITHARE_OBF_CONSISTENT_XPLATFORM_IMPLICIT_SEEDS"+extra;
 		//std::string defines = genSeeds() + " -DITHARE_OBF_NO_ANTI_DEBUG -DITHARE_OBF_CONSISTENT_XPLATFORM_IMPLICIT_SEEDS" + extra;
 		if( cfg == config::debug ) 
