@@ -115,7 +115,7 @@ namespace ithare {
 
 			size = sizeof(info);
 			junk = sysctl(mib, sizeof(mib) / sizeof(*mib), &info, &size, NULL, 0);
-			OBFASSERT(junk == 0);
+			assert(junk == 0);
 
 			// We're being debugged if the P_TRACED flag is set.
 
@@ -195,7 +195,7 @@ namespace ithare {
 		if (test > x)
 			return i;
 	}
-	OBFASSERT(false);
+	ITHARE_OBF_CONSTEXPR_ASSERT_UNREACHABLE;
 	return 63;
 }
 

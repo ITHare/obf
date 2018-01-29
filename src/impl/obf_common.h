@@ -74,19 +74,19 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #define ITHARE_OBF_FORCEINLINE __forceinline
 #define ITHARE_OBF_NOINLINE __declspec(noinline)
-#define OBFASSERT assert
+#define ITHARE_OBF_CONSTEXPR_ASSERT_UNREACHABLE assert(false)
 
 #elif defined(__clang__)
 
 #define ITHARE_OBF_FORCEINLINE __attribute__((always_inline)) inline
 #define ITHARE_OBF_NOINLINE __attribute__((noinline))
-#define OBFASSERT assert
+#define ITHARE_OBF_CONSTEXPR_ASSERT_UNREACHABLE assert(false)
 
 #elif defined(__GNUC__)
 
 #define ITHARE_OBF_FORCEINLINE __attribute__((always_inline)) inline
 #define ITHARE_OBF_NOINLINE __attribute__((noinline))
-#define OBFASSERT  //no support for asserts in GCC now :-( (see https://akrzemi1.wordpress.com/2017/05/18/asserts-in-constexpr-functions/ for potential fix)
+#define ITHARE_OBF_CONSTEXPR_ASSERT_UNREACHABLE  //as of GCC 7.2.0, assert(false) doesn't work in constexpr functions in GCC ; other ideas on "how to assert in supposedly-unreachable constexpr code" are very welcome
 
 #else
 #error Other compilers than MSVC, Clang, and GCC are not supported
