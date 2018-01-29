@@ -95,6 +95,22 @@ ITHARE_OBF_NOINLINE void test_chacha_cipher_rfc(const uint8_t* inp, uint8_t* out
 	OBF_CALL4(chacha.cipher)(out, inp, 16);
 }
 
+class Benchmark {
+	std::chrono::high_resolution_clock::time_point start;
+
+public:
+	Benchmark() {
+		start = std::chrono::high_resolution_clock::now();
+	}
+	int64_t us() {
+		auto stop = std::chrono::high_resolution_clock::now();
+		auto length = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
+		return (int64_t)length.count();
+	}
+};
+
+#define NBENCH 1000
+
 const lest::test spec[] = {
 	CASE("types") {
 		//well, at least for common 32/64-bit platforms is should stand
@@ -132,6 +148,7 @@ const lest::test spec[] = {
 	CASE("chacha20(key=0...0,nonce=0...0)") {
 		uint8_t inp[16] = { 0 };
 		uint8_t out[16] = { 0 };
+
 		test_chacha_cipher0(inp, out);
 		uint8_t expected_out[16] = { 0x76, 0xb8, 0xe0, 0xad, 0xa0, 0xf1, 0x3d, 0x90, 0x40, 0x5d, 0x6a, 0xe5, 0x53, 0x86, 0xbd, 0x28 };
 			//from https://github.com/secworks/chacha_testvectors/blob/master/src/chacha_testvectors.txt (look for SECOND entry with "Rounds: 20" in TC1, SECOND entry corresponds to 256-bit Chacha20 which is used in TLS per RFC7539
@@ -167,6 +184,37 @@ const lest::test spec[] = {
 			//from RFC7539
 		EXPECT(std::equal(std::begin(out.arr), std::end(out.arr), std::begin(expected_out), std::end(expected_out)));
 	},
+	CASE("benchmarks") {
+#if !defined(ITHARE_OBF_ENABLE_AUTO_DBGPRINT) || ITHARE_OBF_ENABLE_AUTO_DBGPRINT == 2//excluding platform-specific stuff to avoid spurious changes to obftemp.txt with -DITHARE_OBF_ENABLE_AUTO_DBGPRINT
+		{
+			Benchmark bm0;
+			for (size_t i = 0; i < NBENCH; ++i) {
+				uint8_t inp[16] = { 0 };
+				uint8_t out[16] = { 0 };
+				test_chacha_cipher0(inp, out);
+			}
+			std::cout << "chacha_cipher():" << ( bm0.us() * 1000 / NBENCH ) << " nanoseconds" << std::endl; 
+		}
+		{
+			Benchmark bm1;
+			for (size_t i = 0; i < NBENCH; ++i) {
+				uint8_t inp[16] = { 0 };
+				uint8_t out[16] = { 0 };
+				test_chacha_cipher1(inp, out);
+			}
+			std::cout << "OBF3(chacha_cipher)():" << (bm1.us() * 1000 / NBENCH) << " nanoseconds" << std::endl;
+		}
+		{
+			Benchmark bmrfc;
+			for (size_t i = 0; i < NBENCH; ++i) {
+				uint8_t inp[16] = { 0 };
+				uint8_t out[16] = { 0 };
+				test_chacha_cipher_rfc(inp, out);
+			}
+			std::cout << "OBF4(chacha_cipher)():" << (bmrfc.us() * 1000 / NBENCH) << " nanoseconds" << std::endl;
+		}
+#endif
+	}
 };
 
 int main(int argc, char** argv) {
