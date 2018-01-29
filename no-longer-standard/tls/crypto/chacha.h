@@ -160,7 +160,7 @@ void ChaCha20_ctr32(unsigned char *out, const unsigned char *inp,
         ITHARE_OBF_CALLFROMLIB(chacha20_core)(&buf, input);
 
         for (ITHARE_OBFLIBF(size_t) i = 0; i < todo; i++) {
-			out[i] = inp[i] ^ buf.ITHARE_OBF_CALLFROMLIB(get_byte_n)(i);
+			out[i] = inp[i] ^ buf.template ITHARE_OBF_CALLFROMLIB(get_byte_n)(i);
 		}
         out += todo;
         inp += todo;

@@ -333,16 +333,16 @@ void genDefineTests() {
 	std::cout << echo("=== -Define Test 13/14 (DEBUG, -DITHARE_OBF_CRYPTO_PRNG) ===",true) << std::endl;
 #if defined(_MSC_VER) && !defined(_M_X64)
 	std::cout << echo("*** SKIPPED -DITHARE_OBF_DBG_CRYPTO_PRNG FOR MSVC/x86 (cannot cope) ***",true) << std::endl;
-#elif defined(__GNUC__)
-	std::cout << echo("*** SKIPPED -DITHARE_OBF_DBG_CRYPTO_PRNG FOR GCC (bug?) ***",true) << std::endl;
+//#elif defined(__GNUC__)
+//	std::cout << echo("*** SKIPPED -DITHARE_OBF_DBG_CRYPTO_PRNG FOR GCC (bug?) ***",true) << std::endl;
 #else
 	buildCheckRunCheckx2(config::debug," -DITHARE_OBF_CRYPTO_PRNG",2);
 #endif
 	std::cout << echo("=== -Define Test 14/14 (RELEASE, -DITHARE_OBF_CRYPTO_PRNG) ===",true) << std::endl;
 #if defined(_MSC_VER) && !defined(_M_X64)
 	std::cout << echo("*** SKIPPED -DITHARE_OBF_DBG_CRYPTO_PRNG FOR MSVC/x86 (cannot cope) ***",true) << std::endl;
-#elif defined(__GNUC__)
-	std::cout << echo("*** SKIPPED -DITHARE_OBF_DBG_CRYPTO_PRNG FOR GCC (bug?) ***",true) << std::endl;
+//#elif defined(__GNUC__)
+//	std::cout << echo("*** SKIPPED -DITHARE_OBF_DBG_CRYPTO_PRNG FOR GCC (bug?) ***",true) << std::endl;
 #else
 	buildCheckRunCheckx2(config::release, " -DITHARE_OBF_CRYPTO_PRNG", 2);
 #endif
