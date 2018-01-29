@@ -132,7 +132,7 @@ namespace ithare {
 					return i;
 				refWeight -= weights[i];
 			}
-			assert(false);
+			OBFASSERT(false);
 			return size_t(-1);
 		}
 
@@ -203,7 +203,7 @@ namespace ithare {
 			if (sum_r)
 				return obf_random_from_list<seed>(r_weights);
 			else {
-				assert(sum_nr > 0);
+				OBFASSERT(sum_nr > 0);
 				return obf_random_from_list<seed>(nr_weights);
 			}
 		}
@@ -211,16 +211,16 @@ namespace ithare {
 		template<ITHARE_OBF_SEEDTPARAM seed, size_t N>
 		constexpr std::array<OBFCYCLES, N> obf_random_split(OBFCYCLES cycles, std::array<ObfDescriptor, N> elements) {
 			//size_t totalWeight = 0;
-			assert(cycles >= 0);
+			OBFASSERT(cycles >= 0);
 			OBFCYCLES mins = 0;
 			for (size_t i = 0; i < N; ++i) {
-				assert(elements[i].min_cycles == 0);//mins NOT to be used within calls to obf_random_split 
+				OBFASSERT(elements[i].min_cycles == 0);//mins NOT to be used within calls to obf_random_split 
 												  //  (it not a problem with this function, but they tend to cause WAY too much trouble in injection_version<> code
 				mins += elements[i].min_cycles;
 				//totalWeight += elements[i].weight;
 			}
 			OBFCYCLES leftovers = cycles - mins;
-			assert(leftovers >= 0);
+			OBFASSERT(leftovers >= 0);
 			std::array<OBFCYCLES, N> ret = {};
 			size_t totalWeight = 0;
 			for (size_t i = 0; i < N; ++i) {
@@ -234,10 +234,10 @@ namespace ithare {
 			double q = double(leftovers) / double(totalWeight);
 			for (size_t i = 0; i < N; ++i) {
 				ret[i] = elements[i].min_cycles + OBFCYCLES(double(ret[i]) * double(q));
-				assert(ret[i] >= elements[i].min_cycles);
+				OBFASSERT(ret[i] >= elements[i].min_cycles);
 				totalWeight2 += ret[i];
 			}
-			assert(OBFCYCLES(totalWeight2) <= mins + leftovers);
+			OBFASSERT(OBFCYCLES(totalWeight2) <= mins + leftovers);
 			return ret;
 		}
 
@@ -331,7 +331,7 @@ namespace ithare {
 #endif
 
 		constexpr size_t obf_smallest_uint_size(size_t n) {
-			assert(n <= 64);
+			OBFASSERT(n <= 64);
 			if (n <= 8)
 				return 8;
 			else if (n <= 16)
@@ -339,14 +339,14 @@ namespace ithare {
 			else if (n <= 32)
 				return 32;
 			else {
-				assert(n <= 64);
+				OBFASSERT(n <= 64);
 				return 64;
 			}
 		}
 
 		template<class T>
 		constexpr T obf_mask(size_t n) {
-			assert(n <= sizeof(T) * 8);
+			OBFASSERT(n <= sizeof(T) * 8);
 			if (n == sizeof(T) * 8)
 				return T(-1);
 			else
@@ -368,7 +368,7 @@ namespace ithare {
 			constexpr ITHARE_OBF_FORCEINLINE ObfBitUint(T x) : val(x & mask) {}
 			//constexpr ObfBitUint(const ObfBitUint& other) : val(other.val) {}
 			//constexpr ObfBitUint(const volatile ObfBitUint& other) : val(other.val) {}
-			constexpr ITHARE_OBF_FORCEINLINE operator T() const { assert((val&mask) == val); return val & mask; }
+			constexpr ITHARE_OBF_FORCEINLINE operator T() const { OBFASSERT((val&mask) == val); return val & mask; }
 
 			constexpr ITHARE_OBF_FORCEINLINE ObfBitUint operator -() const { return ObfBitUint(-val); }
 			constexpr ITHARE_OBF_FORCEINLINE ObfBitUint operator *(ObfBitUint x) const { return ObfBitUint(val * x.val); }

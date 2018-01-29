@@ -115,7 +115,7 @@ namespace ithare {
 
 			size = sizeof(info);
 			junk = sysctl(mib, sizeof(mib) / sizeof(*mib), &info, &size, NULL, 0);
-			assert(junk == 0);
+			OBFASSERT(junk == 0);
 
 			// We're being debugged if the P_TRACED flag is set.
 
@@ -159,7 +159,12 @@ namespace ithare {
 
 //__APPLE_CC__
 #else
-#warning No support for anti-debugging for this platform (yet) - defaulting to simple read-volatile (to make sure that literal usages are still not easily eliminatable)  
+#if defined (__GNUC__) || defined(__clang__) 
+#pragma message "No naive anti-debug for this platform yet, executable will work but without naive anti-debug"
+#elif defined(_MSC_VER)
+#pragma message("No naive anti-debug for this platform yet, executable will work but without naive anti-debug")
+#endif
+	// defaulting to simple read-volatile (to make sure that literal usages are still not easily eliminatable)  
 
 	template<class Dummy>
 	struct ObfNaiveSystemSpecific {
@@ -190,7 +195,7 @@ namespace ithare {
 		if (test > x)
 			return i;
 	}
-	assert(false);
+	OBFASSERT(false);
 	return 63;
 }
 
@@ -217,7 +222,12 @@ namespace ithare {
 #define ITHARE_OBF_TIME_NOW() __rdtsc()
 #define ITHARE_OBF_TIME_NON_BLOCKING_THRESHOLD (UINT64_C(4'000'000'000)*ITHARE_OBF_NON_BLOCKING_DAMN_LOT_SECONDS) //4GHz is currently about the absolute-maximum frequency; if frequency is lower - it is even safer
 #else
-#warning "Time-based protection is not supported yet for this platform (executable will work, but without time-based anti-debug)"
+#if defined (__GNUC__) || defined(__clang__) 
+#pragma message "No time-based anti-debug for this platform yet, executable will work but without time-based anti-debug"
+#elif defined(_MSC_VER)
+#pragma message("No time-based anti-debug for this platform yet, executable will work but without time-based anti-debug")
+#endif
+
 #define ITHARE_OBF_TIME_TYPE unsigned //we don't really need it
 #define ITHARE_OBF_TIME_NOW() 0
 #define ITHARE_OBF_TIME_NON_BLOCKING_THRESHOLD 1

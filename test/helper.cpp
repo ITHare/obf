@@ -45,10 +45,10 @@ std::string srcDirPrefix = "";
 std::string rootTestFolder() { return  srcDirPrefix + "../"; }
 
 std::string buildRelease(std::string defines) {
-	return std::string("gcc -O3 -DNDEBUG ") + defines + " -o obftemp -std=c++1z -lstdc++ -Werror -g " + srcDirPrefix + "../official.cpp";
+	return std::string("g++ -O3 -DNDEBUG ") + defines + " -o obftemp -std=c++1z -lstdc++ -Werror " + srcDirPrefix + "../official.cpp";
 }
 std::string buildDebug(std::string defines) {
-	return std::string("gcc ") + defines + " -o obftemp -std=c++1z -lstdc++ -Werror -g " + srcDirPrefix + "../official.cpp";
+	return std::string("g++ ") + defines + " -o obftemp -std=c++1z -lstdc++ -Werror " + srcDirPrefix + "../official.cpp";
 }
 std::string build32option() {
 	return " -m32";

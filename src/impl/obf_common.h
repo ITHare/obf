@@ -74,15 +74,23 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #define ITHARE_OBF_FORCEINLINE __forceinline
 #define ITHARE_OBF_NOINLINE __declspec(noinline)
+#define OBFASSERT assert
 
 #elif defined(__clang__)
 
 #define ITHARE_OBF_FORCEINLINE __attribute__((always_inline)) inline
 #define ITHARE_OBF_NOINLINE __attribute__((noinline))
+#define OBFASSERT assert
+
+#elif defined(__GNUC__)
+
+#define ITHARE_OBF_FORCEINLINE __attribute__((always_inline)) inline
+#define ITHARE_OBF_NOINLINE __attribute__((noinline))
+#define OBFASSERT  //no support for asserts in GCC now :-( (see https://akrzemi1.wordpress.com/2017/05/18/asserts-in-constexpr-functions/ for potential fix)
 
 #else
-#error Other compilers than MSVC and Clang are not supported (feel free to try adding GCC though)
-#endif//_MSC_VER || __clang__
+#error Other compilers than MSVC, Clang, and GCC are not supported
+#endif//_MSC_VER || __clang__ || __GNUC__
 
 //regardless of ITHARE_OBF_SEED
 namespace ithare {
