@@ -177,7 +177,7 @@ std::string exitCheck(std::string cmd,bool expectok = true) {
 	}
 }
 std::string echo(std::string s,bool highlight=false) {
-	return std::string("ECHO " + replace_string(s, ">", "^>") +"");
+	return std::string("ECHO ") + replace_string(s, ">", "^>");
 }
 std::string run(std::string redirect) {
 	if(redirect!="")
