@@ -99,6 +99,15 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #error Other compilers than MSVC, Clang, and GCC are not supported
 #endif//_MSC_VER || __clang__ || __GNUC__
 
+#if __cplusplus <= 201402 //C++ 14 or before; for reference - working Apple Clang 9.0.0 gives 201406
+#if defined(__clang__)|| defined(__GNUC__)
+#pragma message "Are you sure you didn't forget to specify -std=c++17 or -std=c++1z when compiling?"
+#endif
+#ifdef _MSC_VER
+#pragma message("Are you sure you didn't forget to specify /std:c++17 or /std:c++latest when compiling?")
+#endif
+#endif
+
 #ifndef _MSC_VER //MSVC doesn't seem to support C++ feature test macros :-(
 #if __cpp_constexpr < 201304
 #error "ithare::obf DOES use constexprs extensively"
