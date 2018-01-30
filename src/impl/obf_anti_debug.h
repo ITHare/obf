@@ -163,7 +163,7 @@ namespace ithare {
 
 //__APPLE_CC__
 #else
-#if defined (__GNUC__) || defined(__clang__) 
+#if defined(__clang__) || defined(__GNUC__)
 #pragma message "No naive anti-debug for this platform yet, executable will work but without naive anti-debug"
 #elif defined(_MSC_VER)
 #pragma message("No naive anti-debug for this platform yet, executable will work but without naive anti-debug")
@@ -220,13 +220,13 @@ namespace ithare {
 #define ITHARE_OBF_TIME_NON_BLOCKING_THRESHOLD (UINT64_C(4'000'000'000)*ITHARE_OBF_NON_BLOCKING_DAMN_LOT_SECONDS) //4GHz is currently about the absolute-maximum frequency; if frequency is lower - it is even safer
 #endif
 
-#elif defined(__clang__) && (defined(__x86_64__)||defined(__i386__))
+#elif (defined(__clang__) || defined(__GNUC__)) && (defined(__x86_64__)||defined(__i386__))
 #include <x86intrin.h>
 #define ITHARE_OBF_TIME_TYPE uint64_t
 #define ITHARE_OBF_TIME_NOW() __rdtsc()
 #define ITHARE_OBF_TIME_NON_BLOCKING_THRESHOLD (UINT64_C(4'000'000'000)*ITHARE_OBF_NON_BLOCKING_DAMN_LOT_SECONDS) //4GHz is currently about the absolute-maximum frequency; if frequency is lower - it is even safer
 #else
-#if defined (__GNUC__) || defined(__clang__) 
+#if defined defined(__clang__) || defined(__GNUC__)  
 #pragma message "No time-based anti-debug for this platform yet, executable will work but without time-based anti-debug"
 #elif defined(_MSC_VER)
 #pragma message("No time-based anti-debug for this platform yet, executable will work but without time-based anti-debug")

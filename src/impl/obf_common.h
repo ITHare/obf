@@ -70,6 +70,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endif
 
 #ifdef _MSC_VER
+#if _MSC_VER < 1910
+#pragma message("MSVC prior to VS2017 is not likely to work :-(")
+#endif
 #pragma warning (disable:4307)
 
 #define ITHARE_OBF_FORCEINLINE __forceinline
@@ -84,6 +87,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #elif defined(__GNUC__)
 
+#if __GNUC__ < 7
+#pragma message "GCC prior to version 7 is not likely to work :-("
+#endif
+
 #define ITHARE_OBF_FORCEINLINE __attribute__((always_inline)) inline
 #define ITHARE_OBF_NOINLINE __attribute__((noinline))
 #define ITHARE_OBF_CONSTEXPR_ASSERT_UNREACHABLE  //as of GCC 7.2.0, assert(false) doesn't work in constexpr functions in GCC ; other ideas on "how to assert in supposedly-unreachable constexpr code" are very welcome
@@ -91,6 +98,24 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #else
 #error Other compilers than MSVC, Clang, and GCC are not supported
 #endif//_MSC_VER || __clang__ || __GNUC__
+
+#ifndef _MSC_VER //MSVC doesn't seem to support C++ feature test macros :-(
+#ifndef __cpp_constexpr < 201304
+#error "ithare::obf DOES use constexprs extensively"
+#endif
+#if __cpp_if_constexpr < 201606
+#error "ithare::obf heavily relies on constexpr if"
+#endif
+#if __cpp_decltype < 200707
+#error "ithare::obf DOES need decltype."
+#endif
+#if __cpp_variadic_templates < 200704
+#error "ithare::obf DOES need variadic templates."
+#endif
+#if __cpp_static_assert < 201411
+#error "ithare::obf DOES use short form of static assert. Can be rewritten, but will unlikely help due to other requirements"
+#endif
+#endif//_MSC_VER
 
 //regardless of ITHARE_OBF_SEED
 namespace ithare {

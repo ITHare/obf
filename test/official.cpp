@@ -220,7 +220,7 @@ const lest::test spec[] = {
 int main(int argc, char** argv) {
 #if !defined(ITHARE_OBF_ENABLE_AUTO_DBGPRINT) || ITHARE_OBF_ENABLE_AUTO_DBGPRINT == 2//excluding platform-specific stuff to avoid spurious changes to obftemp.txt with -DITHARE_OBF_ENABLE_AUTO_DBGPRINT
 #ifdef _MSC_VER
-		std::cout << "_MSC_VER=" << _MSC_VER << " _MSC_FULL_VER=" << _MSC_FULL_VER << " _MSC_BUILD" << _MSC_BUILD << std::endl;
+		std::cout << "_MSC_VER=" << _MSC_VER << " _MSC_FULL_VER=" << _MSC_FULL_VER << " _MSC_BUILD=" << _MSC_BUILD << std::endl;
 #endif
 #ifdef __GNUC__
 		std::cout << "__GNUC__=" << __GNUC__ << " __GNUC_MINOR__=" << __GNUC_MINOR__ << " __GNUC_PATCHLEVEL__=" << __GNUC_PATCHLEVEL__ << std::endl;
