@@ -76,7 +76,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define ITHARE_OBF_NOINLINE __declspec(noinline)
 #define ITHARE_OBF_CONSTEXPR_ASSERT_UNREACHABLE assert(false)
 
-#elif defined(__clang__)
+#elif defined(__clang__)//As Clang also #defines __GNUC__, we MUST always check __clang__ first
 
 #define ITHARE_OBF_FORCEINLINE __attribute__((always_inline)) inline
 #define ITHARE_OBF_NOINLINE __attribute__((noinline))

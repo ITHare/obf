@@ -219,6 +219,19 @@ const lest::test spec[] = {
 
 int main(int argc, char** argv) {
 #if !defined(ITHARE_OBF_ENABLE_AUTO_DBGPRINT) || ITHARE_OBF_ENABLE_AUTO_DBGPRINT == 2//excluding platform-specific stuff to avoid spurious changes to obftemp.txt with -DITHARE_OBF_ENABLE_AUTO_DBGPRINT
+#ifdef _MSC_VER
+		std::cout << "_MSC_VER=" << _MSC_VER << " _MSC_FULL_VER=" << _MSC_FULL_VER << " _MSC_BUILD" << _MSC_BUILD << std::endl;
+#endif
+#ifdef __GNUC__
+		std::cout << "__GNUC__=" << __GNUC__ << " __GNUC_MINOR__=" << __GNUC_MINOR__ << " __GNUC_PATCHLEVEL__=" << __GNUC_PATCHLEVEL__ << std::endl;
+#endif
+#ifdef __clang__
+		std::string modifier = "";
+#ifdef __apple_build_version__
+		modifier = "__apple_build_version__: ";
+#endif
+		std::cout << modifier << "__clang_major__=" << __clang_major__ << " __clang_minor__=" << 	__clang_minor__ << " __clang_patchlevel__=" << __clang_patchlevel__ << std::endl;
+#endif
 		std::cout << "sizeof(void*) == " << sizeof(void*) << std::endl;
 #endif
 #ifdef ITHARE_OBF_SEED

@@ -45,8 +45,12 @@ namespace ithare {
 	namespace obf {
 
 /* ************** NAIVE SYSTEM-SPECIFIC **************** */
-		
-#ifdef _MSC_VER
+
+#if defined(_WIN64) && !defined(_WIN32)
+#error
+#endif
+
+#if defined(_WIN32) //includes _WIN64
 //TODO: similar stuff for Clang/Win
 #include <intrin.h>
 
@@ -77,7 +81,7 @@ namespace ithare {
 	template<class Dummy>
 	volatile uint8_t* ObfNaiveSystemSpecific<Dummy>::obf_peb = nullptr;
 
-//_MSC_VER
+//_WIN32
 #elif defined(__APPLE_CC__)
 #include <sys/types.h>
 #include <sys/sysctl.h>
