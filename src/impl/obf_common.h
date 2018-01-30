@@ -81,6 +81,16 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #elif defined(__clang__)//As Clang also #defines __GNUC__, we MUST always check __clang__ first
 
+#ifdef __apple_build_version__
+#if __clang_major__ < 8 
+#pragma message "Apple Clang prior to version 8 is not likely to work :-("
+#endif
+#else
+#if __clang_major__ < 4 
+#pragma message "Clang prior to version 4 is not likely to work :-("
+#endif
+#endif
+
 #define ITHARE_OBF_FORCEINLINE __attribute__((always_inline)) inline
 #define ITHARE_OBF_NOINLINE __attribute__((noinline))
 #define ITHARE_OBF_CONSTEXPR_ASSERT_UNREACHABLE assert(false)
