@@ -100,7 +100,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endif//_MSC_VER || __clang__ || __GNUC__
 
 #ifndef _MSC_VER //MSVC doesn't seem to support C++ feature test macros :-(
-#ifndef __cpp_constexpr < 201304
+#if __cpp_constexpr < 201304
 #error "ithare::obf DOES use constexprs extensively"
 #endif
 #if __cpp_if_constexpr < 201606
