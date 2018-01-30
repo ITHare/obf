@@ -109,14 +109,12 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #error Other compilers than MSVC, Clang, and GCC are not supported
 #endif//_MSC_VER || __clang__ || __GNUC__
 
-#if __cplusplus <= 201402 //C++ 14 or before; for reference - working Apple Clang 9.0.0 gives 201406
 #if defined(__clang__)|| defined(__GNUC__)
+#if __cplusplus <= 201402 //C++ 14 or before; for reference - working Apple Clang 9.0.0 gives 201406
 #pragma message "Are you sure you didn't forget to specify -std=c++17 or -std=c++1z when compiling?"
 #endif
-#ifdef _MSC_VER
-#pragma message("Are you sure you didn't forget to specify /std:c++17 or /std:c++latest when compiling?")
 #endif
-#endif
+//for VS2017, __cplusplus is still stuck at 199711 regardless of compiler switches :-(; no possibility to warn about missing /std:c++17
 
 #ifndef _MSC_VER //MSVC doesn't seem to support C++ feature test macros :-(
 #if __cpp_constexpr < 201304
