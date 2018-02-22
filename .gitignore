@@ -1,6 +1,16 @@
 ﻿################################################################################
 # This .gitignore file was automatically created by Microsoft(R) Visual Studio.
 ################################################################################
+/test/kscope2.txt
+
+/test/nix/local_kscope.txt
+/test/nix/testapp
+/test/nix/officialtest
+/test/nix/randomtestgen
+/test/nix/failedrandomtest.sh
+/test/nix/generatedrandomtest.sh
+/test/nix/nohup.out
+/test/nix/testapp.dSYM/
 
 /.vs
 /test/MSVC/.vs/ConsoleApplication1/v15
