@@ -38,10 +38,72 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endif
 
 #include "../../kscope/src/impl/kscope_injection.h"
+#include "../../kscope/src/impl/kscope_literal.h"
+#include "impl/obf_anti_debug.h"
 
 #ifdef ITHARE_KSCOPE_SEED
 
-namespace ithare { namespace kscope {
+namespace ithare { namespace kscope {//cannot really move it to ithare::obf due to *Version specializations
+	
+	//const-related stuff
+	template<class T, size_t N, class T2>
+	constexpr size_t obf_find_idx(T (&arr)[N], T2 value) {
+		for (size_t i = 0; i < N; ++i) {
+			if (arr[i] == value)
+				return i;
+		}
+		return size_t(-1);
+	}
+	
+	template<ITHARE_KSCOPE_SEEDTPARAM seed, class T,size_t N>
+	constexpr T obf_const_x(T (&excluded)[N]) {
+		T candidates[6] = { 3,5,7,15,25,31 };//only odd, to allow using the same set of constants when kscope_const_odd_only flag is set
+		size_t weights[6] = { 100,100,100,100,100,100 };
+		for (size_t i = 0; i < N; ++i) {
+			size_t found = obf_find_idx(candidates, excluded[i]);
+			if (found != size_t(-1))
+				weights[found] = 0;
+		}
+		size_t idx2 = kscope_random_from_list<seed>(weights);
+		return candidates[idx2];
+	}
+
+	constexpr uint8_t obf_const_A_excluded[] = {uint8_t(-1)};
+	constexpr uint8_t OBF_CONST_A = obf_const_x<ITHARE_KSCOPE_INIT_PRNG(__FILE__, __LINE__, __COUNTER__)>(obf_const_A_excluded);
+	constexpr uint8_t obf_const_B_excluded[1] = { OBF_CONST_A };
+	constexpr uint8_t OBF_CONST_B = obf_const_x<ITHARE_KSCOPE_INIT_PRNG(__FILE__, __LINE__, __COUNTER__)>(obf_const_B_excluded);
+	constexpr uint8_t obf_const_C_excluded[2] = { OBF_CONST_A, OBF_CONST_B };
+	constexpr uint8_t OBF_CONST_C = obf_const_x<ITHARE_KSCOPE_INIT_PRNG(__FILE__, __LINE__, __COUNTER__)>(obf_const_C_excluded);
+	
+	template<class T,ITHARE_KSCOPE_SEEDTPARAM seed,KSCOPECONSTFLAGS flags>
+	constexpr static T obf_random_const(T upper_bound=0) {//has the same signature, BUT potentially different semantics compared to kscope_random_const
+#ifdef ITHARE_OBF_NO_MINIMIZING_CONSTANTS
+		return kscope_random_const<T,seed,flags>(upper_bound);
+#else
+		//using TT = typename KscopeTraits<T>::construct_from_type;
+		uint8_t candidates[5] = {};
+		size_t n = 0;
+		if(!upper_bound || OBF_CONST_A < upper_bound)
+			candidates[n++] = OBF_CONST_A;
+		if(!upper_bound || OBF_CONST_B < upper_bound)
+			candidates[n++] = OBF_CONST_B;
+		if(!upper_bound || OBF_CONST_C < upper_bound)
+			candidates[n++] = OBF_CONST_C;
+		if(flags&kscope_const_zero_ok) {
+			assert( !(flags&kscope_const_odd_only) );
+			candidates[n++] = 0;
+		}
+		if(flags&kscope_const_one_ok)
+			candidates[n++] = 1;
+
+		assert(n>0);
+		size_t idx = ITHARE_KSCOPE_RANDOM(seed,1,n);
+		assert(idx < n);
+		return candidates[idx];
+#endif
+	}
+	
+	//extended Injections
 
 	//version last+1: injection over lower half /*CHEAP!*/
 	template<class T, class Context>
@@ -140,6 +202,121 @@ namespace ithare { namespace kscope {
 	
 #define ITHARE_KSCOPE_ADDITIONAL_INJECTION_DESCRIPTOR_LIST \
 	ObfInjectionAdditionalVersion1Descr<T,Context>::descr,	
+
+namespace ithare { namespace kscope {//cannot really move it to ithare::obf due to *Version specializations
+
+	//version last+1: aliased pointers
+	struct ObfLiteralAdditionalVersion1Descr {
+		static constexpr KscopeDescriptor descr = KscopeDescriptor(20, 100);
+	};
+
+	template<class T>//TODO: randomize contents of the function
+	ITHARE_KSCOPE_NOINLINE T obf_aliased_zero(T* x, T* y) {
+		*x = 0;
+		*y = 1;
+		return *x;
+	}
+
+	template<class T, ITHARE_KSCOPE_SEEDTPARAM seed>
+	struct KscopeLiteralContextVersion<ITHARE_KSCOPE_LAST_STOCK_LITERAL+1,T,seed> {
+		using Traits = KscopeTraits<T>;
+		constexpr static KSCOPECYCLES context_cycles = ObfLiteralAdditionalVersion1Descr::descr.min_cycles;
+
+		template<ITHARE_KSCOPE_SEEDTPARAM seed2,KSCOPEFLAGS flags>
+		ITHARE_KSCOPE_FORCEINLINE static constexpr T final_injection(T x) {
+			return x;
+		}
+		template<ITHARE_KSCOPE_SEEDTPARAM seed2,KSCOPEFLAGS flags>
+		ITHARE_KSCOPE_FORCEINLINE static constexpr T final_surjection(T y) {
+			if constexpr(flags&kscope_flag_is_constexpr)
+				return y;
+			else {
+				T x, yy;
+				T z = obf_aliased_zero(&x, &yy);
+				return y - z;
+			}
+		}
+#ifdef ITHARE_KSCOPE_DBG_ENABLE_DBGPRINT
+		static void dbg_print(size_t offset = 0, const char* prefix = "") {
+			std::cout << std::string(offset, ' ') << prefix << "KscopeLiteralContext_version<ITHARE_KSCOPE_LAST_STOCK_LITERAL+1="<< (ITHARE_KSCOPE_LAST_STOCK_LITERAL+1) <<"/*func with aliased pointers*/," << kscope_dbg_print_t<T>() << "," << kscope_dbg_print_seed<seed>() << ">:" << std::endl;
+		}
+#endif
+	};
+
+	//version last+2: Naive System-Dependent Anti-Debugging
+	struct ObfLiteralAdditionalVersion2Descr {//NB: to ensure 100%-compatible generation across platforms, probabilities MUST NOT depend on the platform, directly or indirectly
+#if defined(ITHARE_OBF_INIT) && !defined(ITHARE_OBF_NO_ANTI_DEBUG) && !defined(ITHARE_OBF_NO_IMPLICIT_ANTI_DEBUG)
+		static constexpr KscopeDescriptor descr = KscopeDescriptor(10, 100);
+#else
+		static constexpr KscopeDescriptor descr = KscopeDescriptor(nullptr);
+#endif
+	};
+
+	template<class T, ITHARE_KSCOPE_SEEDTPARAM seed>
+	struct KscopeLiteralContextVersion<ITHARE_KSCOPE_LAST_STOCK_LITERAL+2,T,seed> {
+		using Traits = KscopeTraits<T>;
+		constexpr static KSCOPECYCLES context_cycles = ObfLiteralAdditionalVersion2Descr::descr.min_cycles;
+
+		constexpr static T CC = obf_random_const<T,ITHARE_KSCOPE_NEW_PRNG(seed, 1),0>();
+		template<ITHARE_KSCOPE_SEEDTPARAM seed2,KSCOPEFLAGS flags>
+		ITHARE_KSCOPE_FORCEINLINE static constexpr T final_injection(T x) {
+			return x + CC;
+		}
+		template<ITHARE_KSCOPE_SEEDTPARAM seed2,KSCOPEFLAGS flags>
+		ITHARE_KSCOPE_FORCEINLINE constexpr static T final_surjection(T y) {
+			if constexpr(flags&kscope_flag_is_constexpr)
+				return y - CC;
+			else
+				return y - CC * T(1 + ithare::obf::ObfNaiveSystemSpecific<void>::zero_if_not_being_debugged());
+		}
+
+#ifdef ITHARE_KSCOPE_DBG_ENABLE_DBGPRINT
+		static void dbg_print(size_t offset = 0, const char* prefix = "") {
+			std::cout << std::string(offset, ' ') << prefix << "KscopeLiteralContextVersion<ITHARE_KSCOPE_LAST_STOCK_LITERAL+2="<< (ITHARE_KSCOPE_LAST_STOCK_LITERAL+2) <<"/*Naive System-Dependent Anti-Debug*/," << kscope_dbg_print_t<T>() << "," << kscope_dbg_print_seed<seed>() << ">: CC=" << kscope_dbg_print_c<T>(CC) << std::endl;
+		}
+#endif
+	};
+	
+	//version last+3: Time-Based Anti-Debugging
+	struct ObfLiteralAdditionalVersion3Descr {//NB: to ensure 100%-compatible generation across platforms, probabilities MUST NOT depend on the platform, directly or indirectly
+#if defined(ITHARE_OBF_INIT) && !defined(ITHARE_OBF_NO_ANTI_DEBUG) && !defined(ITHARE_OBF_NO_IMPLICIT_ANTI_DEBUG)
+		static constexpr KscopeDescriptor descr = KscopeDescriptor(15, 100);//may involve reading from std::atomic<>
+#else
+		static constexpr KscopeDescriptor descr = KscopeDescriptor(nullptr);
+#endif
+	};
+
+	template<class T, ITHARE_KSCOPE_SEEDTPARAM seed>
+	struct KscopeLiteralContextVersion<ITHARE_KSCOPE_LAST_STOCK_LITERAL+3,T,seed> {
+		using Traits = KscopeTraits<T>;
+		constexpr static KSCOPECYCLES context_cycles = ObfLiteralAdditionalVersion3Descr::descr.min_cycles;
+
+		constexpr static T CC = obf_random_const<T,ITHARE_KSCOPE_NEW_PRNG(seed, 1),0>();
+		template<ITHARE_KSCOPE_SEEDTPARAM seed2,KSCOPEFLAGS flags>
+		ITHARE_KSCOPE_FORCEINLINE static constexpr T final_injection(T x) {
+			return x + CC;
+		}
+		template<ITHARE_KSCOPE_SEEDTPARAM seed2,KSCOPEFLAGS flags>
+		ITHARE_KSCOPE_FORCEINLINE constexpr static T final_surjection(T y) {
+			if constexpr(flags&kscope_flag_is_constexpr)
+				return y - CC;
+			else
+				return y - CC * T(1 + ithare::obf::ObfNonBlockingCodeStaticData<void>::zero_if_not_being_debugged());
+		}
+
+#ifdef ITHARE_KSCOPE_DBG_ENABLE_DBGPRINT
+		static void dbg_print(size_t offset = 0, const char* prefix = "") {
+			std::cout << std::string(offset, ' ') << prefix << "KscopeLiteralContextVersion<ITHARE_KSCOPE_LAST_STOCK_LITERAL+3="<< (ITHARE_KSCOPE_LAST_STOCK_LITERAL+3) <<"/*ObfNonBlockingCode()*/," << kscope_dbg_print_t<T>() << "," << kscope_dbg_print_seed<seed>() << ">: CC=" << kscope_dbg_print_c<T>(CC) << std::endl;
+		}
+#endif
+	};
+	
+}} //namespace ithare::kscope
+
+#define ITHARE_KSCOPE_ADDITIONAL_LITERAL_DESCRIPTOR_LIST \
+	ObfLiteralAdditionalVersion1Descr::descr,\
+	ObfLiteralAdditionalVersion2Descr::descr
+		
 
 #endif //ITHARE_KSCOPE_SEED
 

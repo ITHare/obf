@@ -39,7 +39,7 @@ class ObfTestEnvironment : public KscopeTestEnvironment {
 	public:
 	virtual std::string testSrcFolder() { return  srcDirPrefix + "../../../kscope/test/"; }
 	virtual std::string alwaysDefine() {//relative to kscope/test
-		return "-DITHARE_KSCOPE_EXTENSION=\"../../obf/src/kscope_extension.h\"";
+		return "-DITHARE_OBF_INIT -DITHARE_KSCOPE_EXTENSION=\"../../obf/src/kscope_extension.h\"";
 	}	
 };
 

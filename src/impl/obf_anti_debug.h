@@ -38,8 +38,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #if defined(ITHARE_OBF_SEED) && !defined(ITHARE_OBF_NO_ANTI_DEBUG)
 
-#include "obf_common.h"
-#include "obf_prng.h"
+#include "../../kscope/src/kscope.h"
 
 namespace ithare {
 	namespace obf {
@@ -59,7 +58,7 @@ namespace ithare {
 	struct ObfNaiveSystemSpecific {
 		static volatile uint8_t* obf_peb;
 		
-		ITHARE_OBF_FORCEINLINE static void init() {//TODO/decide: ?should we obfuscate this function itself?
+		ITHARE_KSCOPE_FORCEINLINE static void init() {//TODO/decide: ?should we obfuscate this function itself?
 #ifdef _WIN64
 			constexpr auto offset = 0x60;
 			obf_peb = (uint8_t*)__readgsqword(offset);
@@ -69,8 +68,8 @@ namespace ithare {
 #endif
 			return;
 		}
-		ITHARE_OBF_FORCEINLINE static uint8_t zero_if_not_being_debugged() {
-#ifdef ITHARE_OBF_DEBUG_ANTI_DEBUG_ALWAYS_FALSE
+		ITHARE_KSCOPE_FORCEINLINE static uint8_t zero_if_not_being_debugged() {
+#ifdef ITHARE_KSCOPE_DEBUG_ANTI_DEBUG_ALWAYS_FALSE
 			return 0;
 #else
 			return obf_peb[2];
@@ -95,7 +94,7 @@ namespace ithare {
 		static volatile uint64_t obf_kp_proc_p_flag;
 		static volatile mach_port_t obf_mach_port;
 		
-		ITHARE_OBF_FORCEINLINE static void init() {//TODO/decide: ?should we obfuscate this function itself?
+		ITHARE_KSCOPE_FORCEINLINE static void init() {//TODO/decide: ?should we obfuscate this function itself?
 			//#1. Detecting PTRACE: adaptation from https://developer.apple.com/library/content/qa/qa1361/_index.html
 			int                 junk;
 			int                 mib[4];
@@ -174,10 +173,10 @@ namespace ithare {
 	struct ObfNaiveSystemSpecific {
 		static volatile uint32_t zero;
 		
-		ITHARE_OBF_FORCEINLINE static void init() {//TODO/decide: ?should we obfuscate this function itself?
+		ITHARE_KSCOPE_FORCEINLINE static void init() {//TODO/decide: ?should we obfuscate this function itself?
 			zero = 0;
 		}
-		ITHARE_OBF_FORCEINLINE static uint8_t zero_if_not_being_debugged() {
+		ITHARE_KSCOPE_FORCEINLINE static uint8_t zero_if_not_being_debugged() {
 #ifdef ITHARE_OBF_DEBUG_ANTI_DEBUG_ALWAYS_FALSE
 			return 0;
 #else
@@ -243,7 +242,7 @@ template<class Dummy>
 struct ObfNonBlockingCodeStaticData {
 	static std::atomic<uint32_t> violation_count;
 	
-	ITHARE_OBF_FORCEINLINE static uint32_t zero_if_not_being_debugged() {
+	ITHARE_KSCOPE_FORCEINLINE static uint32_t zero_if_not_being_debugged() {
 		return violation_count.load();
 	} 
 };
@@ -258,10 +257,10 @@ class ObfNonBlockingCode {
 	ITHARE_OBF_TIME_TYPE started;
 
 	public:
-	ITHARE_OBF_FORCEINLINE ObfNonBlockingCode() {
+	ITHARE_KSCOPE_FORCEINLINE ObfNonBlockingCode() {
 		started = ITHARE_OBF_TIME_NOW();
 	}
-	ITHARE_OBF_FORCEINLINE ~ObfNonBlockingCode() {
+	ITHARE_KSCOPE_FORCEINLINE ~ObfNonBlockingCode() {
 		ITHARE_OBF_TIME_TYPE delta = ITHARE_OBF_TIME_NOW() - started;
 		constexpr int threshold_bits = obf_bit_upper_bound(ITHARE_OBF_TIME_NON_BLOCKING_THRESHOLD);
 		delta >>= threshold_bits;//expected to be zero at this point
@@ -291,9 +290,9 @@ namespace ithare {
 	template<class Dummy>
 	struct ObfNaiveSystemSpecific {
 		
-		ITHARE_OBF_FORCEINLINE static void init() {
+		ITHARE_KSCOPE_FORCEINLINE static void init() {
 		}
-		ITHARE_OBF_FORCEINLINE static uint8_t zero_if_not_being_debugged() {
+		ITHARE_KSCOPE_FORCEINLINE static uint8_t zero_if_not_being_debugged() {
 			return 0;
 		} 
 	};
@@ -317,7 +316,7 @@ class ObfNonBlockingCode {//to be used ONLY on-stack
 	template<class Dummy>
 	struct ObfNonBlockingCodeStaticData {
 
-		ITHARE_OBF_FORCEINLINE static uint32_t zero_if_not_being_debugged() {
+		ITHARE_KSCOPE_FORCEINLINE static uint32_t zero_if_not_being_debugged() {
 			return 0;
 		}
 	};
