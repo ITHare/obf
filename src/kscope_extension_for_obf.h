@@ -45,6 +45,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifdef ITHARE_KSCOPE_SEED
 
 namespace ithare { namespace kscope {//cannot really move it to ithare::obf due to *Version specializations
+
+	constexpr size_t obf_cache_line_size = 64;//stands at least for x86/x64, and most of ARMs. 
+											  //  For those platforms which have different cache line size, feel free to use #ifdefs 
+											  //  to specify correct value 
 	
 	//const-related stuff
 	template<class T, size_t N, class T2>
@@ -325,9 +329,9 @@ namespace ithare { namespace kscope {//cannot really move it to ithare::obf due 
 	struct ObfLiteralAdditionalVersion4Descr {
 		static constexpr KscopeDescriptor descr = 
 			KscopeTraits<T>::is_built_in ? //MIGHT be lifted if we adjust maths
-			KscopeDescriptor(15, 100)//'15 cycles' is an estimate for AMORTIZED time; see comment below
+			KscopeDescriptor(15, 100)//'15 cycles' is an estimate for AMORTIZED time; see comments within final_surjection() function below
 			: KscopeDescriptor(nullptr);
-			//TODO: another literal version, moving the whole invariant to thread_local (tricky as we cannot increase the number of thread_local vars too much)
+			//TODO: another literal version, moving the whole invariant to thread_local (tricky as we don't want to increase the number of thread_local vars too much)
 	};
 
 	template<class T, ITHARE_KSCOPE_SEEDTPARAM seed>
@@ -387,12 +391,12 @@ namespace ithare { namespace kscope {//cannot really move it to ithare::obf due 
 				//  amortized penalty reduces to 100/15 ~= 7 cycles (NB: cost of branch misprediction is also amortized). 
 				auto access_count = ++ObfGlobalVarUpdateTlsCounter<void>::access_count;
 				if((access_count&0xf)==0) {//every 15th time; TODO - obfuscate 0xf
-					T newC = (c+DELTA)%DELTAMOD;
-					c = newC;//NB: read-modify-write is not really atomic as a whole, but for our purposes we don't care 
+					T newC = (statdata.c+DELTA)%DELTAMOD;
+					statdata.c = newC;//NB: read-modify-write is not really atomic as a whole, but for our purposes we don't care 
 				}
 				//}MT-related
-				assert(c%MOD == CC);
-				return y - (c%MOD);
+				assert(statdata.c%MOD == CC);
+				return y - (statdata.c%MOD);
 			}
 		}
 
@@ -402,12 +406,21 @@ namespace ithare { namespace kscope {//cannot really move it to ithare::obf due 
 		}
 #endif
 	private:
-		static std::atomic<T> c;
+		union StaticData {//to reduce potential for cache false sharing 
+						  //NB: if migrating c into thread_local, DON'T do it (doesn't make any sense for thread_local) 
+			public:
+			std::atomic<T> c;//TODO: randomize position within cache line
+			uint8_t filler[obf_cache_line_size];
+			
+			constexpr StaticData(T t) 
+			: c(t)	{
+			}
+		};
+		static StaticData statdata;
 	};
 
 	template<class T, ITHARE_KSCOPE_SEEDTPARAM seed>
-	std::atomic<T> KscopeLiteralContextVersion<ITHARE_KSCOPE_LAST_STOCK_LITERAL+4, T, seed>::c = CC0;
-	
+	alignas(obf_cache_line_size) typename KscopeLiteralContextVersion<ITHARE_KSCOPE_LAST_STOCK_LITERAL+4, T, seed>::StaticData KscopeLiteralContextVersion<ITHARE_KSCOPE_LAST_STOCK_LITERAL+4, T, seed>::statdata = {CC0};
 	
 }} //namespace ithare::kscope
 
