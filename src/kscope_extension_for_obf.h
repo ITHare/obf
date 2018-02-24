@@ -313,13 +313,21 @@ namespace ithare { namespace kscope {//cannot really move it to ithare::obf due 
 	};
 	
 	//version last+4: global var-with-invariant
+	//using template to move static data to header...
+	template<class Dummy>
+	struct ObfGlobalVarUpdateTlsCounter {
+		static thread_local uint32_t access_count;
+	};
+	template<class Dummy>
+	thread_local uint32_t ObfGlobalVarUpdateTlsCounter<Dummy>::access_count = 0;
+
 	template<class T>
 	struct ObfLiteralAdditionalVersion4Descr {
 		static constexpr KscopeDescriptor descr = 
 			KscopeTraits<T>::is_built_in ? //MIGHT be lifted if we adjust maths
-			KscopeDescriptor(10, 100)//10 cycles - TEMPORARY number to test this technique until we reduce the maximum-possible time (in practice, can be MUCH worse due to worst-case MT caching issues)
+			KscopeDescriptor(15, 100)//'15 cycles' is an estimate for AMORTIZED time; see comment below
 			: KscopeDescriptor(nullptr);
-			//TODO: move invariant to thread_local, something else?
+			//TODO: another literal version, moving the whole invariant to thread_local (tricky as we cannot increase the number of thread_local vars too much)
 	};
 
 	template<class T, ITHARE_KSCOPE_SEEDTPARAM seed>
@@ -372,9 +380,16 @@ namespace ithare { namespace kscope {//cannot really move it to ithare::obf due 
 				return y - CC;
 			}
 			else {
-				//{MT-related:
-				T newC = (c+DELTA)%DELTAMOD;
-				c = newC;
+				//{MT-related
+				//  we do NOT want to write on each access to reduce potential for cache thrashing
+				//  what we're trying to do, is limiting the number of writes while keeping reading every time
+				//  in the worst case, write can incur a penalty of ~100 cycles, but if we're doing it only one out 15 times -
+				//  amortized penalty reduces to 100/15 ~= 7 cycles (NB: cost of branch misprediction is also amortized). 
+				auto access_count = ++ObfGlobalVarUpdateTlsCounter<void>::access_count;
+				if((access_count&0xf)==0) {//every 15th time; TODO - obfuscate 0xf
+					T newC = (c+DELTA)%DELTAMOD;
+					c = newC;//NB: read-modify-write is not really atomic as a whole, but for our purposes we don't care 
+				}
 				//}MT-related
 				assert(c%MOD == CC);
 				return y - (c%MOD);
