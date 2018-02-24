@@ -345,7 +345,7 @@ namespace ithare { namespace kscope {//cannot really move it to ithare::obf due 
 		static constexpr T PREMODMASK = (T(1) << (sizeof(T) * 4)) - 1;
 		static constexpr T PREMOD = PREMODRNDCONST & PREMODMASK;
 		static constexpr T MOD = PREMOD == 0 ? 100 : PREMOD;//remapping 'bad value' 0 to 'something'
-		static constexpr T CC = ITHARE_KSCOPE_RANDOM(seed, 2,MOD);
+		static constexpr T CC = T(ITHARE_KSCOPE_RANDOM(seed, 2,MOD));
 
 		static constexpr T MAXMUL1 = T(-1)/MOD;
 		static constexpr uint64_t MAXMUL1_ADJUSTED0 = MAXMUL1;// obf_sqrt_very_rough_approximation(MAXMUL1); TODO
