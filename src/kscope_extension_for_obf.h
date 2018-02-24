@@ -73,12 +73,13 @@ namespace ithare { namespace kscope {//cannot really move it to ithare::obf due 
 		return candidates[idx2];
 	}
 
+	//alls UINT32_C constants used to generate obf_const_*, are from random.org
 	constexpr uint8_t obf_const_A_excluded[] = {uint8_t(-1)};
-	constexpr uint8_t OBF_CONST_A = obf_const_x<ITHARE_KSCOPE_INIT_PRNG(__FILE__, __LINE__, __COUNTER__)>(obf_const_A_excluded);
+	constexpr uint8_t OBF_CONST_A = obf_const_x<ITHARE_KSCOPE_INIT_PRNG("", UINT32_C(0x30af'dc75), UINT32_C(0x4914'086a))>(obf_const_A_excluded);
 	constexpr uint8_t obf_const_B_excluded[1] = { OBF_CONST_A };
-	constexpr uint8_t OBF_CONST_B = obf_const_x<ITHARE_KSCOPE_INIT_PRNG(__FILE__, __LINE__, __COUNTER__)>(obf_const_B_excluded);
+	constexpr uint8_t OBF_CONST_B = obf_const_x<ITHARE_KSCOPE_INIT_PRNG("", UINT32_C(0x2f4a'62ef), UINT32_C(0x830c'edae))>(obf_const_B_excluded);
 	constexpr uint8_t obf_const_C_excluded[2] = { OBF_CONST_A, OBF_CONST_B };
-	constexpr uint8_t OBF_CONST_C = obf_const_x<ITHARE_KSCOPE_INIT_PRNG(__FILE__, __LINE__, __COUNTER__)>(obf_const_C_excluded);
+	constexpr uint8_t OBF_CONST_C = obf_const_x<ITHARE_KSCOPE_INIT_PRNG("", UINT32_C(0x166a'a35e), UINT32_C(0x01f9'3034))>(obf_const_C_excluded);
 	
 	template<class T,ITHARE_KSCOPE_SEEDTPARAM seed,KSCOPECONSTFLAGS flags>
 	constexpr static T obf_random_const(T upper_bound=0) {//has the same signature, BUT potentially different semantics compared to kscope_random_const
