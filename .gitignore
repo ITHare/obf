@@ -1,4 +1,7 @@
-﻿/test/kscope2.txt
+/test/Clang
+/test/MSVC
+
+/test/kscope2.txt
 
 /test/nix/local_kscope.txt
 /test/nix/testapp
@@ -28,5 +31,4 @@
 /test/win/officialtest.exe
 /test/win/chachatest.obj
 /test/win/officialtest/x64/Release
-/test/MSVC
 /test/win/officialtest

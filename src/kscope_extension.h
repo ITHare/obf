@@ -37,6 +37,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #error IF using kscope extension, it MUST be included BEFORE kscope.h. See test/officialtest.cpp for usage example
 #endif
 
+#include <atomic>
 #include "../../kscope/src/impl/kscope_injection.h"
 #include "../../kscope/src/impl/kscope_literal.h"
 #include "impl/obf_anti_debug.h"
@@ -311,11 +312,95 @@ namespace ithare { namespace kscope {//cannot really move it to ithare::obf due 
 #endif
 	};
 	
+	//version last+4: global var-with-invariant
+	template<class T>
+	struct ObfLiteralAdditionalVersion4Descr {
+		static constexpr KscopeDescriptor descr = 
+			KscopeTraits<T>::is_built_in ? //MIGHT be lifted if we adjust maths
+			KscopeDescriptor(10, 100)//10 cycles - TEMPORARY number to test this technique until we reduce the maximum-possible time (in practice, can be MUCH worse due to worst-case MT caching issues)
+			: KscopeDescriptor(nullptr);
+			//TODO: move invariant to thread_local, something else?
+	};
+
+	template<class T, ITHARE_KSCOPE_SEEDTPARAM seed>
+	struct KscopeLiteralContextVersion<ITHARE_KSCOPE_LAST_STOCK_LITERAL+4, T, seed> {
+		static_assert(std::is_integral<T>::value);
+		static_assert(std::is_unsigned<T>::value);
+		constexpr static KSCOPECYCLES context_cycles = ObfLiteralAdditionalVersion4Descr<T>::descr.min_cycles;
+
+		static constexpr T PREMODRNDCONST = obf_random_const<T,ITHARE_KSCOPE_NEW_PRNG(seed, 2),0>();//TODO: check which constants we want here
+		static constexpr T PREMODMASK = (T(1) << (sizeof(T) * 4)) - 1;
+		static constexpr T PREMOD = PREMODRNDCONST & PREMODMASK;
+		static constexpr T MOD = PREMOD == 0 ? 100 : PREMOD;//remapping 'bad value' 0 to 'something'
+		static constexpr T CC = ITHARE_KSCOPE_RANDOM(seed, 2,MOD);
+
+		static constexpr T MAXMUL1 = T(-1)/MOD;
+		static constexpr uint64_t MAXMUL1_ADJUSTED0 = MAXMUL1;// obf_sqrt_very_rough_approximation(MAXMUL1); TODO
+		static_assert(MAXMUL1_ADJUSTED0 < T(-1));
+		static constexpr T MAXMUL1_ADJUSTED = (T)MAXMUL1_ADJUSTED0;
+		static constexpr T MUL1 = MAXMUL1 > 2 ? 1+(ITHARE_KSCOPE_RANDOM_UINT32(seed, 2)%MAXMUL1_ADJUSTED) : 1;//TODO: check if uint32_t is enough
+		static constexpr T DELTA = MUL1 * MOD;
+		static_assert(DELTA / MUL1 == MOD);//overflow check
+
+		static constexpr T MAXMUL2 = T(-1) / DELTA;
+		static constexpr T MUL2 = MAXMUL2 > 2 ? 1+(ITHARE_KSCOPE_RANDOM_UINT32(seed, 3)% MAXMUL2) : 1;//TODO: check if uint32_t is enough
+		static constexpr T DELTAMOD = MUL2 * MOD;
+		static_assert(DELTAMOD / MUL2 == MOD);//overflow check
+
+		static constexpr T PREMUL3 = ITHARE_KSCOPE_RANDOM_UINT32(seed, 4)% MUL2;//TODO: check if uint32_t is enough
+		static constexpr T MUL3 = PREMUL3 > 0 ? PREMUL3 : 1;
+		static constexpr T CC0 = ( CC + MUL3 * MOD ) % DELTAMOD;
+
+		static_assert((CC0 + DELTA) % MOD == CC);
+		static constexpr bool test_n_iterations(T x, int n) {
+			assert(x%MOD == CC);
+			if (n == 0)
+				return true;
+			T newC = (x + DELTA) % DELTAMOD;
+			assert(newC%MOD == CC);
+			return test_n_iterations(newC,n-1);
+		}
+		static_assert(test_n_iterations(CC0, ITHARE_KSCOPE_COMPILE_TIME_TESTS));//test only
+
+		template<ITHARE_KSCOPE_SEEDTPARAM seed2,KSCOPEFLAGS flags>
+		ITHARE_KSCOPE_FORCEINLINE static constexpr T final_injection(T x) {
+			return x + CC;
+		}
+		template<ITHARE_KSCOPE_SEEDTPARAM seed2,KSCOPEFLAGS flags>
+		ITHARE_KSCOPE_FORCEINLINE static constexpr T final_surjection(T y) {
+			if constexpr(flags&kscope_flag_is_constexpr) {
+				return y - CC;
+			}
+			else {
+				//{MT-related:
+				T newC = (c+DELTA)%DELTAMOD;
+				c = newC;
+				//}MT-related
+				assert(c%MOD == CC);
+				return y - (c%MOD);
+			}
+		}
+
+#ifdef ITHARE_KSCOPE_DBG_ENABLE_DBGPRINT
+		static void dbg_print(size_t offset = 0, const char* prefix = "") {
+			std::cout << std::string(offset, ' ') << prefix << "ObfLiteralContext_version<ITHARE_KSCOPE_LAST_STOCK_LITERAL+4="<<(ITHARE_KSCOPE_LAST_STOCK_LITERAL+4)<<"/*global volatile var-with-invariant*/," << kscope_dbg_print_t<T>() << "," << kscope_dbg_print_seed<seed>() << ">: CC=" << kscope_dbg_print_c<T>(CC) << std::endl;
+		}
+#endif
+	private:
+		static std::atomic<T> c;
+	};
+
+	template<class T, ITHARE_KSCOPE_SEEDTPARAM seed>
+	std::atomic<T> KscopeLiteralContextVersion<ITHARE_KSCOPE_LAST_STOCK_LITERAL+4, T, seed>::c = CC0;
+	
+	
 }} //namespace ithare::kscope
 
 #define ITHARE_KSCOPE_ADDITIONAL_LITERAL_DESCRIPTOR_LIST \
 	ObfLiteralAdditionalVersion1Descr::descr,\
-	ObfLiteralAdditionalVersion2Descr::descr
+	ObfLiteralAdditionalVersion2Descr::descr,\
+	ObfLiteralAdditionalVersion3Descr::descr,\
+	ObfLiteralAdditionalVersion4Descr<T>::descr
 		
 
 #endif //ITHARE_KSCOPE_SEED
