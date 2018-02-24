@@ -417,6 +417,7 @@ namespace ithare { namespace kscope {//cannot really move it to ithare::obf due 
 			: c(t)	{
 			}
 		};
+		static_assert(sizeof(StaticData)==obf_cache_line_size);//not really a strict requirement, but very nice to have, and seems to stand
 		static StaticData statdata;
 	};
 
