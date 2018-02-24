@@ -27,5 +27,5 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #release
-gcc -O3 -DNDEBUG -DITHARE_KSCOPE_SEED=1234567 -DITHARE_KSCOPE_DBG_RUNTIME_CHECKS -DITHARE_KSCOPE_ENABLE_AUTO_DBGPRINT=2 -o officialtest -std=c++1z -lstdc++ -DITHARE_KSCOPE_EXTENSION=\"../../obf/src/kscope_extension.h\" ../../../kscope/test/officialtest.cpp ../../../kscope/test/chachatest.cpp
+gcc -O3 -DNDEBUG -DITHARE_KSCOPE_SEED=1234567 -DITHARE_KSCOPE_DBG_RUNTIME_CHECKS -DITHARE_KSCOPE_ENABLE_AUTO_DBGPRINT=2 -o officialtest -std=c++1z -lstdc++ -DITHARE_KSCOPE_EXTENSION=\"../../obf/src/kscope_extension_for_obf.h\" ../../../kscope/test/officialtest.cpp ../../../kscope/test/chachatest.cpp
 

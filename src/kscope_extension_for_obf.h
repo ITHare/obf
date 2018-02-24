@@ -30,8 +30,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 */
 
-#ifndef ithare_obf_kscope_extension_h_included
-#define ithare_obf_kscope_extension_h_included
+#ifndef ithare_obf_kscope_extension_for_obf_h_included
+#define ithare_obf_kscope_extension_for_obf_h_included
 
 #ifdef ithare_kscope_kscope_h_included
 #error IF using kscope extension, it MUST be included BEFORE kscope.h. See test/officialtest.cpp for usage example
@@ -405,4 +405,4 @@ namespace ithare { namespace kscope {//cannot really move it to ithare::obf due 
 
 #endif //ITHARE_KSCOPE_SEED
 
-#endif //ithare_obf_kscope_extension_h_included
+#endif //ithare_obf_kscope_extension_for_obf_h_included
