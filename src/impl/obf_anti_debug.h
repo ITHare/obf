@@ -175,7 +175,6 @@ namespace ithare {
 		static volatile uint32_t zero;
 		
 		ITHARE_KSCOPE_FORCEINLINE static void init() {//TODO/decide: ?should we obfuscate this function itself?
-			zero = 0;
 		}
 		ITHARE_KSCOPE_FORCEINLINE static uint8_t zero_if_not_being_debugged() {
 #ifdef ITHARE_OBF_DEBUG_ANTI_DEBUG_ALWAYS_FALSE
@@ -187,7 +186,7 @@ namespace ithare {
 	};
 	
 	template<class Dummy>
-	volatile uint32_t ObfNaiveSystemSpecific<Dummy>::zero = 1;//to be owerwritten in init()	
+	volatile uint32_t ObfNaiveSystemSpecific<Dummy>::zero = 0;
 	
 #endif // unrecognized platform		
 
