@@ -251,7 +251,7 @@ namespace ithare { namespace kscope {//cannot really move it to ithare::obf due 
 
 	//version last+2: Naive System-Dependent Anti-Debugging
 	struct ObfLiteralAdditionalVersion2Descr {//NB: to ensure 100%-compatible generation across platforms, probabilities MUST NOT depend on the platform, directly or indirectly
-#if defined(ITHARE_OBF_INIT) && !defined(ITHARE_OBF_NO_ANTI_DEBUG) && !defined(ITHARE_OBF_NO_IMPLICIT_ANTI_DEBUG)
+#if !defined(ITHARE_OBF_NO_ANTI_DEBUG) && !defined(ITHARE_OBF_NO_IMPLICIT_ANTI_DEBUG)
 		static constexpr KscopeDescriptor descr = KscopeDescriptor(10, 100);
 #else
 		static constexpr KscopeDescriptor descr = KscopeDescriptor(nullptr);
@@ -285,7 +285,7 @@ namespace ithare { namespace kscope {//cannot really move it to ithare::obf due 
 	
 	//version last+3: Time-Based Anti-Debugging
 	struct ObfLiteralAdditionalVersion3Descr {//NB: to ensure 100%-compatible generation across platforms, probabilities MUST NOT depend on the platform, directly or indirectly
-#if defined(ITHARE_OBF_INIT) && !defined(ITHARE_OBF_NO_ANTI_DEBUG) && !defined(ITHARE_OBF_NO_IMPLICIT_ANTI_DEBUG)
+#if !defined(ITHARE_OBF_NO_ANTI_DEBUG) && !defined(ITHARE_OBF_NO_IMPLICIT_ANTI_DEBUG)
 		static constexpr KscopeDescriptor descr = KscopeDescriptor(15, 100);//may involve reading from std::atomic<>
 #else
 		static constexpr KscopeDescriptor descr = KscopeDescriptor(nullptr);
@@ -431,8 +431,32 @@ namespace ithare { namespace kscope {//cannot really move it to ithare::obf due 
 	ObfLiteralAdditionalVersion2Descr::descr,\
 	ObfLiteralAdditionalVersion3Descr::descr,\
 	ObfLiteralAdditionalVersion4Descr<T>::descr
-		
+
+//TODO: move to some other file?
+namespace ithare { namespace obf {
+ITHARE_KSCOPE_FORCEINLINE void obf_init() {
+	//obf_init() is intended to be perfectly safe to be called more than once, 
+	//  and is _hopefully_ safe to be called from multiple threads, though the latter is quite difficult to guarantee under all the platforms 
+	//unless ITHARE_OBF_NO_AUTO_INIT is defined, 
+	//  obf_init() is called automagically in ObfAutoInit() constructor
+	//  for those objects which are accessed BEFORE ObfAutoInit() constructor is called - they're supposed to be safe (though lacking stuff such as naive anti-debug during such pre-init uses)
+	obf_init_anti_debug();
+}
+	
+#ifndef ITHARE_OBF_NO_AUTO_INIT
+class ObfAutoInit {
+	public:
+	ObfAutoInit() {
+		obf_init();
+	}
+};
+
+inline ObfAutoInit obf_auto_init;//there are reports that it will be called multiple times under MSVC, but we don't care TOO much
+#endif	
+}};//namespace ithare::obf
 
 #endif //ITHARE_KSCOPE_SEED
+
+
 
 #endif //ithare_obf_kscope_extension_for_obf_h_included

@@ -38,8 +38,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #if defined(ITHARE_KSCOPE_SEED) && !defined(ITHARE_OBF_NO_ANTI_DEBUG)
 
-namespace ithare {
-	namespace obf {
+namespace ithare { namespace obf {
 
 /* ************** NAIVE SYSTEM-SPECIFIC **************** */
 
@@ -249,7 +248,6 @@ struct ObfNonBlockingCodeStaticData {
 template<class Dummy>
 std::atomic<uint32_t> ObfNonBlockingCodeStaticData<Dummy>::violation_count = 0;
 
-
 class ObfNonBlockingCode {
 	//MUST be used ONLY on-stack
 	//MUST NOT be used over potentially-lengthy operations such as ANY over-the-network operations   
@@ -276,8 +274,11 @@ class ObfNonBlockingCode {
 	static void* operator new[](size_t) = delete;
 };
 
-  }//namespace obf
-}//namespace ithare
+ITHARE_KSCOPE_FORCEINLINE void obf_init_anti_debug() {
+	ObfNaiveSystemSpecific<void>::init();
+}
+
+}}//namespace ithare::obf
 
 #undef ITHARE_OBF_TIME_TYPE
 #undef ITHARE_OBF_TIME_NOW
@@ -313,16 +314,19 @@ class ObfNonBlockingCode {//to be used ONLY on-stack
 	static void* operator new[](size_t) = delete;
 };
 
-	template<class Dummy>
-	struct ObfNonBlockingCodeStaticData {
+template<class Dummy>
+struct ObfNonBlockingCodeStaticData {
 
-		ITHARE_KSCOPE_FORCEINLINE static uint32_t zero_if_not_being_debugged() {
-			return 0;
-		}
-	};
+	ITHARE_KSCOPE_FORCEINLINE static uint32_t zero_if_not_being_debugged() {
+		return 0;
+	}
+};
+	
+ITHARE_KSCOPE_FORCEINLINE void obf_init_anti_debug() {
+	ObfNaiveSystemSpecific<void>::init();
+}
 
-  }//namespace obf
-}//namespace ithare
+}}//namespace ithare::obf
 
 #endif //ITHARE_KSCOPE_SEED && !ITHARE_OBF_NO_ANTI_DEBUG
 
