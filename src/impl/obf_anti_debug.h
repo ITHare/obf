@@ -36,9 +36,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //NOT intended to be #included directly
 //  #include ../obf.h instead
 
-#if defined(ITHARE_OBF_SEED) && !defined(ITHARE_OBF_NO_ANTI_DEBUG)
-
-#include "../../kscope/src/kscope.h"
+#if defined(ITHARE_KSCOPE_SEED) && !defined(ITHARE_OBF_NO_ANTI_DEBUG)
 
 namespace ithare {
 	namespace obf {
@@ -56,6 +54,7 @@ namespace ithare {
 	//moving globals into header (along the lines of https://stackoverflow.com/a/27070265)
 	template<class Dummy>
 	struct ObfNaiveSystemSpecific {
+		static volatile uint8_t pre_init_peb_stub[3];//we do want to allow working before init() is called, but DON'T want to check for obf_peb==nullptr in zero_if_not_being_debugged(), so have to provide stub to be used pre-init
 		static volatile uint8_t* obf_peb;
 		
 		ITHARE_KSCOPE_FORCEINLINE static void init() {//TODO/decide: ?should we obfuscate this function itself?
@@ -78,7 +77,9 @@ namespace ithare {
 	};
 
 	template<class Dummy>
-	volatile uint8_t* ObfNaiveSystemSpecific<Dummy>::obf_peb = nullptr;
+	volatile uint8_t ObfNaiveSystemSpecific<Dummy>::pre_init_peb_stub[3] = {0,0,0};
+	template<class Dummy>
+	volatile uint8_t* ObfNaiveSystemSpecific<Dummy>::obf_peb = pre_init_peb_stub;
 
 //_WIN32
 #elif defined(__APPLE_CC__)
@@ -198,7 +199,7 @@ namespace ithare {
 		if (test > x)
 			return i;
 	}
-	ITHARE_OBF_CONSTEXPR_ASSERT_UNREACHABLE;
+	ITHARE_KSCOPE_CONSTEXPR_ASSERT_UNREACHABLE;
 	return 63;
 }
 
@@ -283,7 +284,7 @@ class ObfNonBlockingCode {
 #undef ITHARE_OBF_TIME_NOW
 #undef ITHARE_OBF_TIME_NON_BLOCKING_THRESHOLD
 
-#else //ITHARE_OBF_SEED && !ITHARE_OBF_NO_ANTI_DEBUG
+#else //ITHARE_KSCOPE_SEED && !ITHARE_OBF_NO_ANTI_DEBUG
 namespace ithare {
 	namespace obf {
 		
@@ -324,6 +325,6 @@ class ObfNonBlockingCode {//to be used ONLY on-stack
   }//namespace obf
 }//namespace ithare
 
-#endif //ITHARE_OBF_SEED && !ITHARE_OBF_NO_ANTI_DEBUG
+#endif //ITHARE_KSCOPE_SEED && !ITHARE_OBF_NO_ANTI_DEBUG
 
 #endif //ithare_obf_anti_debug_h_included
