@@ -147,7 +147,7 @@ namespace ithare {
 			}
 		}
 		
-		ITHARE_OBF_FORCEINLINE static uint8_t zero_if_not_being_debugged() {
+		ITHARE_KSCOPE_FORCEINLINE static uint8_t zero_if_not_being_debugged() {
 #ifdef ITHARE_OBF_DEBUG_ANTI_DEBUG_ALWAYS_FALSE
 			return 0;
 #else
