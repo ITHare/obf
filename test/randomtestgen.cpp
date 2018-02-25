@@ -39,7 +39,17 @@ class ObfTestEnvironment : public KscopeTestEnvironment {
 	public:
 	virtual std::string testSrcFolder() { return  srcDirPrefix + "../../../kscope/test/"; }
 	virtual std::string alwaysDefine() {//relative to kscope/test
-		return "-DITHARE_OBF_INIT -DITHARE_KSCOPE_EXTENSION=\"../../obf/src/kscope_extension_for_obf.h\"";
+#ifdef __GNUC__ //includes clang
+#ifdef __apple_build_version__
+		return "-DITHARE_OBF_INIT -DITHARE_KSCOPE_EXTENSION=\"../../obf/src/kscope_extension_for_obf.h\"";//no -latomic needed or possible for Apple Clang
+#else
+		return "-DITHARE_OBF_INIT -DITHARE_KSCOPE_EXTENSION=\"../../obf/src/kscope_extension_for_obf.h\" -latomic";
+#endif
+#elif defined(_MSC_VER)
+		return "/DITHARE_OBF_INIT /DITHARE_KSCOPE_EXTENSION=\"../../obf/src/kscope_extension_for_obf.h\"";
+#else
+#error
+#endif
 	}	
 };
 
