@@ -37,8 +37,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 class ObfTestEnvironment : public KscopeTestEnvironment {
 	public:
-	virtual std::string testSrcFolder() { return  srcDirPrefix + "../../../kscope/test/"; }
-	virtual std::string alwaysDefine() {//relative to kscope/test
+	virtual std::string testSrcFolder() override { return  srcDirPrefix + "../../../kscope/test/"; }
+	virtual std::string alwaysDefine() override {//relative to kscope/test
 #ifdef __GNUC__ //includes clang
 #ifdef __apple_build_version__
 		return "-DITHARE_KSCOPE_TEST_EXTENSION=\"../../obf/src/kscope_extension_for_obf.h\"";//no -latomic needed or possible for Apple Clang
@@ -50,7 +50,16 @@ class ObfTestEnvironment : public KscopeTestEnvironment {
 #else
 #error
 #endif
-	}	
+	}
+	
+#if defined(__APPLE_CC__) || defined(__linux__)
+	virtual std::string checkExe(int nseeds) override {//very weak heuristics, but still better than nothing
+		bool obfuscated = nseeds != 0;
+		std::string cmp = std::string("strings testapp | grep Negative");//referring to string "Negative value of factorial()" 
+		//return cmp + "\n" + exitCheck(cmp,!obfuscated);
+		return "";//TODO! - reinstate
+	}
+#endif //nothing for Windows at the moment, sorry :-(
 };
 
 int main(int argc, char** argv) {
@@ -58,9 +67,3 @@ int main(int argc, char** argv) {
 	KscopeTestGenerator kgen(kenv);
 	return almost_main(kenv,kgen,argc,argv);
 }
-
-/* TODO: reisntate std::string checkObfuscation(bool obfuscated) {//very weak heuristics, but still better than nothing
-	std::string ret = std::string("strings obftemp | grep Negative");//referring to string "Negative value of factorial()" 
-	return ret + "\n" + exitCheck(ret,!obfuscated);
-} - via checkExe (TODO/kscope: remove Flags field entirely and replace flags with nseeds for checkExe())
-* */
