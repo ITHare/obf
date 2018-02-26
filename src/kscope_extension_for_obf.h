@@ -95,11 +95,11 @@ namespace ithare { namespace kscope {//cannot really move it to ithare::obf due 
 			candidates[n++] = OBF_CONST_B;
 		if(!upper_bound || OBF_CONST_C < upper_bound)
 			candidates[n++] = OBF_CONST_C;
-		if(flags&kscope_const_zero_ok) {
+		if((flags&kscope_const_zero_ok)!=0) {
 			assert( !(flags&kscope_const_odd_only) );
 			candidates[n++] = 0;
 		}
-		if(flags&kscope_const_one_ok)
+		if((flags&kscope_const_one_ok)!=0)
 			candidates[n++] = 1;
 
 		assert(n>0);
