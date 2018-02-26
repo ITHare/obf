@@ -454,7 +454,7 @@ namespace ithare { namespace kscope {//cannot really move it to ithare::obf due 
 
 #ifdef ITHARE_KSCOPE_DBG_ENABLE_DBGPRINT
 		static void dbg_print(size_t offset = 0, const char* prefix = "") {
-			std::cout << std::string(offset, ' ') << prefix << "KscopeLiteralContextVersion<ITHARE_KSCOPE_LAST_STOCK_LITERAL+4="<<(ITHARE_KSCOPE_LAST_STOCK_LITERAL+4)<<"/*global volatile var-with-invariant*/," << kscope_dbg_print_t<T>() << "," << kscope_dbg_print_seed<seed>() << ">: CC=" << kscope_dbg_print_c<T>(CC) << std::endl;
+			std::cout << std::string(offset, ' ') << prefix << "KscopeLiteralContextVersion<ITHARE_KSCOPE_LAST_STOCK_LITERAL+4="<<(ITHARE_KSCOPE_LAST_STOCK_LITERAL+4)<<"/*global var-with-invariant*/," << kscope_dbg_print_t<T>() << "," << kscope_dbg_print_seed<seed>() << ">: CC=" << kscope_dbg_print_c<T>(CC) << std::endl;
 		}
 #endif
 	private:
