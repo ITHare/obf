@@ -40,6 +40,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <atomic>
 #include "../../kscope/src/impl/kscope_injection.h"
 #include "../../kscope/src/impl/kscope_literal.h"
+#include "../../kscope/src/impl/kscope_context.h"
 #include "impl/obf_anti_debug.h"
 
 #ifdef ITHARE_KSCOPE_SEED
@@ -157,7 +158,7 @@ namespace ithare { namespace kscope {//cannot really move it to ithare::obf due 
 		static constexpr KSCOPECYCLES cycles_loCtx = splitCyclesLo.arr[0];
 		static constexpr KSCOPECYCLES cycles_loInj = splitCyclesLo.arr[1];
 		static_assert(cycles_loCtx + cycles_loInj <= cycles_lo);
-		using LoContext = typename KscopeRecursiveContext < halfT, Context, ITHARE_KSCOPE_NEW_PRNG(seed, 4), cycles_loCtx>::intermediate_context_type;
+		using LoContext = typename Context::template intermediate_context_type< halfT, ITHARE_KSCOPE_NEW_PRNG(seed, 4), cycles_loCtx>;
 		using LoInjection = KscopeInjection<halfT, LoContext,  LoInjectionRequirements,ITHARE_KSCOPE_NEW_PRNG(seed, 5), cycles_loInj + LoContext::context_cycles>;
 		static_assert(sizeof(typename LoInjection::return_type) == sizeof(halfT));//only_bijections
 
@@ -244,7 +245,7 @@ namespace ithare { namespace kscope {//cannot really move it to ithare::obf due 
 		}
 #ifdef ITHARE_KSCOPE_DBG_ENABLE_DBGPRINT
 		static void dbg_print(size_t offset = 0, const char* prefix = "") {
-			std::cout << std::string(offset, ' ') << prefix << "KscopeLiteralContext_version<ITHARE_KSCOPE_LAST_STOCK_LITERAL+1="<< (ITHARE_KSCOPE_LAST_STOCK_LITERAL+1) <<"/*func with aliased pointers*/," << kscope_dbg_print_t<T>() << "," << kscope_dbg_print_seed<seed>() << ">:" << std::endl;
+			std::cout << std::string(offset, ' ') << prefix << "KscopeLiteralContextVersion<ITHARE_KSCOPE_LAST_STOCK_LITERAL+1="<< (ITHARE_KSCOPE_LAST_STOCK_LITERAL+1) <<"/*func with aliased pointers*/," << kscope_dbg_print_t<T>() << "," << kscope_dbg_print_seed<seed>() << ">:" << std::endl;
 		}
 #endif
 	};
@@ -403,7 +404,7 @@ namespace ithare { namespace kscope {//cannot really move it to ithare::obf due 
 
 #ifdef ITHARE_KSCOPE_DBG_ENABLE_DBGPRINT
 		static void dbg_print(size_t offset = 0, const char* prefix = "") {
-			std::cout << std::string(offset, ' ') << prefix << "ObfLiteralContext_version<ITHARE_KSCOPE_LAST_STOCK_LITERAL+4="<<(ITHARE_KSCOPE_LAST_STOCK_LITERAL+4)<<"/*global volatile var-with-invariant*/," << kscope_dbg_print_t<T>() << "," << kscope_dbg_print_seed<seed>() << ">: CC=" << kscope_dbg_print_c<T>(CC) << std::endl;
+			std::cout << std::string(offset, ' ') << prefix << "KscopeLiteralContextVersion<ITHARE_KSCOPE_LAST_STOCK_LITERAL+4="<<(ITHARE_KSCOPE_LAST_STOCK_LITERAL+4)<<"/*global volatile var-with-invariant*/," << kscope_dbg_print_t<T>() << "," << kscope_dbg_print_seed<seed>() << ">: CC=" << kscope_dbg_print_c<T>(CC) << std::endl;
 		}
 #endif
 	private:
@@ -424,13 +425,61 @@ namespace ithare { namespace kscope {//cannot really move it to ithare::obf due 
 	template<class T, ITHARE_KSCOPE_SEEDTPARAM seed>
 	alignas(obf_cache_line_size) typename KscopeLiteralContextVersion<ITHARE_KSCOPE_LAST_STOCK_LITERAL+4, T, seed>::StaticData KscopeLiteralContextVersion<ITHARE_KSCOPE_LAST_STOCK_LITERAL+4, T, seed>::statdata = {CC0};
 	
-}} //namespace ithare::kscope
 
 #define ITHARE_KSCOPE_ADDITIONAL_LITERAL_DESCRIPTOR_LIST \
 	ObfLiteralAdditionalVersion1Descr::descr,\
 	ObfLiteralAdditionalVersion2Descr::descr,\
 	ObfLiteralAdditionalVersion3Descr::descr,\
 	ObfLiteralAdditionalVersion4Descr<T>::descr
+		
+	template<class T>
+	struct ObfZeroLiteralContext : public KscopeZeroLiteralContext<T> {
+			template<class T2,ITHARE_KSCOPE_SEEDTPARAM seed2,KSCOPECONSTFLAGS flags2>
+			constexpr static T2 random_const(T2 upper_bound=0) {
+				return obf_random_const<T2,seed2,flags2>(upper_bound);
+			}
+		template<class T2,ITHARE_KSCOPE_SEEDTPARAM seed2,KSCOPECYCLES cycles2>
+		using recursive_context_type = ObfZeroLiteralContext<T2>;
+		template<class T2,ITHARE_KSCOPE_SEEDTPARAM seed2,KSCOPECYCLES cycles2>
+		using intermediate_context_type = ObfZeroLiteralContext<T2>;
+		};
+	#define ITHARE_KSCOPE_ZERO_LITERAL_CONTEXT ObfZeroLiteralContext  
+
+	template<class T, ITHARE_KSCOPE_SEEDTPARAM seed,KSCOPECYCLES cycles>
+	struct ObfIntVarContext : public KscopeIntVarContext<T,seed,cycles> {
+			template<class T2,ITHARE_KSCOPE_SEEDTPARAM seed2,KSCOPECONSTFLAGS flags2>
+			constexpr static T2 random_const(T2 upper_bound=0) {
+				return obf_random_const<T2,seed2,flags2>(upper_bound);
+			}
+		template<class T2,ITHARE_KSCOPE_SEEDTPARAM seed2,KSCOPECYCLES cycles2>
+		using recursive_context_type = ObfIntVarContext<T2,seed2,cycles2>;//TODO:COMBINED
+		template<class T2,ITHARE_KSCOPE_SEEDTPARAM seed2,KSCOPECYCLES cycles2>
+		using intermediate_context_type = ObfIntVarContext<T2,seed2,cycles2>;//TODO:COMBINED
+		};
+	#define ITHARE_KSCOPE_INTVAR_CONTEXT ObfIntVarContext
+
+	template<class T>
+	struct ObfExtendedLiteralContextDescr {
+		constexpr static KscopeDescriptor descr[] = {
+			ITHARE_KSCOPE_STOCK_LITERAL_DESCRIPTOR_LIST
+			ITHARE_KSCOPE_ADDITIONAL_LITERAL_DESCRIPTOR_LIST
+		};
+	}; 
+	
+	template<class T, ITHARE_KSCOPE_SEEDTPARAM seed, KSCOPECYCLES cycles>
+	struct ObfExtendedLiteralContext : public KscopeExtensibleLiteralContext<ObfExtendedLiteralContextDescr<T>,T,seed,cycles> {
+		template<class T2,ITHARE_KSCOPE_SEEDTPARAM seed2,KSCOPECONSTFLAGS flags2>
+		constexpr static T2 random_const(T2 upper_bound=0) {
+			return obf_random_const<T2,seed2,flags2>(upper_bound);
+		}
+		template<class T2,ITHARE_KSCOPE_SEEDTPARAM seed2,KSCOPECYCLES cycles2>
+		using recursive_context_type = ObfExtendedLiteralContext<T2, ITHARE_KSCOPE_NEW_PRNG(seed2, 1),cycles2>;
+		template<class T2,ITHARE_KSCOPE_SEEDTPARAM seed2,KSCOPECYCLES cycles2>
+		using intermediate_context_type = typename ithare::kscope::ObfExtendedLiteralContext<T2, ITHARE_KSCOPE_NEW_PRNG(seed2, 2), cycles2>;//whenever cycles is low (which is very often), will fallback to version0
+	};
+	#define ITHARE_KSCOPE_LITERAL_CONTEXT ObfExtendedLiteralContext
+
+}} //namespace ithare::kscope
 
 //TODO: move to some other file?
 namespace ithare { namespace obf {
