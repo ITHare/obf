@@ -53,11 +53,14 @@ class ObfTestEnvironment : public KscopeTestEnvironment {
 	}
 	
 #if defined(__APPLE_CC__) || defined(__linux__)
-	virtual std::string checkExe(int nseeds) override {//very weak heuristics, but still better than nothing
+	virtual std::string checkExe(int nseeds,Flags flags) override {//very weak heuristics, but still better than nothing
 		bool obfuscated = nseeds != 0;
-		std::string cmp = std::string("strings testapp | grep Negative");//referring to string "Negative value of factorial()" 
-		//return cmp + "\n" + exitCheck(cmp,!obfuscated);
-		return "";//TODO! - reinstate
+		std::string cmp = std::string("strings testapp | grep \"Negative argument\"");//referring to string "Negative argument to factorial()" 
+		if(flags&flag_auto_dbg_print) {//result is unclear
+			return cmp;
+		}
+		else
+			return cmp + "\n" + exitCheck(cmp,!obfuscated);
 	}
 #endif //nothing for Windows at the moment, sorry :-(
 };
