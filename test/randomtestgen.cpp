@@ -58,3 +58,9 @@ int main(int argc, char** argv) {
 	KscopeTestGenerator kgen(kenv);
 	return almost_main(kenv,kgen,argc,argv);
 }
+
+/* TODO: reisntate std::string checkObfuscation(bool obfuscated) {//very weak heuristics, but still better than nothing
+	std::string ret = std::string("strings obftemp | grep Negative");//referring to string "Negative value of factorial()" 
+	return ret + "\n" + exitCheck(ret,!obfuscated);
+} - via checkExe (TODO/kscope: remove Flags field entirely and replace flags with nseeds for checkExe())
+* */

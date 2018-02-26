@@ -83,11 +83,10 @@ namespace ithare { namespace kscope {//cannot really move it to ithare::obf due 
 	constexpr uint8_t OBF_CONST_C = obf_const_x<ITHARE_KSCOPE_INIT_PRNG("", UINT32_C(0x166a'a35e), UINT32_C(0x01f9'3034))>(obf_const_C_excluded);
 	
 	template<class T,ITHARE_KSCOPE_SEEDTPARAM seed,KSCOPECONSTFLAGS flags>
-	constexpr static T obf_random_const(T upper_bound=0) {//has the same signature, BUT potentially different semantics compared to kscope_random_const
+	constexpr static T obf_random_const(T upper_bound=0) {//has the same signature, BUT may return potentially different values compared to kscope_random_const
 #ifdef ITHARE_OBF_NO_MINIMIZING_CONSTANTS
 		return kscope_random_const<T,seed,flags>(upper_bound);
 #else
-		//using TT = typename KscopeTraits<T>::construct_from_type;
 		uint8_t candidates[5] = {};
 		size_t n = 0;
 		if(!upper_bound || OBF_CONST_A < upper_bound)
@@ -204,6 +203,57 @@ namespace ithare { namespace kscope {//cannot really move it to ithare::obf due 
 		}
 #endif
 	};
+
+	#if 0 //COMMENTED OUT - LOOKS RATHER OBVIOUS IN DECOMPILE :-(; if using - rename into last+something and adjust for current style
+	//version ?: 1-bit rotation 
+	template<class Context>
+	struct obf_injection_version7_descr {
+		static constexpr OBFCYCLES own_min_injection_cycles = 5;//relying on compiler generating cmovns etc.
+		static constexpr OBFCYCLES own_min_surjection_cycles = 5;//relying on compiler generating cmovns etc.
+		static constexpr OBFCYCLES own_min_cycles = Context::context_cycles + Context::calc_cycles(own_min_injection_cycles, own_min_surjection_cycles);
+		static constexpr ObfDescriptor descr = ObfDescriptor(true, own_min_cycles, 100);
+	};
+
+	template <class T, class Context, ITHARE_OBF_SEEDTPARAM seed, OBFCYCLES cycles>
+	class obf_injection_version<7, T, Context, seed, cycles> {
+		static_assert(std::is_integral<T>::value);
+		static_assert(std::is_unsigned<T>::value);
+	public:
+		static constexpr OBFCYCLES availCycles = cycles - obf_injection_version7_descr<Context>::own_min_cycles;
+		static_assert(availCycles >= 0);
+
+		using RecursiveInjection = obf_injection<T, Context, RecursiveInjectionRequirements,ITHARE_OBF_NEW_PRNG(seed, 1), availCycles + Context::context_cycles>;
+		using return_type = typename RecursiveInjection::return_type;
+		using ST = typename std::make_signed<T>::type;
+		static constexpr T highbit = T(1) << (ObfTraits<T>::nbits - 1);
+		template<ITHARE_OBF_SEEDTPARAM seed2>
+		ITHARE_OBF_FORCEINLINE constexpr static return_type injection(T x) {
+			ITHARE_OBF_DECLAREPRNG_INFUNC seedc = ITHARE_OBF_COMBINED_PRNG(seed,seed2);
+			if ((x % 2) == 0)
+				x = x >> 1;
+			else
+				x = ( x >> 1 ) + highbit;
+			return RecursiveInjection::template injection<seedc>(x);
+		}
+		template<ITHARE_OBF_SEEDTPARAM seed2>
+		ITHARE_OBF_FORCEINLINE constexpr static T surjection(return_type y) {
+			ITHARE_OBF_DECLAREPRNG_INFUNC seedc = ITHARE_OBF_COMBINED_PRNG(seed,seed2);
+			T yy = RecursiveInjection::template surjection<seedc>(y);
+			ST syy = ST(yy);
+			if (syy < 0)
+				return yy + yy + 1;
+			else
+				return yy+yy;
+		}
+
+#ifdef ITHARE_OBF_DBG_ENABLE_DBGPRINT
+		static void dbgPrint(size_t offset = 0, const char* prefix = "") {
+			std::cout << std::string(offset, ' ') << prefix << "obf_injection_version<7/*1-bit rotation*/," << obf_dbgPrintT<T>() << "," << obf_dbgPrintSeed<seed>() << "," << cycles << ">" << std::endl;
+			RecursiveInjection::dbgPrint(offset + 1);
+		}
+#endif
+	};
+#endif//#if 0
 
 }} //namespace ithare::kscope
 	
