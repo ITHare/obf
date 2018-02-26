@@ -1,6 +1,3 @@
-/test/Clang
-/test/MSVC
-
 /test/kscope2.txt
 
 /test/nix/local_kscope.txt
