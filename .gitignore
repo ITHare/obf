@@ -29,3 +29,7 @@
 /test/win/chachatest.obj
 /test/win/officialtest/x64/Release
 /test/win/officialtest
+/test/win/randomtest.exe
+/test/win/randomtest.pdb
+/test/win/randomtest.ilk
+/test/win/randomtest-obf.exe

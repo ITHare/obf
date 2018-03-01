@@ -38,7 +38,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 class ObfTestEnvironment : public KscopeTestEnvironment {
 	public:
 	virtual std::string testSrcFolder() override { return  srcDirPrefix + "../../../kscope/test/"; }
-	virtual std::string alwaysDefine() override {//relative to kscope/test
+	virtual std::string alwaysDefine() override {
+	
+	//path is relative to kscope/test
 #ifdef __GNUC__ //includes clang
 #ifdef __apple_build_version__
 		return "-DITHARE_KSCOPE_TEST_EXTENSION=\"../../obf/src/kscope_extension_for_obf.h\"";//no -latomic needed or possible for Apple Clang
@@ -53,20 +55,41 @@ class ObfTestEnvironment : public KscopeTestEnvironment {
 	}
 	
 #if defined(__APPLE_CC__) || defined(__linux__)
-	virtual std::string checkExe(int nseeds,Flags flags) override {//very weak heuristics, but still better than nothing
+	virtual std::string checkExe(int nseeds,Flags flags) override {
 		bool obfuscated = nseeds != 0;
+
+		//automated check: very weak heuristics, but still better than nothing
 		std::string cmp = std::string("strings testapp | grep \"Negative argument\"");//referring to string "Negative argument to factorial()" 
 		if(flags&flag_auto_dbg_print) {//result is unclear
 			return cmp;
 		}
-		else
-			return cmp + "\n" + exitCheck(cmp,!obfuscated);
+		else {
+			cmp += "\n" + exitCheck(cmp, !obfuscated);
+			if (obfuscated) {
+				std::string cp = "cp randomtest randomtest-obf";
+				cmp += "\n" + cp + "\n" + exitCheck(cp);
+			}
+			return cmp;
+		}
 	}
-#endif //nothing for Windows at the moment, sorry :-(
+#elif defined(_MSC_VER)
+	virtual std::string checkExe(int nseeds, config cfg, Flags flags) override {
+		bool obfuscated = nseeds != 0;
+		//no automated check for Windows at the moment :-(
+		if ((flags&flag_auto_dbg_print)==0 && obfuscated & cfg==config::release) {
+			//copying for automated check
+			std::string cp = "copy randomtest.exe randomtest-obf.exe";
+			cp += "\n" + exitCheck(cp);
+			return cp;
+		}
+		return "";
+	}
+
+#endif
 };
 
 int main(int argc, char** argv) {
-	ObfTestEnvironment kenv;
-	KscopeTestGenerator kgen(kenv);
-	return almost_main(kenv,kgen,argc,argv);
+	ObfTestEnvironment oenv;
+	KscopeTestGenerator kgen(oenv);
+	return almost_main(oenv,kgen,argc,argv);
 }
