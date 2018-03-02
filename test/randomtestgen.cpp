@@ -88,8 +88,16 @@ class ObfTestEnvironment : public KscopeTestEnvironment {
 #endif
 };
 
+class ObfTestGenerator : public KscopeTestGenerator {
+	public:
+	using KscopeTestGenerator::KscopeTestGenerator;//inheriting
+	virtual std::string project_name() override {
+		return "obf";
+	}
+};
+
 int main(int argc, char** argv) {
 	ObfTestEnvironment oenv;
-	KscopeTestGenerator kgen(oenv);
-	return almost_main(oenv,kgen,argc,argv);
+	ObfTestGenerator ogen(oenv);
+	return almost_main(oenv,ogen,argc,argv);
 }
