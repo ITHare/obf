@@ -1,4 +1,4 @@
-#!/bin/sh
+# no shebang - don't want to change current shell 
 
 # Copyright (c) 2018, ITHare.com
 # All rights reserved.
@@ -28,6 +28,14 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+gen_sh=""
+if [ -z ${BASH_VERSINFO[0]} ]; then
+gen_sh="-gen_sh"
+fi
+if [ ${BASH_VERSINFO[0]} -lt 4 ]; then
+gen_sh="-gen_sh"
+fi
+
 nn=1024
 if [ $# -gt 0 ]; then
   nn=$1
@@ -40,7 +48,7 @@ if [ ! $? -eq 0 ]; then
   exit 1
 fi
 
-./randomtestgen -add32tests $nn >generatedrandomtest.sh
+./randomtestgen -add32tests $gen_sh $nn >generatedrandomtest.sh
 if [ ! $? -eq 0 ]; then
   exit 1
 fi
