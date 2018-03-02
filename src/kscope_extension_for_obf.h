@@ -552,7 +552,7 @@ class ObfAutoInit {
 
 inline ObfAutoInit obf_auto_init;//there are reports that it will be called multiple times under MSVC, but we don't care TOO much
 #endif	
-}};//namespace ithare::obf
+}} //namespace ithare::obf
 
 #endif //ITHARE_KSCOPE_SEED
 
