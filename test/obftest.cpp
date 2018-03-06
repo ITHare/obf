@@ -66,21 +66,6 @@ ITHARE_OBF_NOINLINE OBFI6(uint64_t) factorial(OBFI6(int64_t) x) {
 	return ret;
 }
 
-/*
-class Benchmark {
-	std::chrono::high_resolution_clock::time_point start;
-
-public:
-	Benchmark() {
-		start = std::chrono::high_resolution_clock::now();
-	}
-	int64_t us() {
-		auto stop = std::chrono::high_resolution_clock::now();
-		auto length = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
-		return (int64_t)length.count();
-	}
-};*/
-
 #define NBENCH 1000
 
 #ifdef __GNUC__ //warnings in lest.hpp - can only disable :-(
@@ -105,65 +90,11 @@ const lest::test module[] = {
 		EXPECT( factorial(20) == UINT64_C(2432902008176640000));
 		EXPECT( factorial(21) == UINT64_C(14197454024290336768));//with wrap-around(!)
 	},
-	/*
-	CASE("benchmarks") {
-#if !defined(ITHARE_OBF_ENABLE_AUTO_DBGPRINT) || ITHARE_OBF_ENABLE_AUTO_DBGPRINT == 2//excluding platform-specific stuff to avoid spurious changes to obftemp.txt with -DITHARE_OBF_ENABLE_AUTO_DBGPRINT
-		{
-			Benchmark bm0;
-			for (size_t i = 0; i < NBENCH; ++i) {
-				uint8_t inp[16] = { 0 };
-				uint8_t out[16] = { 0 };
-				test_chacha_cipher0(inp, out);
-			}
-			std::cout << "chacha_cipher():" << ( bm0.us() * 1000 / NBENCH ) << " nanoseconds" << std::endl; 
-		}
-		{
-			Benchmark bm1;
-			for (size_t i = 0; i < NBENCH; ++i) {
-				uint8_t inp[16] = { 0 };
-				uint8_t out[16] = { 0 };
-				test_chacha_cipher1(inp, out);
-			}
-			std::cout << "OBF3(chacha_cipher)():" << (bm1.us() * 1000 / NBENCH) << " nanoseconds" << std::endl;
-		}
-		{
-			Benchmark bmrfc;
-			for (size_t i = 0; i < NBENCH; ++i) {
-				uint8_t inp[16] = { 0 };
-				uint8_t out[16] = { 0 };
-				test_chacha_cipher_rfc(inp, out);
-			}
-			std::cout << "OBF4(chacha_cipher)():" << (bmrfc.us() * 1000 / NBENCH) << " nanoseconds" << std::endl;
-		}
-#endif
-	}*/
 };
 
-/*
+/* TODO - a test case out of it
 int main(int argc, char** argv) {
-#if !defined(ITHARE_OBF_ENABLE_AUTO_DBGPRINT) || ITHARE_OBF_ENABLE_AUTO_DBGPRINT == 2//excluding platform-specific stuff to avoid spurious changes to obftemp.txt with -DITHARE_OBF_ENABLE_AUTO_DBGPRINT
-		std::cout << "__cplusplus=" << __cplusplus << std::endl;
-#ifdef _MSC_VER
-		std::cout << "_MSC_VER=" << _MSC_VER << " _MSC_FULL_VER=" << _MSC_FULL_VER << " _MSC_BUILD=" << _MSC_BUILD << std::endl;
-#endif
-#ifdef __GNUC__
-		std::cout << "__GNUC__=" << __GNUC__ << " __GNUC_MINOR__=" << __GNUC_MINOR__ << " __GNUC_PATCHLEVEL__=" << __GNUC_PATCHLEVEL__ << std::endl;
-#endif
-#ifdef __clang__
-		std::string modifier = "";
-#ifdef __apple_build_version__
-		modifier = "__apple_build_version__: ";
-#endif
-		std::cout << modifier << "__clang_major__=" << __clang_major__ << " __clang_minor__=" << 	__clang_minor__ << " __clang_patchlevel__=" << __clang_patchlevel__ << std::endl;
-#endif
-		std::cout << "sizeof(void*) == " << sizeof(void*) << std::endl;
-#endif
-#ifdef ITHARE_OBF_SEED
-		std::cout << "ITHARE_OBF_SEED=" << std::hex << ITHARE_OBF_SEED << std::dec << std::endl;
-#endif
-#ifdef ITHARE_OBF_SEED2
-		std::cout << "ITHARE_OBF_SEED2=" << std::hex << ITHARE_OBF_SEED2 << std::dec << std::endl;
-#endif
+	//...
 
 	ITOBF obf_init();
 	{
