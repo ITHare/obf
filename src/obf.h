@@ -114,55 +114,46 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define ITHARE_OBF_INT5 ITHARE_KSCOPE_INT5
 #define ITHARE_OBF_INT6 ITHARE_KSCOPE_INT6
 
+#define ITHARE_OBF_INTLIT0 ITHARE_KSCOPE_INTLIT0
+#define ITHARE_OBF_INTLIT1 ITHARE_KSCOPE_INTLIT1
+#define ITHARE_OBF_INTLIT2 ITHARE_KSCOPE_INTLIT2
+#define ITHARE_OBF_INTLIT3 ITHARE_KSCOPE_INTLIT3
+#define ITHARE_OBF_INTLIT4 ITHARE_KSCOPE_INTLIT4
+#define ITHARE_OBF_INTLIT5 ITHARE_KSCOPE_INTLIT5
+#define ITHARE_OBF_INTLIT6 ITHARE_KSCOPE_INTLIT6
+
+//INTLIT?I: INTLIT?I casted to integer (to use literals in function calls)
+#define ITHARE_OBF_INTLIT0I ITHARE_KSCOPE_INTLIT0I
+#define ITHARE_OBF_INTLIT1I ITHARE_KSCOPE_INTLIT1I
+#define ITHARE_OBF_INTLIT2I ITHARE_KSCOPE_INTLIT2I
+#define ITHARE_OBF_INTLIT3I ITHARE_KSCOPE_INTLIT3I
+#define ITHARE_OBF_INTLIT4I ITHARE_KSCOPE_INTLIT4I
+#define ITHARE_OBF_INTLIT5I ITHARE_KSCOPE_INTLIT5I
+#define ITHARE_OBF_INTLIT6I ITHARE_KSCOPE_INTLIT6I
+
+#define ITHARE_OBF_STRLIT0 ITHARE_KSCOPE_STRLIT0
+#define ITHARE_OBF_STRLIT1 ITHARE_KSCOPE_STRLIT1
+#define ITHARE_OBF_STRLIT2 ITHARE_KSCOPE_STRLIT2
+#define ITHARE_OBF_STRLIT3 ITHARE_KSCOPE_STRLIT3
+#define ITHARE_OBF_STRLIT4 ITHARE_KSCOPE_STRLIT4
 #define ITHARE_OBF_STRLIT5 ITHARE_KSCOPE_STRLIT5
+#define ITHARE_OBF_STRLIT6 ITHARE_KSCOPE_STRLIT6
 
-/*#define ITHARE_KSCOPE_INT0C(type) ithare::kscope::KscopeIntDbg<type>
-#define ITHARE_KSCOPE_INT1C(type) ithare::kscope::KscopeIntDbg<type>
-#define ITHARE_KSCOPE_INT2C(type) ithare::kscope::KscopeIntDbg<type>
-#define ITHARE_KSCOPE_INT3C(type) ithare::kscope::KscopeIntDbg<type>
-#define ITHARE_KSCOPE_INT4C(type) ithare::kscope::KscopeIntDbg<type>
-#define ITHARE_KSCOPE_INT5C(type) ithare::kscope::KscopeIntDbg<type>
-#define ITHARE_KSCOPE_INT6C(type) ithare::kscope::KscopeIntDbg<type>
+#define ITHARE_OBF_INT_CONSTEXPR ITHARE_KSCOPE_INT_CONSTEXPR
+#define ITHARE_OBF_INTNULLPTR ITHARE_KSCOPE_INTNULLPTR 
 
-#define ITHARE_KSCOPE_INTNULLPTR ((ithare::kscope::KscopeIntDbg<int>*)nullptr)
+#define ITHARE_OBF_CALL0 ITHARE_KSCOPE_CALL0
+#define ITHARE_OBF_CALL1 ITHARE_KSCOPE_CALL1
+#define ITHARE_OBF_CALL2 ITHARE_KSCOPE_CALL2
+#define ITHARE_OBF_CALL3 ITHARE_KSCOPE_CALL3
+#define ITHARE_OBF_CALL4 ITHARE_KSCOPE_CALL4
+#define ITHARE_OBF_CALL5 ITHARE_KSCOPE_CALL5
+#define ITHARE_OBF_CALL6 ITHARE_KSCOPE_CALL6
+#define ITHARE_OBF_CALL_AS_CONSTEXPR ITHARE_KSCOPE_CALL_AS_CONSTEXPR
 
-#define ITHARE_KSCOPE_INTLIT0(c) ithare::kscope::KscopeLiteralDbg<typename std::remove_cv<decltype(c)>::type,c>()
-#define ITHARE_KSCOPE_INTLIT1(c) ithare::kscope::KscopeLiteralDbg<typename std::remove_cv<decltype(c)>::type,c>()
-#define ITHARE_KSCOPE_INTLIT2(c) ithare::kscope::KscopeLiteralDbg<typename std::remove_cv<decltype(c)>::type,c>()
-#define ITHARE_KSCOPE_INTLIT3(c) ithare::kscope::KscopeLiteralDbg<typename std::remove_cv<decltype(c)>::type,c>()
-#define ITHARE_KSCOPE_INTLIT4(c) ithare::kscope::KscopeLiteralDbg<typename std::remove_cv<decltype(c)>::type,c>()
-#define ITHARE_KSCOPE_INTLIT5(c) ithare::kscope::KscopeLiteralDbg<typename std::remove_cv<decltype(c)>::type,c>()
-#define ITHARE_KSCOPE_INTLIT6(c) ithare::kscope::KscopeLiteralDbg<typename std::remove_cv<decltype(c)>::type,c>()
-
-#define ITHARE_KSCOPE_INTLIT0I(c) ithare::kscope::KscopeIntDbg<typename std::remove_cv<decltype(c)>::type>(ITHARE_KSCOPE_INTLIT0(c))
-#define ITHARE_KSCOPE_INTLIT1I(c) ithare::kscope::KscopeIntDbg<typename std::remove_cv<decltype(c)>::type>(ITHARE_KSCOPE_INTLIT1(c))
-#define ITHARE_KSCOPE_INTLIT2I(c) ithare::kscope::KscopeIntDbg<typename std::remove_cv<decltype(c)>::type>(ITHARE_KSCOPE_INTLIT2(c))
-#define ITHARE_KSCOPE_INTLIT3I(c) ithare::kscope::KscopeIntDbg<typename std::remove_cv<decltype(c)>::type>(ITHARE_KSCOPE_INTLIT3(c))
-#define ITHARE_KSCOPE_INTLIT4I(c) ithare::kscope::KscopeIntDbg<typename std::remove_cv<decltype(c)>::type>(ITHARE_KSCOPE_INTLIT4(c))
-#define ITHARE_KSCOPE_INTLIT5I(c) ithare::kscope::KscopeIntDbg<typename std::remove_cv<decltype(c)>::type>(ITHARE_KSCOPE_INTLIT5(c))
-#define ITHARE_KSCOPE_INTLIT6I(c) ithare::kscope::KscopeIntDbg<typename std::remove_cv<decltype(c)>::type>(ITHARE_KSCOPE_INTLIT6(c))
-
-#define ITHARE_KSCOPE_STRLIT0(s) ITHARE_KSCOPE_STR_DBG_HELPER(s)()
-#define ITHARE_KSCOPE_STRLIT1(s) ITHARE_KSCOPE_STR_DBG_HELPER(s)()
-#define ITHARE_KSCOPE_STRLIT2(s) ITHARE_KSCOPE_STR_DBG_HELPER(s)()
-#define ITHARE_KSCOPE_STRLIT3(s) ITHARE_KSCOPE_STR_DBG_HELPER(s)()
-#define ITHARE_KSCOPE_STRLIT4(s) ITHARE_KSCOPE_STR_DBG_HELPER(s)()
-#define ITHARE_KSCOPE_STRLIT5(s) ITHARE_KSCOPE_STR_DBG_HELPER(s)()
-#define ITHARE_KSCOPE_STRLIT6(s) ITHARE_KSCOPE_STR_DBG_HELPER(s)()
-
-#define ITHARE_KSCOPE_CALL0(fname) fname<0>
-#define ITHARE_KSCOPE_CALL1(fname) fname<0>
-#define ITHARE_KSCOPE_CALL2(fname) fname<0>
-#define ITHARE_KSCOPE_CALL3(fname) fname<0>
-#define ITHARE_KSCOPE_CALL4(fname) fname<0>
-#define ITHARE_KSCOPE_CALL5(fname) fname<0>
-#define ITHARE_KSCOPE_CALL6(fname) fname<0>
-#define ITHARE_KSCOPE_CALL_AS_CONSTEXPR(fname) fname<ithare::kscope::kscope_flag_is_constexpr>
-
-#define ITHARE_KSCOPE_VALUE(x) x.value()
-#define ITHARE_KSCOPE_ARRAY_OF_SAME_TYPE_AS(arr) typename std::remove_cv<typename std::remove_reference<decltype(*arr)>::type>::type
-#define ITHARE_KSCOPE_PTR_OF_SAME_TYPE_AS(arr) typename std::remove_cv<typename std::remove_reference<decltype(*arr)>::type>::type*
-*/
+#define ITHARE_OBF_VALUE ITHARE_KSCOPE_VALUE
+#define ITHARE_OBF_ARRAY_OF_SAME_TYPE_AS ITHARE_KSCOPE_ARRAY_OF_SAME_TYPE_AS
+#define ITHARE_OBF_PTR_OF_SAME_TYPE_AS ITHARE_KSCOPE_PTR_OF_SAME_TYPE_AS
 
 #define ITHARE_OBF_DBGPRINT ITHARE_KSCOPE_DBGPRINT
 
@@ -176,7 +167,39 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define OBFI5 ITHARE_OBF_INT5
 #define OBFI6 ITHARE_OBF_INT6
 
+#define OBFI0L ITHARE_OBF_INTLIT0
+#define OBFI1L ITHARE_OBF_INTLIT1
+#define OBFI2L ITHARE_OBF_INTLIT2
+#define OBFI3L ITHARE_OBF_INTLIT3
+#define OBFI4L ITHARE_OBF_INTLIT4
+#define OBFI5L ITHARE_OBF_INTLIT5
+#define OBFI6L ITHARE_OBF_INTLIT6
+
+#define OBFI0LI ITHARE_OBF_INTLIT0I
+#define OBFI1LI ITHARE_OBF_INTLIT1I
+#define OBFI2LI ITHARE_OBF_INTLIT2I
+#define OBFI3LI ITHARE_OBF_INTLIT3I
+#define OBFI4LI ITHARE_OBF_INTLIT4I
+#define OBFI5LI ITHARE_OBF_INTLIT5I
+#define OBFI6LI ITHARE_OBF_INTLIT6I
+
+#define OBFS0L ITHARE_OBF_STRLIT0
+#define OBFS1L ITHARE_OBF_STRLIT1
+#define OBFS2L ITHARE_OBF_STRLIT2
+#define OBFS3L ITHARE_OBF_STRLIT3
+#define OBFS4L ITHARE_OBF_STRLIT4
 #define OBFS5L ITHARE_OBF_STRLIT5
+#define OBFS6L ITHARE_OBF_STRLIT6
+
+#define OBFICE ITHARE_OBF_INT_CONSTEXPR
+#define OBFINULLPTR ITHARE_OBF_INTNULLPTR
+
+#define OBFCALL6 ITHARE_OBF_CALL6
+#define OBFCALLCE ITHARE_OBF_CALL_AS_CONSTEXPR
+
+#define OBFVAL ITHARE_OBF_VALUE
+#define OBFSTARR ITHARE_OBF_ARRAY_OF_SAME_TYPE_AS
+#define OBFSTPTR ITHARE_KSCOPE_PTR_OF_SAME_TYPE_AS
 
 #endif //ITHARE_OBF_NO_SHORT_DEFINES
 
