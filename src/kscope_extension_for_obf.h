@@ -34,7 +34,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define ithare_obf_kscope_extension_for_obf_h_included
 
 #ifdef ithare_kscope_kscope_h_included
-#error IF using kscope extension, it MUST be included BEFORE kscope.h. See test/officialtest.cpp for usage example
+#error IF using kscope extension, it MUST be included BEFORE kscope.h
 #endif
 
 #include <atomic>

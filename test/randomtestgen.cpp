@@ -35,11 +35,14 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "../../kscope/test/randomtestgen.h"
 
+static const char* obf_randomtest_files[] = { "../obftest.cpp", nullptr };
+
 class ObfTestEnvironment : public KscopeTestEnvironment {
 	public:
 	virtual std::string test_src_dir() override { return  src_dir_prefix + "../../../kscope/test/"; }
-	virtual std::string always_define() override {
+	virtual std::string file_list() override { return KscopeTestEnvironment::file_list() + make_file_list(obf_randomtest_files,src_dir_prefix); }
 	
+	virtual std::string always_define() override {
 	//path is relative to kscope/test
 #ifdef __GNUC__ //includes clang
 #ifdef __apple_build_version__
@@ -84,7 +87,6 @@ class ObfTestEnvironment : public KscopeTestEnvironment {
 		}
 		return "";
 	}
-
 #endif
 };
 

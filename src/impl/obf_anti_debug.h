@@ -67,7 +67,7 @@ namespace ithare { namespace obf {
 			return;
 		}
 		ITHARE_KSCOPE_FORCEINLINE static uint8_t zero_if_not_being_debugged() {
-#ifdef ITHARE_KSCOPE_DEBUG_ANTI_DEBUG_ALWAYS_FALSE
+#ifdef ITHARE_OBF_DBG_ANTI_DEBUG_ALWAYS_FALSE
 			return 0;
 #else
 			return obf_peb[2];
@@ -147,7 +147,7 @@ namespace ithare { namespace obf {
 		}
 		
 		ITHARE_KSCOPE_FORCEINLINE static uint8_t zero_if_not_being_debugged() {
-#ifdef ITHARE_OBF_DEBUG_ANTI_DEBUG_ALWAYS_FALSE
+#ifdef ITHARE_OBF_DBG_ANTI_DEBUG_ALWAYS_FALSE
 			return 0;
 #else
 			return (obf_kp_proc_p_flag & P_TRACED) + MACH_PORT_VALID(obf_mach_port);
@@ -176,7 +176,7 @@ namespace ithare { namespace obf {
 		ITHARE_KSCOPE_FORCEINLINE static void init() {//TODO/decide: ?should we obfuscate this function itself?
 		}
 		ITHARE_KSCOPE_FORCEINLINE static uint8_t zero_if_not_being_debugged() {
-#ifdef ITHARE_OBF_DEBUG_ANTI_DEBUG_ALWAYS_FALSE
+#ifdef ITHARE_OBF_DBG_ANTI_DEBUG_ALWAYS_FALSE
 			return 0;
 #else
 			return zero;
