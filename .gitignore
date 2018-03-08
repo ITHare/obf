@@ -11,6 +11,7 @@
 /test/nix/randomtest
 /test/nix/randomtest-obf
 /test/nix/*.o
+/test/nix/*.o-*
 
 /.vs
 /test/win/officialtest/.vs
