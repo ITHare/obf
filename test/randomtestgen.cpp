@@ -79,11 +79,11 @@ class ObfTestEnvironment : public KscopeTestEnvironment {
 		std::string objlist0 = replace_string(cpplist,".cpp",".o");
 		std::string objlist1 = replace_string(objlist0,test_src_dir(),"");
 		std::string objlist = replace_string(objlist1,"../","");
-		return MultiString{{
+		return MultiString{
 			"$CXX -c" + compiler_options_release() + " -DITHARE_KSCOPE_TEST_EXTENSION=\"../../obf/src/kscope_extension_for_obf.h\"" + kscopedefs + opts + KscopeTestEnvironment::file_list(),
 			"$CXX -c" + compiler_options_release() + " -DITHARE_KSCOPE_TEST_EXTENSION=\"../../obf/src/kscope_extension_for_obf.h\"" + obfdefs    + opts + make_file_list(obf_randomtest_files,src_dir_prefix),
 			"$CXX" + linker_options_release() + lopt_extra + opts + objlist
-			}};
+			};
 	}
 	virtual MultiString build_debug(MultiString defines,std::string opts) override {
 		std::string kscopedefs = "";
@@ -97,11 +97,11 @@ class ObfTestEnvironment : public KscopeTestEnvironment {
 		std::string objlist0 = replace_string(cpplist,".cpp",".o");
 		std::string objlist1 = replace_string(objlist0,test_src_dir(),"");
 		std::string objlist = replace_string(objlist1,"../","");
-		return MultiString{{
+		return MultiString{
 			"$CXX -c" + compiler_options_debug() + " -DITHARE_KSCOPE_TEST_EXTENSION=\"../../obf/src/kscope_extension_for_obf.h\"" + kscopedefs + opts + KscopeTestEnvironment::file_list(),
 			"$CXX -c" + compiler_options_debug() + " -DITHARE_KSCOPE_TEST_EXTENSION=\"../../obf/src/kscope_extension_for_obf.h\"" + obfdefs    + opts + make_file_list(obf_randomtest_files,src_dir_prefix),
 			"$CXX" + linker_options_debug() + lopt_extra + opts + objlist
-			}};
+			};
 	}
 #elif defined(_MSC_VER)
 	virtual MultiString build_release(MultiString defines,std::string opts) {
@@ -116,11 +116,11 @@ class ObfTestEnvironment : public KscopeTestEnvironment {
 		std::string objlist0 = replace_string(cpplist,".cpp",".obj");
 		std::string objlist1 = replace_string(objlist0,test_src_dir(),"");
 		std::string objlist = replace_string(objlist1,"../","");
-		return MultiString{{
-			"cl /c" + compiler_options_release() + " /DITHARE_KSCOPE_TEST_EXTENSION=\"../../obf/src/kscope_extension_for_obf.h\"" + defs + opts + KscopeTestEnvironment::file_list(),
-			"cl /c" + compiler_options_release() + " /DITHARE_KSCOPE_TEST_EXTENSION=\"../../obf/src/kscope_extension_for_obf.h\"" + defs + opts + make_file_list(obf_randomtest_files,src_dir_prefix),
-			"link " + linker_options_release() + opts + objlist;
-			}};
+		return MultiString{
+			"cl /c" + compiler_options_release() + " /DITHARE_KSCOPE_TEST_EXTENSION=\"../../obf/src/kscope_extension_for_obf.h\"" + kscopedefs + opts + KscopeTestEnvironment::file_list(),
+			"cl /c" + compiler_options_release() + " /DITHARE_KSCOPE_TEST_EXTENSION=\"../../obf/src/kscope_extension_for_obf.h\"" + obfdefs + opts + make_file_list(obf_randomtest_files,src_dir_prefix),
+			"cl " + linker_options_release() + opts + objlist
+			};
 	}
 	virtual MultiString build_debug(MultiString defines,std::string opts) {
 		std::string kscopedefs = "";
@@ -134,11 +134,11 @@ class ObfTestEnvironment : public KscopeTestEnvironment {
 		std::string objlist0 = replace_string(cpplist,".cpp",".obj");
 		std::string objlist1 = replace_string(objlist0,test_src_dir(),"");
 		std::string objlist = replace_string(objlist1,"../","");
-		return MultiString{{
-			"cl /c" + compiler_options_debug() + " /DITHARE_KSCOPE_TEST_EXTENSION=\"../../obf/src/kscope_extension_for_obf.h\"" + defs + opts + KscopeTestEnvironment::file_list(),
-			"cl /c" + compiler_options_debug() + " /DITHARE_KSCOPE_TEST_EXTENSION=\"../../obf/src/kscope_extension_for_obf.h\"" + defs + opts + make_file_list(obf_randomtest_files,src_dir_prefix),
-			"link " + linker_options_debug() + opts + objlist;
-			}};
+		return MultiString{
+			"cl /c" + compiler_options_debug() + " /DITHARE_KSCOPE_TEST_EXTENSION=\"../../obf/src/kscope_extension_for_obf.h\"" + kscopedefs + opts + KscopeTestEnvironment::file_list(),
+			"cl /c" + compiler_options_debug() + " /DITHARE_KSCOPE_TEST_EXTENSION=\"../../obf/src/kscope_extension_for_obf.h\"" + obfdefs + opts + make_file_list(obf_randomtest_files,src_dir_prefix),
+			"cl " + linker_options_debug() + opts + objlist
+			};
 	}
 #endif
 	

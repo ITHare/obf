@@ -37,3 +37,4 @@
 /test/win/randomtest.pdb
 /test/win/randomtest.ilk
 /test/win/randomtest-obf.exe
+/test/win/*.obj
